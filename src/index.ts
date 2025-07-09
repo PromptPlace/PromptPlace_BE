@@ -1,6 +1,7 @@
 import express, { ErrorRequestHandler } from 'express';
 import { responseHandler } from "./middlewares/responseHandler";
 import { errorHandler } from "./middlewares/errorHandler";
+import passport from './config/passport';
 import swaggerUi from 'swagger-ui-express';
 // import * as swaggerDocument from './docs/swagger/swagger.json'; 
 // import { RegisterRoutes } from './routes/routes'; // tsoa가 생성하는 파일
@@ -8,6 +9,7 @@ import swaggerUi from 'swagger-ui-express';
 const app = express();
 app.use(express.json());
 app.use(responseHandler);
+app.use(passport.initialize());
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 const PORT = 3000;
 
