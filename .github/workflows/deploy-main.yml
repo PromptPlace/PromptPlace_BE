@@ -65,3 +65,10 @@ jobs:
       - name: Restart systemd service
         run: |
           ssh promptplace 'sudo systemctl restart app'
+
+      - name: Run Prisma Migrate on EC2
+        run: |
+          ssh promptplace '
+            cd /opt/app &&
+            pnpm install &&
+            npx prisma migrate deploy'
