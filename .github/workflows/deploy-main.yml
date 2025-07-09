@@ -70,5 +70,6 @@ jobs:
         run: |
           ssh promptplace '
             cd /opt/app &&
+            echo "${{ secrets.ENV_CONTENT }}" > .env &&
             pnpm install &&
             npx prisma migrate deploy'
