@@ -1,0 +1,14 @@
+{
+  "entryFile": "src/index.ts",
+  "controllerPathGlobs": ["src/*/controllers/*.ts"],
+  "spec": {
+    "outputDirectory": "src/docs/swagger",
+    "specVersion": 3,
+    "basePath": "/",
+    "schemes": ["http"],
+    "tags": []
+  },
+  "routes": {
+    "routesDir": "src/routes"
+  }
+}
