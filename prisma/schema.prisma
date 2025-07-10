@@ -25,51 +25,51 @@ enum Role {
 }
 
 model User {
-  user_id       BigInt   @id @default(autoincrement())
-  name          String   @db.VarChar(10)
-  nickname      String   @db.VarChar(50)
-  email         String   @db.VarChar(255)
-  social_type   String   @db.VarChar(50)
+  user_id       Int       @id @default(autoincrement())
+  name          String    @db.VarChar(10)
+  nickname      String    @db.VarChar(50)
+  email         String    @db.VarChar(255)
+  social_type   String    @db.VarChar(50)
   status        Boolean
   inactive_date DateTime?
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-  role          Role     @default(USER)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  role          Role      @default(USER)
 
   // Relations
-profile       UserProfile?
-sns_list      UserSNS[]
-followings    Following[] @relation("Follower")
-followers     Following[] @relation("Following")
-notices       Notice[]
-tips          Tip[]
-notifications Notification[]
-messagesSent  Message[] @relation("MessageSender")
-messagesReceived Message[] @relation("MessageReceiver")
-inquiries     Inquiry[] @relation("InquirySender")
-inquiries_received Inquiry[] @relation("InquiryReceiver")
-replies       InquiryReply[]
-withdraw_requests WithdrawRequest[]
-prompts       Prompt[]
-prompt_reports PromptReport[]
-purchases     Purchase[]
-reviews       Review[]
+  profile            UserProfile?
+  sns_list           UserSNS[]
+  followings         Following[]       @relation("Follower")
+  followers          Following[]       @relation("Following")
+  notices            Notice[]
+  tips               Tip[]
+  notifications      Notification[]
+  messagesSent       Message[]         @relation("MessageSender")
+  messagesReceived   Message[]         @relation("MessageReceiver")
+  inquiries          Inquiry[]         @relation("InquirySender")
+  inquiries_received Inquiry[]         @relation("InquiryReceiver")
+  replies            InquiryReply[]
+  withdraw_requests  WithdrawRequest[]
+  prompts            Prompt[]
+  prompt_reports     PromptReport[]
+  purchases          Purchase[]
+  reviews            Review[]
 }
 
 model UserProfile {
-  profile_id BigInt  @id @default(autoincrement())
-  user_id    BigInt  @unique
-  description String @db.VarChar(255)
+  profile_id  Int      @id @default(autoincrement())
+  user_id     Int      @unique
+  description String   @db.VarChar(255)
   history     String
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
-  user        User    @relation(fields: [user_id], references: [user_id])
+  user User @relation(fields: [user_id], references: [user_id])
 }
 
 model UserSNS {
-  sns_id      BigInt   @id @default(autoincrement())
-  user_id     BigInt
+  sns_id      Int      @id @default(autoincrement())
+  user_id     Int
   url         String
   description String
   created_at  DateTime @default(now())
@@ -79,19 +79,19 @@ model UserSNS {
 }
 
 model Following {
-  follow_id   BigInt   @id @default(autoincrement())
-  follower_id BigInt
-  following_id BigInt
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  follow_id    Int      @id @default(autoincrement())
+  follower_id  Int
+  following_id Int
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
 
-  follower User @relation("Follower", fields: [follower_id], references: [user_id])
+  follower  User @relation("Follower", fields: [follower_id], references: [user_id])
   following User @relation("Following", fields: [following_id], references: [user_id])
 }
 
 model Notice {
-  notice_id  BigInt   @id @default(autoincrement())
-  writer_id  BigInt
+  notice_id  Int      @id @default(autoincrement())
+  writer_id  Int
   title      String
   content    String   @db.Text
   is_pinned  Boolean
@@ -105,38 +105,38 @@ model Notice {
 }
 
 model Tip {
-  tip_id      BigInt   @id @default(autoincrement())
-  writer_id   BigInt
-  title       String
-  content     String   @db.Text
-  is_visible  Boolean
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  tip_id     Int      @id @default(autoincrement())
+  writer_id  Int
+  title      String
+  content    String   @db.Text
+  is_visible Boolean
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   writer User @relation(fields: [writer_id], references: [user_id])
 }
 
 model Notification {
-  notification_id BigInt   @id @default(autoincrement())
-  user_id         BigInt
+  notification_id Int      @id @default(autoincrement())
+  user_id         Int
   content         String   @db.Text
   created_at      DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  updated_at      DateTime @updatedAt
 
   user User @relation(fields: [user_id], references: [user_id])
 }
 
 model Message {
-  message_id BigInt   @id @default(autoincrement())
-  sender_id   BigInt
-  receiver_id BigInt
-  title      String   
-  body       String   @db.Text
-  is_read    Boolean  @default(false)
-  read_at    DateTime?
-  is_deleted Boolean  @default(false)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  message_id  Int       @id @default(autoincrement())
+  sender_id   Int
+  receiver_id Int
+  title       String
+  body        String    @db.Text
+  is_read     Boolean   @default(false)
+  read_at     DateTime?
+  is_deleted  Boolean   @default(false)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
 
   sender   User @relation("MessageSender", fields: [sender_id], references: [user_id])
   receiver User @relation("MessageReceiver", fields: [receiver_id], references: [user_id])
@@ -153,15 +153,15 @@ enum InquiryStatus {
 }
 
 model Inquiry {
-  inquiry_id   BigInt   @id @default(autoincrement())
-  sender_id    BigInt
-  receiver_id  BigInt
-  type         InquiryType
-  status       InquiryStatus
-  title        String
-  content      String   @db.Text
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
+  inquiry_id  Int           @id @default(autoincrement())
+  sender_id   Int
+  receiver_id Int
+  type        InquiryType
+  status      InquiryStatus
+  title       String
+  content     String        @db.Text
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
 
   sender   User @relation("InquirySender", fields: [sender_id], references: [user_id])
   receiver User @relation("InquiryReceiver", fields: [receiver_id], references: [user_id])
@@ -170,9 +170,9 @@ model Inquiry {
 }
 
 model InquiryReply {
-  reply_id    BigInt   @id @default(autoincrement())
-  inquiry_id  BigInt
-  receiver_id     BigInt
+  reply_id    Int      @id @default(autoincrement())
+  inquiry_id  Int
+  receiver_id Int
   content     String   @db.Text
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
@@ -182,101 +182,101 @@ model InquiryReply {
 }
 
 model WithdrawRequest {
-  withdraw_request_id  BigInt   @id @default(autoincrement())
-  user_id     BigInt
-  amount      Int
-  status      Status
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  withdraw_request_id Int      @id @default(autoincrement())
+  user_id             Int
+  amount              Int
+  status              Status
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
 
   user User @relation(fields: [user_id], references: [user_id])
 }
 
 model Prompt {
-  prompt_id     BigInt   @id @default(autoincrement())
-  user_id       BigInt
+  prompt_id     Int       @id @default(autoincrement())
+  user_id       Int
   title         String    @db.Text
-  prompt         String   @db.Text
-  prompt_result  String   @db.Text
+  prompt        String    @db.Text
+  prompt_result String    @db.Text
   has_image     Boolean
-  description    String   @db.Text
-  usage_guide    String   @db.Text
+  description   String    @db.Text
+  usage_guide   String    @db.Text
   price         Int
   is_free       Boolean
-  downloads     BigInt
-  views         BigInt
-  likes         BigInt
-  review_counts BigInt
+  downloads     Int
+  views         Int
+  likes         Int
+  review_counts Int
   rating_avg    Float
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-  inactive_date  DateTime?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  inactive_date DateTime?
 
   // Relations
-  user        User      @relation(fields: [user_id], references: [user_id])
-  images      PromptImage[]
-  tags        PromptTag[]
-  models      PromptModel[]
+  user           User           @relation(fields: [user_id], references: [user_id])
+  images         PromptImage[]
+  tags           PromptTag[]
+  models         PromptModel[]
   prompt_reports PromptReport[]
-  purchases   Purchase[]
-  reviews     Review[]
+  purchases      Purchase[]
+  reviews        Review[]
 }
 
 model PromptModel {
-  promptmodel_id BigInt @id @default(autoincrement())
-  prompt_id      BigInt
-  model_id       BigInt
+  promptmodel_id Int @id @default(autoincrement())
+  prompt_id      Int
+  model_id       Int
 
   prompt Prompt @relation(fields: [prompt_id], references: [prompt_id])
   model  Model  @relation(fields: [model_id], references: [model_id])
 }
 
 model Model {
-  model_id BigInt @id @default(autoincrement())
+  model_id Int    @id @default(autoincrement())
   name     String @db.VarChar(50)
 
   prompt_models PromptModel[]
 }
 
 model PromptTag {
-  prompttag_id BigInt @id @default(autoincrement())
-  prompt_id    BigInt
-  tag_id       BigInt
+  prompttag_id Int @id @default(autoincrement())
+  prompt_id    Int
+  tag_id       Int
 
   prompt Prompt @relation(fields: [prompt_id], references: [prompt_id])
   tag    Tag    @relation(fields: [tag_id], references: [tag_id])
 }
 
 model Tag {
-  tag_id BigInt  @id @default(autoincrement())
-  name   String  @db.VarChar(50)
+  tag_id Int    @id @default(autoincrement())
+  name   String @db.VarChar(50)
 
-  prompt_tags    PromptTag[]
+  prompt_tags PromptTag[]
 }
 
 model PromptImage {
-  image_id   BigInt   @id @default(autoincrement())
-  prompt_id  BigInt
-  image_url  String   @db.Text
+  image_id    Int      @id @default(autoincrement())
+  prompt_id   Int
+  image_url   String   @db.Text
   order_index Int
-  created_at DateTime @default(now())
-  updated_at   DateTime @updatedAt
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
   prompt Prompt @relation(fields: [prompt_id], references: [prompt_id])
 }
 
 model PromptReport {
   report_id   Int      @id @default(autoincrement())
-  user_id     BigInt
-  prompt_id   BigInt
+  user_id     Int
+  prompt_id   Int
   category_id Int
   content     String   @db.Text
   created_at  DateTime @default(now())
-  updated_at   DateTime @updatedAt
+  updated_at  DateTime @updatedAt
 
-  user     User             @relation(fields: [user_id], references: [user_id])
-  prompt   Prompt           @relation(fields: [prompt_id], references: [prompt_id])
-  category ReportCategory   @relation(fields: [category_id], references: [category_id])
+  user     User           @relation(fields: [user_id], references: [user_id])
+  prompt   Prompt         @relation(fields: [prompt_id], references: [prompt_id])
+  category ReportCategory @relation(fields: [category_id], references: [category_id])
 }
 
 model ReportCategory {
@@ -284,7 +284,7 @@ model ReportCategory {
   name        String
 
   prompt_reports PromptReport[]
-  details ReportCategoryDetail[]
+  details        ReportCategoryDetail[]
 }
 
 model ReportCategoryDetail {
@@ -296,36 +296,36 @@ model ReportCategoryDetail {
 }
 
 model Purchase {
-  purchase_id  BigInt   @id @default(autoincrement())
-  user_id      BigInt
-  prompt_id    BigInt
-  amount       Int
-  is_free      Boolean
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
+  purchase_id Int      @id @default(autoincrement())
+  user_id     Int
+  prompt_id   Int
+  amount      Int
+  is_free     Boolean
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
-  user         User     @relation(fields: [user_id], references: [user_id])
-  prompt       Prompt   @relation(fields: [prompt_id], references: [prompt_id])
-  payment      Payment?
+  user    User     @relation(fields: [user_id], references: [user_id])
+  prompt  Prompt   @relation(fields: [prompt_id], references: [prompt_id])
+  payment Payment?
 }
 
 model Payment {
-  payment_id   BigInt   @id @default(autoincrement())
-  purchase_id  BigInt   @unique
+  payment_id   Int      @id @default(autoincrement())
+  purchase_id  Int      @unique
   status       Status
   provider     String   @db.VarChar(50)
   iamport_uid  String
   merchant_uid String
-  created_at DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
 
-  purchase     Purchase @relation(fields: [purchase_id], references: [purchase_id])
-  settlement   Settlement?
+  purchase   Purchase    @relation(fields: [purchase_id], references: [purchase_id])
+  settlement Settlement?
 }
 
 model Settlement {
-  settlement_id BigInt   @id @default(autoincrement())
-  payment_id    BigInt   @unique
+  settlement_id Int      @id @default(autoincrement())
+  payment_id    Int      @unique
   amount        Int
   fee           Int
   status        Status
@@ -336,13 +336,13 @@ model Settlement {
 }
 
 model Review {
-  review_id  BigInt      @id @default(autoincrement())
+  review_id  Int      @id @default(autoincrement())
   rating     Float
-  content    String      @db.Text
-  created_at DateTime    @default(now())
-  updated_at DateTime    @updatedAt
-  user_id    BigInt
-  prompt_id  BigInt
+  content    String   @db.Text
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  user_id    Int
+  prompt_id  Int
 
   user   User   @relation(fields: [user_id], references: [user_id])
   prompt Prompt @relation(fields: [prompt_id], references: [prompt_id])
