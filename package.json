@@ -21,6 +21,7 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
+    "passport-naver-v2": "^2.0.8",
     "reflect-metadata": "^0.2.2",
     "swagger-autogen": "^2.23.7",
     "swagger-jsdoc": "^6.2.8",
