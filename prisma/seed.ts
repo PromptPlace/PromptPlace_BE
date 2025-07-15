@@ -170,21 +170,20 @@ async function main() {
     });
     inquiryReplies.push(inquiryReply);
   }
-  // 13. announcement ---> prisma에 등록 안댐
-  const notices = [];
+  // 13. announcement
+  const announcement = [];
   for (let i=0; i<5; i++){
-    const notice = await prisma.notice.create({
+    const notice = await prisma.announcement.create({
       data: {
         writer_id: userIds[i % userIds.length],
         title: `공지 제목 ${i+1}`,
         content: `공지 내용 ${i+1}`,
-        is_pinned: i % 2 === 0, 
         is_visible: i % 2 === 0,
         updated_at: new Date(),
         file_url: `https://example.com/announcement${i+1}.pdf`
       },
     });
-    notices.push(notice);
+    announcement.push(notice);
   }
 
   // 12. Tip(공지사항)
@@ -201,16 +200,16 @@ async function main() {
     tips.push(tip);
   }
 
-  // 13. nontification(알림)
-  const notifications = [];
+  // 13. announcement(알림)
+  const announcements = [];
   for (let i = 0; i < 5; i++) {
-    const notification = await prisma.notification.create({
+    const announcement = await prisma.announcement.create({
       data: {
         user_id: userIds[i % userIds.length],
         content: `알림 내용 ${i + 1}`,
       },
     });
-    notifications.push(notification);
+    announcements.push(announcement);
   }
 
   // 14. review (리뷰)
