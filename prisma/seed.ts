@@ -117,18 +117,9 @@ async function main() {
     userSNSList.push(userSNS);
   }
 
-  // 9. userProfile
-  const userProfiles = [];
-  for(let i=0; i<5; i++){
-    const userProfile = await prisma.userProfile.create({
-      data: {
-        user_id: userIds[i % userIds.length],
-        description: `사용자 프로필 설명 ${i+1}`,
-        history: `사용자 프로필 히스토리 ${i+1}`,
-      },
-    });
-    userProfiles.push(userProfile);
-  }
+  
+
+  // 9. userProfile->이미 존재하므로 생략
 
   // 10. following
   const followings = [];
@@ -186,7 +177,7 @@ async function main() {
     announcement.push(notice);
   }
 
-  // 12. Tip(공지사항)
+  // 12. Tip
   const tips = [];
   for (let i = 0; i < 5; i++) {
     const tip = await prisma.tip.create({
@@ -200,16 +191,16 @@ async function main() {
     tips.push(tip);
   }
 
-  // 13. announcement(알림)
-  const announcements = [];
+  // 13. notification(알림)
+  const notifications = [];
   for (let i = 0; i < 5; i++) {
-    const announcement = await prisma.announcement.create({
+    const notification = await prisma.notification.create({
       data: {
         user_id: userIds[i % userIds.length],
         content: `알림 내용 ${i + 1}`,
       },
     });
-    announcements.push(announcement);
+    notifications.push(notification);
   }
 
   // 14. review (리뷰)
@@ -226,24 +217,9 @@ async function main() {
     reviews.push(review);
   }
 
-  // 15. promptReport 
-  const promptReports = [];
-  for (let i = 0; i < 5; i++) {
-    const promptReport = await prisma.promptReport.create({
-      data: {
-        user_id: userIds[i % userIds.length],
-        report_id: userIds[i % userIds.length],
-        prompt_id: prompts[i].prompt_id,
-        category_id: i % 3 + 1, // 1, 2, 3 반복
-        content: `신고 내용 ${i + 1}`,
-      },
-    });
-    promptReports.push(promptReport);
-  }
-
-  // 16. reportCategory
+  // 15. reportCategory
   const reportCategories = [];
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 4; i++) {
     const reportCategory = await prisma.reportCategory.create({
       data: {
         name: `신고 카테고리 ${i + 1}`,
@@ -252,16 +228,30 @@ async function main() {
     reportCategories.push(reportCategory);
   }
 
-  // 17. reportCategoryDetail
+  // 16. reportCategoryDetail
   const reportCategoryDetails = [];
   for (let i = 0; i < 3; i++) {
     const reportCategoryDetail = await prisma.reportCategoryDetail.create({
       data: {
-        category_id: reportCategories[i % reportCategories.length].category_id,
+        category_id: reportCategories[i].category_id,
         content: `신고 세부 내용 ${i + 1}`,
       },
     });
     reportCategoryDetails.push(reportCategoryDetail);
+  }
+
+    // 17. promptReport 
+  const promptReports = [];
+  for (let i = 0; i < 2; i++) {
+    const promptReport = await prisma.promptReport.create({
+      data: {
+        user_id: userIds[i],
+        prompt_id: prompts[i].prompt_id,
+        category_id: (i % 2 === 0) ? reportCategories[0].category_id : reportCategories[1].category_id,
+        content: `신고 내용 ${i + 1}`,
+      },
+    });
+    promptReports.push(promptReport);
   }
 
   // 18. purchase
@@ -320,3 +310,12 @@ async function main() {
     withdrawRequests.push(withdrawRequest);
   }
 }
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(() => {
+    prisma.$disconnect();
+  });
