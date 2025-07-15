@@ -41,7 +41,7 @@ model User {
   sns_list           UserSNS[]
   followings         Following[]       @relation("Follower")
   followers          Following[]       @relation("Following")
-  notices            Notice[]
+  announcements      Announcement[]
   tips               Tip[]
   notifications      Notification[]
   messagesSent       Message[]         @relation("MessageSender")
@@ -89,12 +89,11 @@ model Following {
   following User @relation("Following", fields: [following_id], references: [user_id])
 }
 
-model Notice {
-  notice_id  Int      @id @default(autoincrement())
+model Announcement {
+  announcement_id  Int      @id @default(autoincrement())
   writer_id  Int
   title      String
   content    String   @db.Text
-  is_pinned  Boolean
   is_visible Boolean
   file_url   String?  @db.VarChar(255)
   created_at DateTime @default(now())
