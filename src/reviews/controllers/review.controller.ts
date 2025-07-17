@@ -20,6 +20,7 @@ export const getReviewsByPromptId = async (
             req.query.cursor,
             req.query.limit
         );
+        
         return res.success(response);
     } catch (err: any) {
         console.error(err);

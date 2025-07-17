@@ -1,11 +1,8 @@
-import {
-    getReviewsByPromptId,
-} from '../controllers/review.controller';
+// review.router.ts 또는 promptReviewRouter.ts
+import express from 'express';
+import { getReviewsByPromptId } from '../controllers/review.controller';
 
-const express = require('express');
-const app = express();
+const router = express.Router({ mergeParams: true }); 
+router.get('/', getReviewsByPromptId);
 
-app.get('/', getReviewsByPromptId); // 리뷰 목록 조회
-
-
-export default app;
+export default router;
