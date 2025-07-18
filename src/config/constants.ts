@@ -1,0 +1,1 @@
+export const DEFAULT_PROMPT_SEARCH_SIZE = 10;
