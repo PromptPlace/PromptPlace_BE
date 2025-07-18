@@ -202,6 +202,7 @@ model Prompt {
   usage_guide   String    @db.Text
   price         Int
   is_free       Boolean
+  download_url  String    @db.Text
   downloads     Int
   views         Int
   likes         Int
