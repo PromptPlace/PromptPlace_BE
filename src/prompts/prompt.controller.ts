@@ -55,8 +55,11 @@ export const presignUrl = async (req: Request, res: Response) => {
         .status(400)
         .json({ message: "key와 contentType이 필요합니다." });
     }
-    const url = await promptService.getPresignedUrl(key, contentType);
-    return res.status(200).json({ url });
+    const { url, key: newKey } = await promptService.getPresignedUrl(
+      key,
+      contentType
+    );
+    return res.status(200).json({ url, key: newKey });
   } catch (error) {
     return errorHandler(error, req, res, () => {});
   }
