@@ -20,6 +20,7 @@ async function main() {
         usage_guide: `사용 가이드 ${i + 1}`,
         price: i * 1000,
         is_free: i % 2 === 0,
+        download_url: `https://example.com/download/prompt-${i + 1}`,
         downloads: i * 10,
         views: i * 100,
         likes: i * 5,
@@ -309,6 +310,18 @@ async function main() {
     });
     withdrawRequests.push(withdrawRequest);
   }
+
+  // 22. promptLike (좋아요)
+const promptLikes = [];
+for (let i = 0; i < 5; i++) {
+  const like = await prisma.promptLike.create({
+    data: {
+      user_id: userIds[i % userIds.length],
+      prompt_id: prompts[i].prompt_id,
+    },
+  });
+  promptLikes.push(like);
+}
 }
 
 main()
