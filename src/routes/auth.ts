@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import googleAuthRouter from './auth/google';
 import naverAuthRouter from './auth/naver';
+import prisma from '../config/prisma';
+import { authenticateJwt } from '../config/passport';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // 소셜 로그인 라우터
 router.use('/google', googleAuthRouter);

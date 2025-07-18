@@ -6,6 +6,7 @@ import passport from './config/passport';
 import swaggerUi from 'swagger-ui-express';
 import session from 'express-session';
 import authRouter from './routes/auth';
+import membersRouter from './members/routes/member.route'; // members 라우터 import
 import promptRoutes from './prompts/prompt.route';
 import promptReviewRouter from './reviews/routes/prompt-review.route';
 import promptLikeRouter from './prompts/routes/prompt.like.route';
@@ -32,6 +33,9 @@ app.use(passport.session());
 
 // 인증 라우터
 app.use('/auth', authRouter);
+
+// 회원 라우터
+app.use('/api/members', membersRouter);
 
 // 프롬프트 리뷰 라우터
 app.use('/api/prompts/:promptId/reviews', promptReviewRouter);
