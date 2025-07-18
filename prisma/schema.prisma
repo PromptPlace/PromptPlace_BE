@@ -51,6 +51,7 @@ model User {
   replies            InquiryReply[]
   withdraw_requests  WithdrawRequest[]
   prompts            Prompt[]
+  prompt_likes       PromptLike[]
   prompt_reports     PromptReport[]
   purchases          Purchase[]
   reviews            Review[]
@@ -87,6 +88,20 @@ model Following {
 
   follower  User @relation("Follower", fields: [follower_id], references: [user_id])
   following User @relation("Following", fields: [following_id], references: [user_id])
+}
+
+model PromptLike {
+  like_id    Int      @id @default(autoincrement())
+  user_id    Int
+  prompt_id  Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  user    User   @relation(fields: [user_id], references: [user_id])
+  prompt  Prompt @relation(fields: [prompt_id], references: [prompt_id])
+
+  @@unique([user_id, prompt_id])
 }
 
 model Announcement {
@@ -217,6 +232,7 @@ model Prompt {
   images         PromptImage[]
   tags           PromptTag[]
   models         PromptModel[]
+  prompt_likes   PromptLike[]
   prompt_reports PromptReport[]
   purchases      Purchase[]
   reviews        Review[]
