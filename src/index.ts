@@ -7,6 +7,7 @@ import swaggerUi from 'swagger-ui-express';
 import session from 'express-session';
 import authRouter from './routes/auth';
 import promptRoutes from './prompts/prompt.route';
+import promptReviewRouter from './reviews/routes/prompt-review.route';
 // import * as swaggerDocument from './docs/swagger/swagger.json'; 
 // import { RegisterRoutes } from './routes/routes'; // tsoa가 생성하는 파일
 
@@ -30,6 +31,9 @@ app.use(passport.session());
 
 // 인증 라우터
 app.use('/auth', authRouter);
+
+// 프롬프트 리뷰 라우터
+app.use('/api/prompts/:promptId/reviews', promptReviewRouter);
 
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 const PORT = 3000;
