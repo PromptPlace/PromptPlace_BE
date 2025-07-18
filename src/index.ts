@@ -8,6 +8,7 @@ import session from 'express-session';
 import authRouter from './routes/auth';
 import promptRoutes from './prompts/prompt.route';
 import promptReviewRouter from './reviews/routes/prompt-review.route';
+import promptLikeRouter from './prompts/routes/prompt.like.route';
 // import * as swaggerDocument from './docs/swagger/swagger.json'; 
 // import { RegisterRoutes } from './routes/routes'; // tsoa가 생성하는 파일
 
@@ -45,6 +46,8 @@ const PORT = 3000;
 // 프롬프트 관련 라우트
   // 프롬프트 검색 API
 app.use('/api/prompts', promptRoutes);
+  // 프롬프트 찜 라우터
+app.use('/api/prompts', promptLikeRouter);
 
 // 예시 라우터
 app.get("/", (req, res) => {
