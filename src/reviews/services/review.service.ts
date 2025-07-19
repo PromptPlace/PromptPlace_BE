@@ -1,32 +1,56 @@
-import { Review } from '@prisma/client';
 import {
-    findAllByPromptId,
-    findNicknameByUserId,
-    countReviewsByPromptId
-} from '../repositories/review.repository';
-
-import {
-    mapToReviewResponseDTO
+  mapToReviewResponse,
+  mapToReviewResponseDTO,
+  
 } from '../dtos/review.dtos';
+import {
+  createReviewInDB,
+  findAllByPromptId,
+  countReviewsByPromptId,
+  findNicknameByUserId,
+  createReview
+} from '../repositories/review.repository';
+import { Review } from '@prisma/client';
+
+
 
 export const findReviewsByPromptId = async (
-    rawPromptId: string,
-    rawCursor?: string,
-    rawLimit?: string
+  rawPromptId: string,
+  rawCursor?: string,
+  rawLimit?: string
 ) => {
-    const promptId = parseInt(rawPromptId, 10);
-    const cursor = rawCursor ? parseInt(rawCursor, 10) : undefined;
-    const limit = rawLimit ? parseInt(rawLimit, 10) : 10;
+  const promptId = parseInt(rawPromptId, 10);
+  const cursor = rawCursor ? parseInt(rawCursor, 10) : undefined;
+  const limit = rawLimit ? parseInt(rawLimit, 10) : 10;
 
-    if (isNaN(promptId)) throw new Error('promptId값이 적절하지 않습니다');
-    if (cursor !== undefined && isNaN(cursor)) throw new Error('cursor값이 적절하지 않습니다');
-    if (isNaN(limit)) throw new Error('limit값이 적절하지 않습니다');
+  if (isNaN(promptId)) throw new Error('promptId값이 적절하지 않습니다');
+  if (cursor !== undefined && isNaN(cursor)) throw new Error('cursor값이 적절하지 않습니다');
+  if (isNaN(limit)) throw new Error('limit값이 적절하지 않습니다');
 
-    const rawReviews: Review[] = await findAllByPromptId(promptId, cursor, limit);
-    const totalCount: number = await countReviewsByPromptId(promptId); // 전체 개수 쿼리
+  const rawReviews: Review[] = await findAllByPromptId(promptId, cursor, limit);
+  const totalCount: number = await countReviewsByPromptId(promptId);
+  const userIds = rawReviews.map(review => review.user_id);
+  const userNicknames = await findNicknameByUserId(userIds);
 
-    const userIds = rawReviews.map(review => review.user_id);
-    const userNicknames = await findNicknameByUserId(userIds);
+  return mapToReviewResponseDTO(rawReviews, userNicknames, totalCount, limit);
+};
 
-    return mapToReviewResponseDTO(rawReviews, userNicknames, totalCount, limit);
+
+
+
+export const createReviewService = async (promptId: string, userId: number, rating: number, content: string) => {
+
+
+  if (!promptId || isNaN(Number(promptId))) {
+    throw new Error('유효하지 않은 promptId입니다.');
+  }
+
+  const newReview = await createReviewInDB({
+    promptId: Number(promptId),
+    userId,
+    rating,
+    content
+  });
+
+  return mapToReviewResponse(newReview);
 };
