@@ -1,41 +1,31 @@
 import passport from 'passport';
-import { Strategy as NaverStrategy } from 'passport-naver-v2';
-import { PrismaClient } from '@prisma/client';
+import { Strategy as NaverStrategy, Profile } from 'passport-naver-v2';
+import prisma from '../prisma';
 
-const prisma = new PrismaClient();
-
-export const configureNaverStrategy = () => {
+export function configureNaverStrategy() {
   passport.use(
-    'naver',
     new NaverStrategy(
       {
         clientID: process.env.NAVER_CLIENT_ID!,
         clientSecret: process.env.NAVER_CLIENT_SECRET!,
-        callbackURL: process.env.NAVER_CALLBACK_URL!,
+        callbackURL: '/api/auth/login/naver/callback', // 변경된 콜백 URL
       },
-      async (accessToken: any, refreshToken: any, profile: any, done: any) => {
+      async (accessToken: string, refreshToken: string, profile: Profile, done: Function) => {
         try {
           const email = profile.email;
-          const name = profile.name;
-
           if (!email) {
-            return done(new Error('네이버 계정에서 이메일을 가져올 수 없습니다.'), false);
+            return done(new Error('네이버 프로필에 이메일이 없습니다.'), false);
           }
 
-          let user = await prisma.user.findFirst({
-            where: {
-              email: email,
-              social_type: 'naver',
-            },
-          });
+          let user = await prisma.user.findFirst({ where: { email, social_type: 'NAVER' } });
 
           if (!user) {
             user = await prisma.user.create({
               data: {
-                email: email,
-                name: name || 'Unknown',
-                nickname: name || 'Unknown',
-                social_type: 'naver',
+                email,
+                name: profile.name || 'Unknown',
+                nickname: profile.nickname || profile.name || 'Unknown',
+                social_type: 'NAVER',
                 status: true,
                 role: 'USER',
               },
@@ -44,9 +34,9 @@ export const configureNaverStrategy = () => {
 
           return done(null, user);
         } catch (error) {
-          return done(error as Error, false);
+          return done(error, false);
         }
       }
     )
   );
-}; 
+} 

@@ -5,7 +5,7 @@ import { errorHandler } from "./middlewares/errorHandler";
 import passport from './config/passport';
 import swaggerUi from 'swagger-ui-express';
 import session from 'express-session';
-import authRouter from './routes/auth';
+import authRouter from './auth/routes/auth.route'; // auth 라우터 경로 수정
 import membersRouter from './members/routes/member.route'; // members 라우터 import
 import promptRoutes from './prompts/prompt.route';
 import promptReviewRouter from './reviews/routes/prompt-review.route';
@@ -32,7 +32,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // 인증 라우터
-app.use('/auth', authRouter);
+app.use('/api/auth', authRouter); // /api 접두사 추가
 
 // 회원 라우터
 app.use('/api/members', membersRouter);
@@ -47,7 +47,7 @@ const PORT = 3000;
 
 // 라우트 등록
 
-// 프롬프트 관련 라우트
+// 프롬프트 관련 라우터
   // 프롬프트 검색 API
 app.use('/api/prompts', promptRoutes);
   // 프롬프트 찜 라우터
