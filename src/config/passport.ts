@@ -1,11 +1,9 @@
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt, StrategyOptionsWithRequest, VerifiedCallback } from 'passport-jwt';
-import { PrismaClient } from '@prisma/client';
 import { Request } from 'express';
 import { configureGoogleStrategy } from './social/google';
 import { configureNaverStrategy } from './social/naver';
-
-const prisma = new PrismaClient();
+import prisma from './prisma';
 
 // JWT Strategy 설정
 const options: StrategyOptionsWithRequest = {
