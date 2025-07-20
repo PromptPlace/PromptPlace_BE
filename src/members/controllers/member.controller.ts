@@ -2,6 +2,35 @@ import { Request, Response } from 'express';
 import MemberService from '../services/member.service';
 
 class MemberController {
+  async uploadProfileImage(req: Request, res: Response): Promise<void> {
+    try {
+      if (!req.file) {
+        res.status(400).json({
+          error: 'BadRequest',
+          message: '파일이 업로드되지 않았습니다.',
+          statusCode: 400,
+        });
+        return;
+      }
+
+      const user = req.user as any;
+      await MemberService.uploadProfileImage(user.user_id, req.file);
+
+      res.status(200).json({
+        message: '프로필 이미지 등록 완료',
+        statusCode: 200,
+      });
+
+    } catch (error) {
+      console.error(error); // 서버 로그는 남겨두는 것이 좋습니다.
+      res.status(500).json({
+        error: 'InternalServerError',
+        message: '알 수 없는 오류가 발생했습니다.',
+        statusCode: 500,
+      });
+    }
+  }
+
   async withdraw(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as any;
