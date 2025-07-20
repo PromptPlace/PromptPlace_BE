@@ -24,13 +24,16 @@ export const getReviewsByPromptId = async (
   res: Response
 ) => {
   try {
-    const response = await findReviewsByPromptId(
+    const result = await findReviewsByPromptId(
       req.params.promptId,
       req.query.cursor,
       req.query.limit
     );
 
-    return res.success(response);
+    return res.success({
+      data: result,
+
+    });
   } catch (err: any) {
     console.error(err);
     return res.fail({
@@ -58,11 +61,14 @@ export const postReview = async (req: Request, res: Response) => {
     }
 
     const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: number };
-    const userId = decoded.id;
+    const decoded = jwt.verify(token, JWT_SECRET) as { user_id: number }; // 토근 형태 예시: {user_id: 1}
+    const userId = decoded.user_id;
 
     const result = await createReviewService(promptId, userId, rating, content);
-    return res.success(result);
+    return res.success({
+      data: result,
+
+    });
   } catch (err: any) {
     console.error(err);
     return res.fail({

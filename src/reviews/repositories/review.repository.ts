@@ -48,26 +48,18 @@ export const findNicknameByUserId = async (userIds: number[]) => {
   });
 };
 
-export const countReviewsByPromptId = async (promptId: number) => {
-  return await prisma.review.count({
-    where: {
-      prompt_id: promptId
-    }
-  });
-};
-
-export const createReview = async (
-    promptId: number, 
-    userId: number, 
-    rating: number,
-    content: string
-) => {
+export const createReview = async ({
+  promptId,
+  userId, 
+  rating,
+  content
+}: CreateReviewInput) => {
     return await prisma.review.create({
         data: {
-        prompt_id: promptId,
-        user_id: userId,
-        rating,
-        content
+          prompt_id: promptId,
+          user_id: userId,
+          rating,
+          content
         }
-    })
-}
+    });
+};

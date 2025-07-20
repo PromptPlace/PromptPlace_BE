@@ -1,12 +1,10 @@
 import {
   mapToReviewResponse,
-  mapToReviewResponseDTO,
+  mapToReviewListDTO,
   
 } from '../dtos/review.dtos';
 import {
-  createReviewInDB,
   findAllByPromptId,
-  countReviewsByPromptId,
   findNicknameByUserId,
   createReview
 } from '../repositories/review.repository';
@@ -28,24 +26,28 @@ export const findReviewsByPromptId = async (
   if (isNaN(limit)) throw new Error('limit값이 적절하지 않습니다');
 
   const rawReviews: Review[] = await findAllByPromptId(promptId, cursor, limit);
-  const totalCount: number = await countReviewsByPromptId(promptId);
   const userIds = rawReviews.map(review => review.user_id);
   const userNicknames = await findNicknameByUserId(userIds);
 
-  return mapToReviewResponseDTO(rawReviews, userNicknames, totalCount, limit);
+  return mapToReviewListDTO(rawReviews, userNicknames, limit);
 };
 
 
 
 
-export const createReviewService = async (promptId: string, userId: number, rating: number, content: string) => {
+export const createReviewService = async (
+  promptId: string, 
+  userId: number, 
+  rating: number, 
+  content: string
+) => {
 
 
   if (!promptId || isNaN(Number(promptId))) {
     throw new Error('유효하지 않은 promptId입니다.');
   }
 
-  const newReview = await createReviewInDB({
+  const newReview = await createReview({
     promptId: Number(promptId),
     userId,
     rating,

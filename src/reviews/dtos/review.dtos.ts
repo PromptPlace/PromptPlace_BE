@@ -1,15 +1,16 @@
 import { Review } from '@prisma/client';
 
 
-export interface ReviewResponseDTO {
-  id: number;
+export interface ReviewResponse {
+  review_id: number;
+  writer_id: number;
+  prompt_id: number;
   rating: number;
   content: string;
   createdAt: Date;
 }
 
 export interface ReviewListResponse {
-  count: number;
   has_more: boolean;
   reviews: {
     review_id: number;
@@ -21,18 +22,10 @@ export interface ReviewListResponse {
   }[];
 }
 
-
-export const mapToReviewResponse = (review: Review): ReviewResponseDTO => ({
-  id: review.review_id,
-  rating: review.rating,
-  content: review.content,
-  createdAt: review.created_at
-});
-
-export const mapToReviewResponseDTO = (
+// 리뷰 List 반환 DTO
+export const mapToReviewListDTO = (
   rawReviews: Review[],
   rawNicknames: { user_id: number; nickname: string }[],
-  totalCount: number,
   limit: number
 ): ReviewListResponse => {
   const userMap = new Map(rawNicknames.map(user => [user.user_id, user.nickname]));
@@ -47,9 +40,17 @@ export const mapToReviewResponseDTO = (
   }));
 
   return {
-    count: totalCount,
     has_more: rawReviews.length >= limit,
     reviews
   };
 };
 
+// 단일 리뷰 정보 반환 DTO
+export const mapToReviewResponse = (review: Review): ReviewResponse => ({
+  review_id: review.review_id,
+  writer_id: review.user_id,
+  prompt_id: review.prompt_id,
+  rating: review.rating,
+  content: review.content,
+  createdAt: review.created_at
+});
