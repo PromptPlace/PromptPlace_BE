@@ -35,9 +35,20 @@ export const getLikedPromptsByUser = async (userId: number) => {
         select: {
           prompt_id: true,
           title: true,
-          description: true,
-          is_free: true,
-          download_url: true,
+          models: {
+            include: {
+              model: {
+                select: { name: true },
+              },
+            },
+          },
+          tags: {
+            include: {
+              tag: {
+                select: { name: true },
+              },
+            },
+          },
         },
       },
     },
