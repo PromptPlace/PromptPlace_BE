@@ -3,7 +3,7 @@ import { likePrompt, getLikedPrompts } from '../controllers/prompt.like.controll
 
 const router = Router();
 
-router.post('/prompts/:promptId/likes', likePrompt);
-router.get('/prompts/likes', getLikedPrompts);
+router.post('/:promptId/likes', likePrompt);
+router.get('/likes', getLikedPrompts);
 
 export default router;
