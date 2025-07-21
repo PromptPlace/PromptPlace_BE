@@ -8,7 +8,7 @@ export function configureNaverStrategy() {
       {
         clientID: process.env.NAVER_CLIENT_ID!,
         clientSecret: process.env.NAVER_CLIENT_SECRET!,
-        callbackURL: '/api/auth/login/naver/callback', // 변경된 콜백 URL
+        callbackURL: process.env.NAVER_CALLBACK_URL!,
       },
       async (accessToken: string, refreshToken: string, profile: Profile, done: Function) => {
         try {
@@ -17,20 +17,20 @@ export function configureNaverStrategy() {
             return done(new Error('네이버 프로필에 이메일이 없습니다.'), false);
           }
 
-          let user = await prisma.user.findFirst({ where: { email, social_type: 'NAVER' } });
-
-          if (!user) {
-            user = await prisma.user.create({
-              data: {
-                email,
-                name: profile.name || 'Unknown',
-                nickname: profile.nickname || profile.name || 'Unknown',
-                social_type: 'NAVER',
-                status: true,
-                role: 'USER',
-              },
-            });
-          }
+          const user = await prisma.user.upsert({
+            where: { email },
+            update: {
+              name: profile.name || 'Unknown',
+            },
+            create: {
+              email,
+              name: profile.name || 'Unknown',
+              nickname: profile.nickname || profile.name || 'Unknown',
+              social_type: 'NAVER',
+              status: true,
+              role: 'USER',
+            },
+          });
 
           return done(null, user);
         } catch (error) {
