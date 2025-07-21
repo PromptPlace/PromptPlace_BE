@@ -16,16 +16,18 @@ export const PromptLikeService = {
     await promptLikeRepo.addPromptLike(userId, promptId);
   },
 
-  async getLikedPrompts(userId: number) {
+ async getLikedPrompts(userId: number) {
     const likes = await promptLikeRepo.getLikedPromptsByUser(userId);
 
-    return likes.map((like) => ({
-      prompt_id: like.prompt.prompt_id,
-      title: like.prompt.title,
-      description: like.prompt.description,
-      is_free: like.prompt.is_free,
-      download_url: like.prompt.download_url,
-      liked_at: like.created_at,
-    }));
-  }
+    return likes.map((like) => {
+      const prompt = like.prompt;
+
+      return {
+        prompt_id: prompt.prompt_id,
+        title: prompt.title,
+        models: prompt.models.map((m) => m.model.name),
+        tags: prompt.tags.map((t) => t.tag.name),
+      };
+    });
+  },
 };
