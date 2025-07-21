@@ -8,7 +8,7 @@ export function configureGoogleStrategy() {
       {
         clientID: process.env.GOOGLE_CLIENT_ID!,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        callbackURL: '/api/auth/login/google/callback', // 변경된 콜백 URL
+        callbackURL: process.env.GOOGLE_CALLBACK_URL!,
       },
       async (accessToken: string, refreshToken: string, profile: Profile, done: Function) => {
         try {
@@ -16,21 +16,22 @@ export function configureGoogleStrategy() {
           if (!email) {
             return done(new Error('구글 프로필에 이메일이 없습니다.'), false);
           }
-
-          let user = await prisma.user.findFirst({ where: { email, social_type: 'GOOGLE' } });
-
-          if (!user) {
-            user = await prisma.user.create({
-              data: {
-                email,
-                name: profile.displayName,
-                nickname: profile.displayName, // 닉네임은 우선 displayName으로 설정
-                social_type: 'GOOGLE',
-                status: true,
-                role: 'USER', // role 필드 추가
-              },
-            });
-          }
+          
+          const user = await prisma.user.upsert({
+            where: { email },
+            update: {
+              // 기존 회원이 다시 로그인했을 때 업데이트할 내용 (예: 이름)
+              name: profile.displayName,
+            },
+            create: {
+              email,
+              name: profile.displayName,
+              nickname: profile.displayName,
+              social_type: 'GOOGLE',
+              status: true,
+              role: 'USER',
+            },
+          });
 
           return done(null, user);
         } catch (error) {

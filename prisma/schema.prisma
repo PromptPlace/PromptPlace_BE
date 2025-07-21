@@ -26,9 +26,9 @@ enum Role {
 
 model User {
   user_id       Int       @id @default(autoincrement())
-  name          String    @db.VarChar(10)
+  name          String    @db.VarChar(50)
   nickname      String    @db.VarChar(50)
-  email         String    @db.VarChar(255)
+  email         String    @unique @db.VarChar(255)
   social_type   String    @db.VarChar(50)
   status        Boolean
   inactive_date DateTime?
