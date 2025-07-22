@@ -30,4 +30,13 @@ export const PromptLikeService = {
       };
     });
   },
+
+   async unlikePrompt(userId: number, promptId: number): Promise<void> {
+    const existing = await promptLikeRepo.hasLikedPrompt(userId, promptId);
+    if (!existing) {
+      throw new AppError('찜하지 않은 프롬프트입니다.', 404, 'NotFound');
+    }
+
+    await promptLikeRepo.removePromptLike(userId, promptId);
+  },
 };
