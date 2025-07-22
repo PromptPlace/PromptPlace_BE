@@ -37,7 +37,8 @@ model User {
   role          Role      @default(USER)
 
   // Relations
-  profile            UserProfile?
+  intro              UserIntro?
+  history            UserHistory[]
   profileImage       UserImage?
   sns_list           UserSNS[]
   followings         Following[]       @relation("Follower")
@@ -59,15 +60,24 @@ model User {
   refreshTokens      RefreshToken[]
 }
 
-model UserProfile {
-  profile_id  Int      @id @default(autoincrement())
+model UserIntro {
+  intro_id    Int      @id @default(autoincrement())
   user_id     Int      @unique
   description String   @db.VarChar(255)
-  history     String
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
-  user User @relation(fields: [user_id], references: [user_id])
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+}
+
+model UserHistory {
+  history_id Int      @id @default(autoincrement())
+  user_id    Int
+  history    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 }
 
 model UserSNS {
