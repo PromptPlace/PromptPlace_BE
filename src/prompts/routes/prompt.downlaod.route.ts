@@ -4,6 +4,7 @@ import { PromptDownloadController } from '../controllers/prompt.download.control
 
 const router = Router();
 
+router.get('/downloads', authenticateJwt, PromptDownloadController.getDownloadedPrompts);
 router.get('/:promptId/downloads', authenticateJwt, PromptDownloadController.getPromptContent);
 
 export default router;
