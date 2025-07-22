@@ -27,6 +27,14 @@ class MemberRepository {
       },
     });
   }
+
+  async upsertUserIntro(userId: number, intro: string) {
+    return prisma.userIntro.upsert({
+      where: { user_id: userId },
+      update: { description: intro },
+      create: { user_id: userId, description: intro },
+    });
+  }
 }
 
-export default new MemberRepository(); 
+export default new MemberRepository();

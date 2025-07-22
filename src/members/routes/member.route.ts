@@ -50,4 +50,7 @@ router.post(
 // 회원 탈퇴
 router.delete('/withdrawal', authenticateJwt, MemberController.withdraw);
 
+// 한줄 소개 작성/수정
+router.post('/intros', authenticateJwt, MemberController.upsertIntro);
+
 export default router; 
