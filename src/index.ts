@@ -7,7 +7,7 @@ import swaggerUi from 'swagger-ui-express';
 import session from 'express-session';
 import authRouter from './auth/routes/auth.route'; // auth 라우터 경로 수정
 import membersRouter from './members/routes/member.route'; // members 라우터 import
-import promptRoutes from './prompts/prompt.route';
+import promptRoutes from './prompts/routes/prompt.route'; // 프롬프트 관련 라우터
 import promptReviewRouter from './reviews/routes/prompt-review.route';
 import promptDownloadRouter from './prompts/routes/prompt.downlaod.route'
 import promptLikeRouter from './prompts/routes/prompt.like.route';
