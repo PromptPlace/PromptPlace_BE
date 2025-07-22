@@ -5,7 +5,7 @@ class MemberRepository {
     return prisma.user.findUnique({
       where: { user_id: memberId },
       include: {
-        profile: true, // UserProfile 정보를 함께 가져옴
+        intro: true, // UserIntro 정보 포함
       },
     });
   }

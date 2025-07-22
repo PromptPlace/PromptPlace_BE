@@ -28,7 +28,7 @@ class MemberService {
       email: member.email,
       name: member.name,
       nickname: member.nickname,
-      intros: member.profile?.description || null,
+      intros: member.intro?.description || null, // member.profile.description 대신 member.intro.description 사용
       created_at: member.created_at,
       updated_at: member.updated_at,
       status: member.status,
