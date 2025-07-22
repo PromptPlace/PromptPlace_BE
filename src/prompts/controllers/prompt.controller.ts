@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { SearchPromptDto } from "../dtos/search-prompt.dto";
-import * as promptService from "../prompt.service";
+import * as promptService from "../services/prompt.service";
 import { DEFAULT_PROMPT_SEARCH_SIZE } from "../../config/constants";
 import { errorHandler } from "../../middlewares/errorHandler";
 import { CreatePromptImageDto } from "../dtos/prompt-image.dto";
