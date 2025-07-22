@@ -36,6 +36,9 @@ const uploadMiddleware = (req: Request, res: Response, next: NextFunction) => {
   });
 };
 
+// 회원 정보 조회
+router.get('/:memberId', authenticateJwt, MemberController.getProfile);
+
 // 프로필 이미지 등록
 router.post(
   '/images',
