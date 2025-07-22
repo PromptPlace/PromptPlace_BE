@@ -1,5 +1,5 @@
 import { SearchPromptDto } from "./dtos/search-prompt.dto";
-import * as promptRepository from "./prompt.repository";
+import * as promptRepository from "./repositories/prompt.repository";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { CreatePromptImageDto } from "./dtos/prompt-image.dto";

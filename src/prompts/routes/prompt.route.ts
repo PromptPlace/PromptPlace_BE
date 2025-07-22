@@ -1,6 +1,6 @@
 import { Router } from "express";
-import * as promptController from "./prompt.controller";
-import { authenticateJwt } from "../config/passport";
+import * as promptController from "../controllers/prompt.controller";
+import { authenticateJwt } from "../../config/passport";
 
 const router = Router();
 
