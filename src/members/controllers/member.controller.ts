@@ -80,6 +80,24 @@ class MemberController {
       next(error);
     }
   }
+
+  async updateIntro(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.user as any;
+      const { intro } = req.body;
+
+      const updatedIntro = await MemberService.updateUserIntro(user.user_id, intro);
+
+      res.status(200).json({
+        message: '한줄 소개가 성공적으로 수정되었습니다.',
+        intro: updatedIntro.description,
+        updated_at: updatedIntro.updated_at,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new MemberController(); 

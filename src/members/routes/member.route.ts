@@ -53,4 +53,7 @@ router.delete('/withdrawal', authenticateJwt, MemberController.withdraw);
 // 한줄 소개 작성/수정
 router.post('/intros', authenticateJwt, MemberController.upsertIntro);
 
+// 한줄 소개 수정
+router.patch('/intros', authenticateJwt, MemberController.updateIntro);
+
 export default router; 

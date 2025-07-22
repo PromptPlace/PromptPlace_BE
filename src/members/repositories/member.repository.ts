@@ -35,6 +35,13 @@ class MemberRepository {
       create: { user_id: userId, description: intro },
     });
   }
+
+  async updateUserIntro(userId: number, intro: string) {
+    return prisma.userIntro.update({
+      where: { user_id: userId },
+      data: { description: intro },
+    });
+  }
 }
 
 export default new MemberRepository();
