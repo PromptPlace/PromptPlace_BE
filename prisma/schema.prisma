@@ -26,9 +26,9 @@ enum Role {
 
 model User {
   user_id       Int       @id @default(autoincrement())
-  name          String    @db.VarChar(10)
+  name          String    @db.VarChar(50)
   nickname      String    @db.VarChar(50)
-  email         String    @db.VarChar(255)
+  email         String    @unique @db.VarChar(255)
   social_type   String    @db.VarChar(50)
   status        Boolean
   inactive_date DateTime?
@@ -37,7 +37,9 @@ model User {
   role          Role      @default(USER)
 
   // Relations
-  profile            UserProfile?
+  intro              UserIntro?
+  history            UserHistory[]
+  profileImage       UserImage?
   sns_list           UserSNS[]
   followings         Following[]       @relation("Follower")
   followers          Following[]       @relation("Following")
@@ -58,15 +60,24 @@ model User {
   refreshTokens      RefreshToken[]
 }
 
-model UserProfile {
-  profile_id  Int      @id @default(autoincrement())
+model UserIntro {
+  intro_id    Int      @id @default(autoincrement())
   user_id     Int      @unique
   description String   @db.VarChar(255)
-  history     String
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
-  user User @relation(fields: [user_id], references: [user_id])
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+}
+
+model UserHistory {
+  history_id Int      @id @default(autoincrement())
+  user_id    Int
+  history    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 }
 
 model UserSNS {
@@ -278,6 +289,15 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+model UserImage {
+  id         Int      @id @default(autoincrement())
+  url        String   @db.VarChar(500)
+  userId     Int      @unique
+  user       User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 model PromptImage {

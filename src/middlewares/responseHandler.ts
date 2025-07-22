@@ -28,7 +28,7 @@ export const responseHandler = (req: Request, res: Response, next: NextFunction)
 declare global {
   namespace Express {
     interface Response {
-      success: (data: any, message?: string) => Response;
+      success: (data: any, message?: string) => Response; // data 파라미터 다시 필수(any)로 변경
       fail: (options: {
         statusCode?: number;
         error?: string;

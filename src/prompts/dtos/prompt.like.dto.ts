@@ -6,10 +6,8 @@ export interface LikePromptResponse {
 export interface LikedPrompt {
   prompt_id: number;
   title: string;
-  description: string;
-  is_free: boolean;
-  download_url: string | null;
-  liked_at: string;
+  models: string[];
+  tags: string[];
 }
 
 export interface GetLikedPromptsResponse {
