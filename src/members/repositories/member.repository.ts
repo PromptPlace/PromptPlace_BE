@@ -1,6 +1,15 @@
 import prisma from '../../config/prisma';
 
 class MemberRepository {
+  async findMemberById(memberId: number) {
+    return prisma.user.findUnique({
+      where: { user_id: memberId },
+      include: {
+        profile: true, // UserProfile 정보를 함께 가져옴
+      },
+    });
+  }
+
   async upsertProfileImage(userId: number, imageUrl: string): Promise<void> {
     await prisma.userImage.upsert({
       where: { userId },
