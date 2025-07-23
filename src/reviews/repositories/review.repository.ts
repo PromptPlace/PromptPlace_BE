@@ -8,7 +8,6 @@ interface CreateReviewInput {
   content: string;
 }
 
-// 리뷰 생성 
 export const createReviewInDB = async (data: CreateReviewInput) => {
   return await prisma.review.create({
     data: {
@@ -20,7 +19,6 @@ export const createReviewInDB = async (data: CreateReviewInput) => {
   });
 };
 
-// 프롬프트 ID로 리뷰 목록 조회
 export const findAllByPromptId = async (
   promptId: number,
   cursor?: number,
@@ -37,6 +35,19 @@ export const findAllByPromptId = async (
     take: limit
   });
 };
+
+export const findNicknameByUserId = async (userIds: number[]) => {
+  return await prisma.user.findMany({
+    where: {
+      user_id: { in: userIds }
+    },
+    select: {
+      user_id: true,
+      nickname: true
+    }
+  });
+};
+
 
 // 리뷰 작성자들의 닉네임 + 프로필 이미지 URL 조회
 export const findUserProfilesByUserIds = async (userIds: number[]) => {
@@ -72,7 +83,7 @@ export const createReview = async ({
     });
 };
 
-// 개별 리뷰 조회
+
 export const findReviewById = async (reviewId: number) => {
   return await prisma.review.findUnique({
     where: {
@@ -81,7 +92,6 @@ export const findReviewById = async (reviewId: number) => {
   });
 };
 
-// 리뷰 삭제
 export const deleteReviewById = async (reviewId: number) => {
   await prisma.review.delete({
     where: {
