@@ -5,7 +5,7 @@ import {
 } from '../dtos/review.dtos';
 import {
   findAllByPromptId,
-  findNicknameByUserId,
+  findUserProfilesByUserIds,
   createReview,
   findReviewById,
   deleteReviewById
@@ -27,11 +27,15 @@ export const findReviewsByPromptId = async (
   if (cursor !== undefined && isNaN(cursor)) throw new Error('cursor값이 적절하지 않습니다');
   if (isNaN(limit)) throw new Error('limit값이 적절하지 않습니다');
 
-  const rawReviews: Review[] = await findAllByPromptId(promptId, cursor, limit);
-  const userIds = rawReviews.map(review => review.user_id);
-  const userNicknames = await findNicknameByUserId(userIds);
 
-  return mapToReviewListDTO(rawReviews, userNicknames, limit);
+  // 리뷰 불러오기
+  const rawReviews: Review[] = await findAllByPromptId(promptId, cursor, limit);
+  // 리뷰 작성자 user_id 리스트
+  const userIds = rawReviews.map(review => review.user_id);
+  // 사용자 프로필 정보 가져오기 (nickname + image_url)
+  const userProfiles = await findUserProfilesByUserIds(userIds);
+  // DTO로 변환
+  return mapToReviewListDTO(rawReviews, userProfiles, limit);
 };
 
 

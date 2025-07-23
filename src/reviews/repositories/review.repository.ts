@@ -48,6 +48,25 @@ export const findNicknameByUserId = async (userIds: number[]) => {
   });
 };
 
+
+// 리뷰 작성자들의 닉네임 + 프로필 이미지 URL 조회
+export const findUserProfilesByUserIds = async (userIds: number[]) => {
+  return await prisma.user.findMany({
+    where: {
+      user_id: { in: userIds }
+    },
+    select: {
+      user_id: true,
+      nickname: true,
+      profileImage: {
+        select: {
+          url: true
+        }
+      }
+    }
+  });
+};
+
 export const createReview = async ({
   promptId,
   userId, 
@@ -63,6 +82,7 @@ export const createReview = async ({
         }
     });
 };
+
 
 export const findReviewById = async (reviewId: number) => {
   return await prisma.review.findUnique({
