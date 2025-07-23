@@ -63,3 +63,19 @@ export const createReview = async ({
         }
     });
 };
+
+export const findReviewById = async (reviewId: number) => {
+  return await prisma.review.findUnique({
+    where: {
+      review_id: reviewId
+    }
+  });
+};
+
+export const deleteReviewById = async (reviewId: number) => {
+  await prisma.review.delete({
+    where: {
+      review_id: reviewId
+    }
+  });
+};

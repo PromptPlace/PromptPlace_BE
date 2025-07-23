@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import {
   findReviewsByPromptId,
-  createReviewService
+  createReviewService,
+  deleteReviewService
 } from '../services/review.service';
 
 interface RawPromptParams {
@@ -83,6 +84,44 @@ export const getReviewsByPromptId = async (
     res.fail({
       error: err.name || 'InternalServerError',
       message: err.message || '리뷰 작성 중 오류가 발생했습니다.',
+      statusCode: err.statusCode || 500,
+    });
+  }
+};
+
+
+export const deleteReview = async (
+  req: Request<{ reviewId: string }, any, any>,
+  res: Response
+): Promise<void> => {
+  if (!req.user) {
+    res.fail({
+      statusCode: 401,
+      error: 'no user',
+      message: '로그인이 필요합니다.',
+    });
+    return;
+  }
+
+  try {
+    const userId = (req.user as { user_id: number }).user_id;
+    const reviewId = req.params.reviewId;
+
+    if (!reviewId) {
+      res.status(400).json({ message: '리뷰 ID가 없습니다.' });
+      return;
+    }
+
+    await deleteReviewService(reviewId, userId);
+
+    res.success({
+      message: '리뷰가 성공적으로 삭제되었습니다.',
+    });
+  } catch (err: any) {
+    console.error(err);
+    res.fail({
+      error: err.name || 'InternalServerError',
+      message: err.message || '리뷰 삭제 중 오류가 발생했습니다.',
       statusCode: err.statusCode || 500,
     });
   }
