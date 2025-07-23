@@ -34,13 +34,13 @@ export const getReviewsByPromptId = async (
       req.query.limit
     );
 
-    return res.success({
+    
+    res.success({
       data: result,
-
     });
   } catch (err: any) {
     console.error(err);
-    return res.fail({
+    res.fail({
       error: err.name || 'InternalServerError',
       message: err.message || '리뷰 목록 조회 중 오류가 발생했습니다.',
       statusCode: err.statusCode || 500

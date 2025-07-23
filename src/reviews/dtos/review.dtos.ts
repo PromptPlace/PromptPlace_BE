@@ -25,25 +25,39 @@ export interface ReviewListResponse {
 // 리뷰 List 반환 DTO
 export const mapToReviewListDTO = (
   rawReviews: Review[],
-  rawNicknames: { user_id: number; nickname: string }[],
+  rawProfiles: { user_id: number; nickname: string; profileImage: { url: string } | null }[],
   limit: number
 ): ReviewListResponse => {
-  const userMap = new Map(rawNicknames.map(user => [user.user_id, user.nickname]));
+  const userMap = new Map(
+    rawProfiles.map(user => [
+      user.user_id,
+      {
+        nickname: user.nickname,
+        imageUrl: user.profileImage?.url || null
+      }
+    ])
+  );
 
-  const reviews = rawReviews.map((review) => ({
-    review_id: review.review_id,
-    writer_id: review.user_id,
-    writer_nickname: userMap.get(review.user_id) || 'Unknown',
-    rating: review.rating,
-    content: review.content,
-    created_at: review.created_at.toISOString()
-  }));
+  const reviews = rawReviews.map((review) => {
+    const userInfo = userMap.get(review.user_id);
+    
+    return {
+      review_id: review.review_id,
+      writer_id: review.user_id,
+      writer_nickname: userInfo?.nickname || 'Unknown',
+      writer_image_url: userInfo?.imageUrl || null,
+      rating: review.rating,
+      content: review.content,
+      created_at: review.created_at.toISOString()
+    };
+  });
 
   return {
     has_more: rawReviews.length >= limit,
     reviews
   };
 };
+
 
 // 단일 리뷰 정보 반환 DTO
 export const mapToReviewResponse = (review: Review): ReviewResponse => ({
