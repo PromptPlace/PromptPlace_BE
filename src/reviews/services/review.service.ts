@@ -6,7 +6,9 @@ import {
 import {
   findAllByPromptId,
   findNicknameByUserId,
-  createReview
+  createReview,
+  findReviewById,
+  deleteReviewById
 } from '../repositories/review.repository';
 import { Review } from '@prisma/client';
 
@@ -55,4 +57,40 @@ export const createReviewService = async (
   });
 
   return mapToReviewResponse(newReview);
+};
+
+
+export const deleteReviewService = async (
+  reviewId: string,
+  userId: number
+): Promise<void> => {
+  if (!reviewId || isNaN(Number(reviewId))) {
+    throw {
+      name: 'BadRequest',
+      message: '유효하지 않은 reviewId입니다.',
+      statusCode: 400
+    };
+  }
+
+  const numericReviewId = Number(reviewId);
+
+  const review = await findReviewById(numericReviewId);
+
+  if (!review) {
+    throw {
+      name: 'NotFound',
+      message: '해당 리뷰를 찾을 수 없습니다.',
+      statusCode: 404
+    };
+  }
+
+  if (review.user_id !== userId) {
+    throw {
+      name: 'Forbidden',
+      message: '리뷰를 삭제할 권한이 없습니다.',
+      statusCode: 403
+    };
+  }
+
+  await deleteReviewById(numericReviewId);
 };
