@@ -8,7 +8,7 @@ import session from 'express-session';
 import authRouter from './auth/routes/auth.route'; // auth 라우터 경로 수정
 import membersRouter from './members/routes/member.route'; // members 라우터 import
 import promptRoutes from './prompts/prompt.route';
-import promptReviewRouter from './reviews/routes/prompt-review.route';
+import ReviewRouter from './reviews/routes/review.route';
 import promptDownloadRouter from './prompts/routes/prompt.downlaod.route'
 import promptLikeRouter from './prompts/routes/prompt.like.route';
 // import * as swaggerDocument from './docs/swagger/swagger.json'; 
@@ -16,6 +16,7 @@ import promptLikeRouter from './prompts/routes/prompt.like.route';
 
 const app = express();
 app.use(express.json());
+
 app.use(responseHandler);
 
 // Session 설정 (OAuth용)
@@ -38,8 +39,8 @@ app.use('/api/auth', authRouter); // /api 접두사 추가
 // 회원 라우터
 app.use('/api/members', membersRouter);
 
-// 프롬프트 리뷰 라우터
-app.use('/api/prompts/:promptId/reviews', promptReviewRouter);
+// 리뷰 라우터
+app.use('/api/reviews', ReviewRouter);
 
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 const PORT = 3000;
