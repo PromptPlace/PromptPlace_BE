@@ -1,5 +1,5 @@
-import { prisma } from "../config/prisma";
-import { SearchPromptDto } from "./dtos/search-prompt.dto";
+import  prisma  from "../../config/prisma";
+import { SearchPromptDto } from "../dtos/search-prompt.dto";
 
 export const searchPromptRepo = async (data: SearchPromptDto) => {
   const { model, tag, keyword, page, size, sort, is_free } = data;

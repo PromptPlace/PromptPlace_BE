@@ -62,6 +62,42 @@ class MemberController {
       res.status(500).json({ message: '회원 탈퇴 처리 중 오류가 발생했습니다.' });
     }
   }
+
+  async upsertIntro(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.user as any;
+      const { intro } = req.body;
+
+      const updatedIntro = await MemberService.upsertUserIntro(user.user_id, intro);
+
+      res.status(200).json({
+        message: '한줄 소개가 성공적으로 작성되었습니다.',
+        intro: updatedIntro.description,
+        updated_at: updatedIntro.updated_at,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateIntro(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.user as any;
+      const { intro } = req.body;
+
+      const updatedIntro = await MemberService.updateUserIntro(user.user_id, intro);
+
+      res.status(200).json({
+        message: '한줄 소개가 성공적으로 수정되었습니다.',
+        intro: updatedIntro.description,
+        updated_at: updatedIntro.updated_at,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new MemberController(); 

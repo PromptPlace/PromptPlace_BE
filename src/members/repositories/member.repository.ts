@@ -5,7 +5,7 @@ class MemberRepository {
     return prisma.user.findUnique({
       where: { user_id: memberId },
       include: {
-        profile: true, // UserProfile 정보를 함께 가져옴
+        intro: true, // UserIntro 정보 포함
       },
     });
   }
@@ -27,6 +27,21 @@ class MemberRepository {
       },
     });
   }
+
+  async upsertUserIntro(userId: number, intro: string) {
+    return prisma.userIntro.upsert({
+      where: { user_id: userId },
+      update: { description: intro },
+      create: { user_id: userId, description: intro },
+    });
+  }
+
+  async updateUserIntro(userId: number, intro: string) {
+    return prisma.userIntro.update({
+      where: { user_id: userId },
+      data: { description: intro },
+    });
+  }
 }
 
-export default new MemberRepository(); 
+export default new MemberRepository();

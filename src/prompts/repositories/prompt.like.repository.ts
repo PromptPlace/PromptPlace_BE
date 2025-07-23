@@ -57,3 +57,14 @@ export const getLikedPromptsByUser = async (userId: number) => {
     },
   });
 };
+
+export const removePromptLike = async (userId: number, promptId: number) => {
+  return prisma.promptLike.delete({
+    where: {
+      user_id_prompt_id: {
+        user_id: userId,
+        prompt_id: promptId,
+      },
+    },
+  });
+};
