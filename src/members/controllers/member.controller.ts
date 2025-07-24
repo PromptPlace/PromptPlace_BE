@@ -2,6 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 import MemberService from '../services/member.service';
 import { AppError } from '../../errors/AppError';
 import multer from 'multer';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
+import { CreateHistoryDto } from '../dtos/create-history.dto';
+import { UpdateHistoryDto } from '../dtos/update-history.dto';
 
 class MemberController {
   async uploadProfileImage(req: Request, res: Response): Promise<void> {
@@ -92,6 +96,88 @@ class MemberController {
         message: '한줄 소개가 성공적으로 수정되었습니다.',
         intro: updatedIntro.description,
         updated_at: updatedIntro.updated_at,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async createHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.user as any;
+      const createHistoryDto = plainToInstance(CreateHistoryDto, req.body);
+      const errors = await validate(createHistoryDto);
+
+      if (errors.length > 0) {
+        const message = errors.map((error) => Object.values(error.constraints || {})).join(', ');
+        throw new AppError(message, 400, 'BadRequest');
+      }
+
+      const newHistory = await MemberService.createHistory(user.user_id, createHistoryDto.history);
+
+      res.status(201).json({
+        message: '이력이 성공적으로 작성되었습니다.',
+        history: {
+          history_id: newHistory.history_id,
+          history: newHistory.history,
+        },
+        statusCode: 201,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.user as any;
+      const historyId = parseInt(req.params.historyId, 10);
+
+      if (isNaN(historyId)) {
+        throw new AppError('유효하지 않은 이력 ID입니다.', 400, 'BadRequest');
+      }
+
+      const updateHistoryDto = plainToInstance(UpdateHistoryDto, req.body);
+      const errors = await validate(updateHistoryDto);
+
+      if (errors.length > 0) {
+        const message = errors.map((error) => Object.values(error.constraints || {})).join(', ');
+        throw new AppError(message, 400, 'BadRequest');
+      }
+
+      const updatedHistory = await MemberService.updateHistory(
+        user.user_id,
+        historyId,
+        updateHistoryDto.history
+      );
+
+      res.status(200).json({
+        message: '이력이 성공적으로 수정되었습니다.',
+        history_id: updatedHistory.history_id,
+        history: updatedHistory.history,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.user as any;
+      const historyId = parseInt(req.params.historyId, 10);
+
+      if (isNaN(historyId)) {
+        throw new AppError('유효하지 않은 이력 ID입니다.', 400, 'BadRequest');
+      }
+
+      const deletedHistory = await MemberService.deleteHistory(user.user_id, historyId);
+
+      res.status(200).json({
+        message: '이력이 성공적으로 삭제되었습니다.',
+        history_id: deletedHistory.history_id,
+        deleted_at: new Date().toISOString(),
         statusCode: 200,
       });
     } catch (error) {

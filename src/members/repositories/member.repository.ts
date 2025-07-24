@@ -42,6 +42,42 @@ class MemberRepository {
       data: { description: intro },
     });
   }
+
+  async createHistory(userId: number, history: string) {
+    return prisma.userHistory.create({
+      data: {
+        user_id: userId,
+        history: history,
+      },
+    });
+  }
+
+  async findHistoryById(historyId: number) {
+    return prisma.userHistory.findUnique({
+      where: { history_id: historyId },
+    });
+  }
+
+  async updateHistory(historyId: number, userId: number, history: string) {
+    return prisma.userHistory.update({
+      where: {
+        history_id: historyId,
+        user_id: userId,
+      },
+      data: {
+        history: history,
+      },
+    });
+  }
+
+  async deleteHistory(historyId: number, userId: number) {
+    return prisma.userHistory.delete({
+      where: {
+        history_id: historyId,
+        user_id: userId,
+      },
+    });
+  }
 }
 
 export default new MemberRepository();
