@@ -51,11 +51,65 @@ class MemberService {
       email: member.email,
       name: member.name,
       nickname: member.nickname,
+      // @ts-ignore
       intros: member.intro?.description || null, // member.profile.description 대신 member.intro.description 사용
       created_at: member.created_at,
       updated_at: member.updated_at,
       status: member.status,
     };
+  }
+
+  async createHistory(userId: number, history: string) {
+    if (!history || history.length > 255) {
+      throw new AppError('이력은 1자 이상 255자 이하로 입력해주세요.', 400, 'BadRequest');
+    }
+    return await MemberRepository.createHistory(userId, history);
+  }
+
+  async updateHistory(userId: number, historyId: number, history: string) {
+    if (!history || history.length > 255) {
+      throw new AppError('이력은 1자 이상 255자 이하로 입력해주세요.', 400, 'BadRequest');
+    }
+
+    const existingHistory = await MemberRepository.findHistoryById(historyId);
+
+    if (!existingHistory) {
+      throw new AppError('해당 이력을 찾을 수 없습니다.', 404, 'NotFound');
+    }
+
+    if (existingHistory.user_id !== userId) {
+      throw new AppError('자신의 이력만 수정할 수 있습니다.', 403, 'Forbidden');
+    }
+
+    try {
+      return await MemberRepository.updateHistory(historyId, userId, history);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new AppError('해당 이력을 찾을 수 없습니다.', 404, 'NotFound');
+      }
+      throw error;
+    }
+  }
+
+  async deleteHistory(userId: number, historyId: number) {
+    const existingHistory = await MemberRepository.findHistoryById(historyId);
+
+    if (!existingHistory) {
+      throw new AppError('해당 이력을 찾을 수 없습니다.', 404, 'NotFound');
+    }
+
+    if (existingHistory.user_id !== userId) {
+      throw new AppError('자신의 이력만 삭제할 수 있습니다.', 403, 'Forbidden');
+    }
+
+    try {
+      return await MemberRepository.deleteHistory(historyId, userId);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new AppError('삭제할 이력을 찾을 수 없습니다.', 404, 'NotFound');
+      }
+      throw error;
+    }
   }
 }
 

@@ -56,4 +56,13 @@ router.post('/intros', authenticateJwt, MemberController.upsertIntro);
 // 한줄 소개 수정
 router.patch('/intros', authenticateJwt, MemberController.updateIntro);
 
+// 이력 작성
+router.post('/histories', authenticateJwt, MemberController.createHistory);
+
+// 이력 수정
+router.patch('/histories/:historyId', authenticateJwt, MemberController.updateHistory);
+
+// 이력 삭제
+router.delete('/histories/:historyId', authenticateJwt, MemberController.deleteHistory);
+
 export default router; 
