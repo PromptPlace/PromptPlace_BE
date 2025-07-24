@@ -1,4 +1,6 @@
-import { Review } from '@prisma/client';
+
+import { Review, Prompt } from '@prisma/client';
+import e from 'express';
 
 
 export interface ReviewResponse {
@@ -68,3 +70,41 @@ export const mapToReviewResponse = (review: Review): ReviewResponse => ({
   content: review.content,
   createdAt: review.created_at
 });
+
+// 리뷰 수정 화면 데이터 반환 타입
+export interface ReviewEditDataDTO {
+  prompter_id: number;
+  prompter_nickname: string;
+  prompt_id: number;
+  model_id: number;
+  model_name: string;
+  rating_avg: string;
+  content: string;
+}
+
+// 리뷰 수정 화면 데이터 반환 dto
+export const mapToReviewEditDataDTO = ({
+  review,
+  prompt,
+  modelId,
+  modelName,
+  prompterId,
+  prompterNickname
+}: {
+  review: Review;
+  prompt: Prompt;
+  modelId: number;
+  modelName: string;
+  prompterId: number;
+  prompterNickname: string;
+}): ReviewEditDataDTO => {
+  return {
+    prompter_id: prompterId,
+    prompter_nickname: prompterNickname,
+    prompt_id: prompt.prompt_id,
+    model_id: modelId,
+    model_name: modelName,
+    rating_avg: prompt.rating_avg.toFixed(1), // 소수점 첫째 자리까지(string)
+    content: review.content,
+  };
+};
