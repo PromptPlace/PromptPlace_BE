@@ -2,7 +2,8 @@ import { Request, Response } from 'express';
 import {
   findReviewsByPromptId,
   createReviewService,
-  deleteReviewService
+  deleteReviewService,
+  getReviewEditDataService
 } from '../services/review.service';
 
 interface RawPromptParams {
@@ -127,3 +128,43 @@ export const deleteReview = async (
   }
 };
 
+
+// 리뷰 수정 화면
+export const getReviewEditData = async (
+  req: Request<{ reviewId: string }, any, any>,
+  res: Response
+): Promise<void> => {
+  if (!req.user) {
+    res.fail({
+      statusCode: 401,
+      error: 'no user',
+      message: '로그인이 필요합니다.',
+    });
+    return;
+  }
+
+  try {
+    const reviewId = req.params.reviewId;
+
+    if (!reviewId) {
+      res.status(400).json({ message: '리뷰 ID가 없습니다.' });
+      return;
+    }
+
+    const review = await getReviewEditDataService(
+      reviewId,
+      (req.user as {user_id: number}).user_id
+    );
+
+    res.success({
+      data: review,
+    });
+  } catch (err: any) {
+    console.error(err);
+    res.fail({
+      error: err.name || 'InternalServerError',
+      message: err.message || '리뷰 수정 화면을 불러오는 중 오류가 발생했습니다.',
+      statusCode: err.statusCode || 500,
+    });
+  }
+};

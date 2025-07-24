@@ -1,14 +1,17 @@
 import {
   mapToReviewResponse,
   mapToReviewListDTO,
-  
+  mapToReviewEditDataDTO,
 } from '../dtos/review.dtos';
 import {
   findAllByPromptId,
   findUserProfilesByUserIds,
   createReview,
   findReviewById,
-  deleteReviewById
+  deleteReviewById,
+  findPromptByReviewId,
+  findNicknameByUserId,
+  findModelByPromptId,
 } from '../repositories/review.repository';
 import { Review } from '@prisma/client';
 
@@ -97,4 +100,56 @@ export const deleteReviewService = async (
   }
 
   await deleteReviewById(numericReviewId);
+};
+
+// 리뷰 수정 화면
+export const getReviewEditDataService = async (reviewId: string, currentUserId: number) => {
+
+  if (!reviewId || isNaN(Number(reviewId))) {
+    throw new Error('유효하지 않은 reviewId입니다.');
+  }
+
+
+
+  const numericReviewId = Number(reviewId);
+  const review = await findReviewById(numericReviewId);
+
+  if (!review) {
+    throw new Error('해당 리뷰를 찾을 수 없습니다.');
+  }
+
+  // 작성자 확인 (토큰 유저 vs 리뷰 작성자)
+  if (review.user_id !== currentUserId) {
+    const error = new Error('해당 리뷰에 대한 수정 권한이 없습니다.');
+    (error as any).statusCode = 403;
+    (error as any).name = 'Forbidden';
+    throw error;
+  }
+
+
+  const prompt = await findPromptByReviewId(numericReviewId);
+
+  if (!prompt) {
+    throw new Error('해당 리뷰에 대한 프롬프트를 찾을 수 없습니다.');
+  }
+
+  const prompterNickname = await findNicknameByUserId(prompt.user_id); 
+
+  if (!prompterNickname) 
+    throw new Error('작성자의 닉네임을 찾을 수 없습니다.');
+
+  const model = await findModelByPromptId(prompt.prompt_id);
+
+  if (!model) {
+    throw new Error('프롬프트에 연결된 모델을 찾을 수 없습니다.');
+  }
+
+  return mapToReviewEditDataDTO({
+    review,
+    prompt,
+    modelId: model.model_id,
+    modelName: model.model_name,
+    prompterId: prompt.user_id, 
+    prompterNickname
+  });
 };
