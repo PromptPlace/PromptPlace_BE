@@ -21,4 +21,8 @@ router.get('/:memberId/sns', passport.authenticate('jwt', { session: false }), (
   memberController.getSnsList(req, res, next)
 );
 
+router.post('/follows/:memberId', passport.authenticate('jwt', { session: false }), (req, res, next) =>
+  memberController.followUser(req, res, next)
+);
+
 export default router; 
