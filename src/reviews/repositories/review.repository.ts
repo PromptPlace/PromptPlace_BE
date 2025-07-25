@@ -90,10 +90,10 @@ export const deleteReviewById = async (reviewId: number) => {
   });
 };
 
-export const findPromptByReviewId = async (reviewId: number) => {
+export const findPromptById = async (promptId: number) => {
   return await prisma.prompt.findUnique({
     where: {
-      prompt_id: reviewId
+      prompt_id: promptId
     }
   });
 };
@@ -135,3 +135,21 @@ export const findModelByPromptId = async (promptId: number): Promise<{ model_id:
   };
 };
 
+// 리뷰 수정
+export const updateReviewById = async (
+  reviewId: number,
+  data: {
+    rating?: number;
+    content?: string;
+  }
+) => {
+  return await prisma.review.update({
+    where: {
+      review_id: reviewId
+    },
+    data: {
+      ...(data.rating !== undefined && { rating: data.rating }), // rating 필드가 undefined가 아닐 때만 업데이트
+      ...(data.content !== undefined && { content: data.content }) // content 필드가 undefined가 아닐 때만 업데이트
+    }
+  });
+};

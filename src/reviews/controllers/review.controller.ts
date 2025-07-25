@@ -3,7 +3,8 @@ import {
   findReviewsByPromptId,
   createReviewService,
   deleteReviewService,
-  getReviewEditDataService
+  getReviewEditDataService,
+  editReviewService,
 } from '../services/review.service';
 
 interface RawPromptParams {
@@ -164,6 +165,52 @@ export const getReviewEditData = async (
     res.fail({
       error: err.name || 'InternalServerError',
       message: err.message || '리뷰 수정 화면을 불러오는 중 오류가 발생했습니다.',
+      statusCode: err.statusCode || 500,
+    });
+  }
+};
+
+
+// 리뷰 수정 
+export const editReview = async (
+  req: Request<{ reviewId: string }, any, { rating: number; content: string }>,
+  res: Response
+): Promise<void> => {
+  if (!req.user) {
+    res.fail({
+      statusCode: 401,
+      error: 'no user',
+      message: '로그인이 필요합니다.',
+    });
+    return;
+  }
+
+  try {
+    const userId = (req.user as { user_id: number }).user_id;
+    const reviewId = req.params.reviewId;
+    const { rating, content } = req.body;
+
+    if (!reviewId) {
+      res.status(400).json({ message: '리뷰 ID가 없습니다.' });
+      return;
+    }
+
+    if (rating == null || content == null) {
+      res.status(400).json({ message: 'rating 또는 content가 누락되었습니다.' });
+      return;
+    }
+
+    const updatedReview = await editReviewService(reviewId, userId, rating, content);
+
+    res.success({
+      message: '리뷰가 성공적으로 수정되었습니다.',
+      data: updatedReview,
+    });
+  } catch (err: any) {
+    console.error(err);
+    res.fail({
+      error: err.name || 'InternalServerError',
+      message: err.message || '리뷰 수정 중 오류가 발생했습니다.',
       statusCode: err.statusCode || 500,
     });
   }

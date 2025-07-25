@@ -2,6 +2,7 @@ import {
   mapToReviewResponse,
   mapToReviewListDTO,
   mapToReviewEditDataDTO,
+  mapToReviewUpdateResponse,
 } from '../dtos/review.dtos';
 import {
   findAllByPromptId,
@@ -9,9 +10,10 @@ import {
   createReview,
   findReviewById,
   deleteReviewById,
-  findPromptByReviewId,
+  findPromptById,
   findNicknameByUserId,
   findModelByPromptId,
+  updateReviewById,
 } from '../repositories/review.repository';
 import { Review } from '@prisma/client';
 
@@ -141,7 +143,7 @@ export const getReviewEditDataService = async (reviewId: string, currentUserId: 
   }
 
 
-  const prompt = await findPromptByReviewId(numericReviewId);
+  const prompt = await findPromptById(review.prompt_id);
 
   if (!prompt) {
     throw new Error('해당 리뷰에 대한 프롬프트를 찾을 수 없습니다.');
@@ -166,4 +168,60 @@ export const getReviewEditDataService = async (reviewId: string, currentUserId: 
     prompterId: prompt.user_id, 
     prompterNickname
   });
+};
+
+// 리뷰 수정
+export const editReviewService = async (
+  reviewId: string,
+  userId: number,
+  rating?: number,
+  content?: string
+) => {
+  if (!reviewId || isNaN(Number(reviewId))) {
+    throw {
+      name: 'BadRequest',
+      message: '유효하지 않은 reviewId입니다.',
+      statusCode: 400
+    };
+  }
+
+  const numericReviewId = Number(reviewId);
+  const review = await findReviewById(numericReviewId);
+
+  if (!review) {
+    throw {
+      name: 'NotFound',
+      message: '해당 리뷰를 찾을 수 없습니다.',
+      statusCode: 404
+    };
+  }
+
+  if (review.user_id !== userId) {
+    throw {
+      name: 'Forbidden',
+      message: '리뷰를 수정할 권한이 없습니다.',
+      statusCode: 403
+    };
+  }
+
+  const now = new Date();
+  const createdAt = new Date(review.created_at);
+  const diffInDays = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+
+  if (diffInDays > 30) {
+    throw {
+      name: 'Forbidden',
+      message: '리뷰 작성일로부터 30일이 지나 수정할 수 없습니다.',
+      statusCode: 403
+    };
+  }
+
+  const updated = await updateReviewById(numericReviewId, {
+    rating,
+    content
+  });
+
+  const writerName = await findNicknameByUserId(userId);
+  
+  return mapToReviewUpdateResponse(updated, writerName || '알 수 없음');
 };

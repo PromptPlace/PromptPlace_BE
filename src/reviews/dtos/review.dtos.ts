@@ -108,3 +108,26 @@ export const mapToReviewEditDataDTO = ({
     content: review.content,
   };
 };
+
+
+export interface ReviewUpdateResponse {
+  review_id: number;
+  prompt_id: number;
+  writer_name: string;
+  rating: number;
+  content: string;
+  updated_at: string;
+}
+
+export const mapToReviewUpdateResponse = (
+  review: Review,
+  writerName: string
+): ReviewUpdateResponse => ({
+  review_id: review.review_id,
+  prompt_id: review.prompt_id,
+  writer_name: writerName,
+  rating: review.rating,
+  content: review.content,
+  updated_at: review.updated_at.toISOString()
+});
+
