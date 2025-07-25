@@ -110,4 +110,45 @@ export class MemberController {
       next(error);
     }
   }
+
+  public async followUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const followerUser = req.user as any;
+      const followingId = parseInt(req.params.memberId, 10);
+
+      if (isNaN(followingId)) {
+        throw new AppError('BadRequest', '유효하지 않은 회원 ID입니다.', 400);
+      }
+
+      const follow = await this.memberService.followUser(followerUser.user_id, followingId);
+
+      res.status(200).json({
+        message: '팔로우가 완료되었습니다.',
+        data: follow,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async unfollowUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const followerUser = req.user as any;
+      const followingId = parseInt(req.params.memberId, 10);
+
+      if (isNaN(followingId)) {
+        throw new AppError('BadRequest', '유효하지 않은 회원 ID입니다.', 400);
+      }
+
+      await this.memberService.unfollowUser(followerUser.user_id, followingId);
+
+      res.status(200).json({
+        message: '언팔로우가 완료되었습니다.',
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 } 

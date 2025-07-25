@@ -120,4 +120,31 @@ export class MemberRepository {
       where: { user_id: userId },
     });
   }
+
+  async findFollowing(followerId: number, followingId: number) {
+    return prisma.following.findFirst({
+      where: {
+        follower_id: followerId,
+        following_id: followingId,
+      },
+    });
+  }
+
+  async followUser(followerId: number, followingId: number) {
+    return prisma.following.create({
+      data: {
+        follower_id: followerId,
+        following_id: followingId,
+      },
+    });
+  }
+
+  async unfollowUser(followerId: number, followingId: number) {
+    return prisma.following.deleteMany({
+      where: {
+        follower_id: followerId,
+        following_id: followingId,
+      },
+    });
+  }
 }

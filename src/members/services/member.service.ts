@@ -45,4 +45,36 @@ export class MemberService {
   async getSnsList(userId: number) {
     return this.memberRepository.getSnsListByUserId(userId);
   }
+
+  async followUser(followerId: number, followingId: number) {
+    if (followerId === followingId) {
+      throw new AppError('BadRequest', '자기 자신을 팔로우할 수 없습니다.', 400);
+    }
+
+    const followingUser = await this.memberRepository.findMemberById(followingId);
+    if (!followingUser) {
+      throw new AppError('NotFound', '해당 사용자를 찾을 수 없습니다.', 404);
+    }
+
+    const existingFollow = await this.memberRepository.findFollowing(followerId, followingId);
+    if (existingFollow) {
+      throw new AppError('Conflict', '이미 팔로우한 사용자입니다.', 409);
+    }
+
+    return this.memberRepository.followUser(followerId, followingId);
+  }
+
+  async unfollowUser(followerId: number, followingId: number) {
+    const followingUser = await this.memberRepository.findMemberById(followingId);
+    if (!followingUser) {
+      throw new AppError('NotFound', '해당 사용자를 찾을 수 없습니다.', 404);
+    }
+
+    const existingFollow = await this.memberRepository.findFollowing(followerId, followingId);
+    if (!existingFollow) {
+      throw new AppError('NotFound', '팔로우 관계를 찾을 수 없습니다.', 404);
+    }
+
+    return this.memberRepository.unfollowUser(followerId, followingId);
+  }
 } 
