@@ -9,9 +9,9 @@ import authRouter from './auth/routes/auth.route'; // auth 라우터 경로 수�
 import membersRouter from './members/routes/member.route'; // members 라우터 import
 import promptRoutes from './prompts/routes/prompt.route'; // 프롬프트 관련 라우터
 import ReviewRouter from './reviews/routes/review.route';
-import promptDownloadRouter from './prompts/routes/prompt.downlaod.route'
+import promptDownloadRouter from './prompts/routes/prompt.downlaod.route';
 import promptLikeRouter from './prompts/routes/prompt.like.route';
-// import * as swaggerDocument from './docs/swagger/swagger.json'; 
+// import * as swaggerDocument from './docs/swagger/swagger.json';
 // import { RegisterRoutes } from './routes/routes'; // tsoa가 생성하는 파일
 
 const app = express();
