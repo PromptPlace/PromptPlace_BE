@@ -2,6 +2,7 @@ import { CreateHistoryDto } from '../dtos/create-history.dto';
 import { UpdateHistoryDto } from '../dtos/update-history.dto';
 import prisma from '../../config/prisma';
 import { CreateSnsDto } from '../dtos/create-sns.dto';
+import { UpdateSnsDto } from '../dtos/update-sns.dto';
 
 export class MemberRepository {
   async findMemberById(userId: number) {
@@ -92,6 +93,25 @@ export class MemberRepository {
         url,
         description,
       },
+    });
+  }
+
+  async findSnsById(snsId: number) {
+    return prisma.userSNS.findUnique({
+      where: { sns_id: snsId },
+    });
+  }
+
+  async updateSns(snsId: number, updateSnsDto: UpdateSnsDto) {
+    return prisma.userSNS.update({
+      where: { sns_id: snsId },
+      data: updateSnsDto,
+    });
+  }
+
+  async deleteSns(snsId: number) {
+    return prisma.userSNS.delete({
+      where: { sns_id: snsId },
     });
   }
 }

@@ -9,4 +9,12 @@ router.post('/sns', passport.authenticate('jwt', { session: false }), (req, res,
   memberController.createSns(req, res, next)
 );
 
+router.patch('/sns/:snsId', passport.authenticate('jwt', { session: false }), (req, res, next) =>
+  memberController.updateSns(req, res, next)
+);
+
+router.delete('/sns/:snsId', passport.authenticate('jwt', { session: false }), (req, res, next) =>
+  memberController.deleteSns(req, res, next)
+);
+
 export default router; 
