@@ -66,7 +66,7 @@ export const createReviewService = async (
   return mapToReviewResponse(newReview);
 };
 
-
+// 리뷰 삭제
 export const deleteReviewService = async (
   reviewId: string,
   userId: number
@@ -95,6 +95,20 @@ export const deleteReviewService = async (
     throw {
       name: 'Forbidden',
       message: '리뷰를 삭제할 권한이 없습니다.',
+      statusCode: 403
+    };
+  }
+
+  // 30일 초과 여부 확인
+  const now = new Date();
+  const createdAt = new Date(review.created_at);
+  const diffInMs = now.getTime() - createdAt.getTime();
+  const diffInDays = diffInMs / (1000 * 60 * 60 * 24); 
+
+  if(diffInDays > 30) {
+    throw{
+      name: 'Forbidden',
+      message: '리뷰 작성일로부터 30일이 지나 삭제할 수 없습니다.',
       statusCode: 403
     };
   }
