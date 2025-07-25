@@ -76,6 +76,7 @@ export interface ReviewEditDataDTO {
   prompter_id: number;
   prompter_nickname: string;
   prompt_id: number;
+  prompt_title: string;
   model_id: number;
   model_name: string;
   rating_avg: string;
@@ -102,6 +103,7 @@ export const mapToReviewEditDataDTO = ({
     prompter_id: prompterId,
     prompter_nickname: prompterNickname,
     prompt_id: prompt.prompt_id,
+    prompt_title: prompt.title,
     model_id: modelId,
     model_name: modelName,
     rating_avg: prompt.rating_avg.toFixed(1), // 소수점 첫째 자리까지(string)
