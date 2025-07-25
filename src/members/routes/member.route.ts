@@ -17,4 +17,8 @@ router.delete('/sns/:snsId', passport.authenticate('jwt', { session: false }), (
   memberController.deleteSns(req, res, next)
 );
 
+router.get('/:memberId/sns', passport.authenticate('jwt', { session: false }), (req, res, next) =>
+  memberController.getSnsList(req, res, next)
+);
+
 export default router; 

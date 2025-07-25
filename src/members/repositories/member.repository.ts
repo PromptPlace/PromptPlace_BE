@@ -114,4 +114,10 @@ export class MemberRepository {
       where: { sns_id: snsId },
     });
   }
+
+  async getSnsListByUserId(userId: number) {
+    return prisma.userSNS.findMany({
+      where: { user_id: userId },
+    });
+  }
 }

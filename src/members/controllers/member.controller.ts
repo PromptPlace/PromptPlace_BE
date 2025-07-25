@@ -90,4 +90,24 @@ export class MemberController {
       next(error);
     }
   }
+
+  public async getSnsList(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const memberId = parseInt(req.params.memberId, 10);
+
+      if (isNaN(memberId)) {
+        throw new AppError('BadRequest', '유효하지 않은 회원 ID입니다.', 400);
+      }
+
+      const snsList = await this.memberService.getSnsList(memberId);
+
+      res.status(200).json({
+        message: 'SNS 목록 조회 완료',
+        data: snsList,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 } 

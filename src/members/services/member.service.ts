@@ -41,4 +41,8 @@ export class MemberService {
 
     return this.memberRepository.deleteSns(snsId);
   }
+
+  async getSnsList(userId: number) {
+    return this.memberRepository.getSnsListByUserId(userId);
+  }
 } 
