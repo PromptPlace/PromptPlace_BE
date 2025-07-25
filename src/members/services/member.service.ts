@@ -63,4 +63,18 @@ export class MemberService {
 
     return this.memberRepository.followUser(followerId, followingId);
   }
+
+  async unfollowUser(followerId: number, followingId: number) {
+    const followingUser = await this.memberRepository.findMemberById(followingId);
+    if (!followingUser) {
+      throw new AppError('NotFound', '해당 사용자를 찾을 수 없습니다.', 404);
+    }
+
+    const existingFollow = await this.memberRepository.findFollowing(followerId, followingId);
+    if (!existingFollow) {
+      throw new AppError('NotFound', '팔로우 관계를 찾을 수 없습니다.', 404);
+    }
+
+    return this.memberRepository.unfollowUser(followerId, followingId);
+  }
 } 

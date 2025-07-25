@@ -138,4 +138,13 @@ export class MemberRepository {
       },
     });
   }
+
+  async unfollowUser(followerId: number, followingId: number) {
+    return prisma.following.deleteMany({
+      where: {
+        follower_id: followerId,
+        following_id: followingId,
+      },
+    });
+  }
 }

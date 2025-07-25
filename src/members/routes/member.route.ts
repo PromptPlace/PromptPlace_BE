@@ -25,4 +25,8 @@ router.post('/follows/:memberId', passport.authenticate('jwt', { session: false 
   memberController.followUser(req, res, next)
 );
 
+router.delete('/follows/:memberId', passport.authenticate('jwt', { session: false }), (req, res, next) =>
+  memberController.unfollowUser(req, res, next)
+);
+
 export default router; 
