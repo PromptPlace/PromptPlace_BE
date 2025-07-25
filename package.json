@@ -30,7 +30,8 @@
     "swagger-autogen": "^2.23.7",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "tsoa": "^6.6.0"
+    "tsoa": "^6.6.0",
+    "typedi": "^0.10.0"
   },
   "devDependencies": {
     "@prisma/client": "^6.11.1",

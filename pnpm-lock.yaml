@@ -68,6 +68,9 @@ importers:
       tsoa:
         specifier: ^6.6.0
         version: 6.6.0
+      typedi:
+        specifier: ^0.10.0
+        version: 0.10.0
     devDependencies:
       '@prisma/client':
         specifier: ^6.11.1
@@ -1755,6 +1758,9 @@ packages:
 
   typedarray@0.0.6:
     resolution: {integrity: sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==}
+
+  typedi@0.10.0:
+    resolution: {integrity: sha512-v3UJF8xm68BBj6AF4oQML3ikrfK2c9EmZUyLOfShpJuItAqVBHWP/KtpGinkSsIiP6EZyyb6Z3NXyW9dgS9X1w==}
 
   typescript@5.8.3:
     resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
@@ -4171,6 +4177,8 @@ snapshots:
       mime-types: 3.0.1
 
   typedarray@0.0.6: {}
+
+  typedi@0.10.0: {}
 
   typescript@5.8.3: {}
 

@@ -58,6 +58,7 @@ model User {
   purchases          Purchase[]
   reviews            Review[]
   refreshTokens      RefreshToken[]
+  userProfile        UserProfile?
 }
 
 model UserIntro {
@@ -392,4 +393,26 @@ model Review {
 
   user   User   @relation(fields: [user_id], references: [user_id])
   prompt Prompt @relation(fields: [prompt_id], references: [prompt_id])
+}
+
+model UserProfile {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nickname  String
+  job       String?
+  about     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sns       Sns[]
+}
+
+model Sns {
+  id          Int         @id @default(autoincrement())
+  url         String
+  description String?
+  profileId   Int
+  profile     UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
