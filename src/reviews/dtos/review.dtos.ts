@@ -1,4 +1,6 @@
-import { Review } from '@prisma/client';
+
+import { Review, Prompt } from '@prisma/client';
+import e from 'express';
 
 
 export interface ReviewResponse {
@@ -25,25 +27,39 @@ export interface ReviewListResponse {
 // 리뷰 List 반환 DTO
 export const mapToReviewListDTO = (
   rawReviews: Review[],
-  rawNicknames: { user_id: number; nickname: string }[],
+  rawProfiles: { user_id: number; nickname: string; profileImage: { url: string } | null }[],
   limit: number
 ): ReviewListResponse => {
-  const userMap = new Map(rawNicknames.map(user => [user.user_id, user.nickname]));
+  const userMap = new Map(
+    rawProfiles.map(user => [
+      user.user_id,
+      {
+        nickname: user.nickname,
+        imageUrl: user.profileImage?.url || null
+      }
+    ])
+  );
 
-  const reviews = rawReviews.map((review) => ({
-    review_id: review.review_id,
-    writer_id: review.user_id,
-    writer_nickname: userMap.get(review.user_id) || 'Unknown',
-    rating: review.rating,
-    content: review.content,
-    created_at: review.created_at.toISOString()
-  }));
+  const reviews = rawReviews.map((review) => {
+    const userInfo = userMap.get(review.user_id);
+    
+    return {
+      review_id: review.review_id,
+      writer_id: review.user_id,
+      writer_nickname: userInfo?.nickname || 'Unknown',
+      writer_image_url: userInfo?.imageUrl || null,
+      rating: review.rating,
+      content: review.content,
+      created_at: review.created_at.toISOString()
+    };
+  });
 
   return {
     has_more: rawReviews.length >= limit,
     reviews
   };
 };
+
 
 // 단일 리뷰 정보 반환 DTO
 export const mapToReviewResponse = (review: Review): ReviewResponse => ({
@@ -54,3 +70,66 @@ export const mapToReviewResponse = (review: Review): ReviewResponse => ({
   content: review.content,
   createdAt: review.created_at
 });
+
+// 리뷰 수정 화면 데이터 반환 타입
+export interface ReviewEditDataDTO {
+  prompter_id: number;
+  prompter_nickname: string;
+  prompt_id: number;
+  prompt_title: string;
+  model_id: number;
+  model_name: string;
+  rating_avg: string;
+  content: string;
+}
+
+// 리뷰 수정 화면 데이터 반환 dto
+export const mapToReviewEditDataDTO = ({
+  review,
+  prompt,
+  modelId,
+  modelName,
+  prompterId,
+  prompterNickname
+}: {
+  review: Review;
+  prompt: Prompt;
+  modelId: number;
+  modelName: string;
+  prompterId: number;
+  prompterNickname: string;
+}): ReviewEditDataDTO => {
+  return {
+    prompter_id: prompterId,
+    prompter_nickname: prompterNickname,
+    prompt_id: prompt.prompt_id,
+    prompt_title: prompt.title,
+    model_id: modelId,
+    model_name: modelName,
+    rating_avg: prompt.rating_avg.toFixed(1), // 소수점 첫째 자리까지(string)
+    content: review.content,
+  };
+};
+
+
+export interface ReviewUpdateResponse {
+  review_id: number;
+  prompt_id: number;
+  writer_name: string;
+  rating: number;
+  content: string;
+  updated_at: string;
+}
+
+export const mapToReviewUpdateResponse = (
+  review: Review,
+  writerName: string
+): ReviewUpdateResponse => ({
+  review_id: review.review_id,
+  prompt_id: review.prompt_id,
+  writer_name: writerName,
+  rating: review.rating,
+  content: review.content,
+  updated_at: review.updated_at.toISOString()
+});
+

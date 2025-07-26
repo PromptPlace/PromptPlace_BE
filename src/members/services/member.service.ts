@@ -1,39 +1,80 @@
-import MemberRepository from '../repositories/member.repository';
+import { MemberRepository } from '../repositories/member.repository';
+import { CreateSnsDto } from '../dtos/create-sns.dto';
 import { AppError } from '../../errors/AppError';
+import { UpdateSnsDto } from '../dtos/update-sns.dto';
 
-class MemberService {
-  async uploadProfileImage(userId: number, file: Express.Multer.File): Promise<string> {
-    // 실제 서버에서는 파일 접근을 위한 전체 URL을 생성해야 함
-    // 예: const imageUrl = `https://your-domain.com/${file.path}`;
-    const imageUrl = file.path; 
+export class MemberService {
+  private memberRepository: MemberRepository;
 
-    await MemberRepository.upsertProfileImage(userId, imageUrl);
-    return imageUrl;
+  constructor() {
+    this.memberRepository = new MemberRepository();
   }
 
-  async withdrawUser(userId: number): Promise<void> {
-    await MemberRepository.softDeleteUser(userId);
+  async createSns(userId: number, createSnsDto: CreateSnsDto) {
+    return this.memberRepository.createSns(userId, createSnsDto);
   }
 
-  async getMemberProfile(memberId: number) {
-    const member = await MemberRepository.findMemberById(memberId);
+  async updateSns(userId: number, snsId: number, updateSnsDto: UpdateSnsDto) {
+    const sns = await this.memberRepository.findSnsById(snsId);
 
-    if (!member) {
-      throw new AppError('해당 회원을 찾을 수 없습니다.', 404, 'NotFound');
+    if (!sns) {
+      throw new AppError('NotFound', '해당 SNS를 찾을 수 없습니다.', 404);
     }
 
-    // 명세서에 맞는 응답 형태로 데이터 가공
-    return {
-      member_id: member.user_id,
-      email: member.email,
-      name: member.name,
-      nickname: member.nickname,
-      intros: member.intro?.description || null, // member.profile.description 대신 member.intro.description 사용
-      created_at: member.created_at,
-      updated_at: member.updated_at,
-      status: member.status,
-    };
-  }
-}
+    if (sns.user_id !== userId) {
+      throw new AppError('Forbidden', '자신의 SNS만 수정할 수 있습니다.', 403);
+    }
 
-export default new MemberService(); 
+    return this.memberRepository.updateSns(snsId, updateSnsDto);
+  }
+
+  async deleteSns(userId: number, snsId: number) {
+    const sns = await this.memberRepository.findSnsById(snsId);
+
+    if (!sns) {
+      throw new AppError('NotFound', '해당 SNS 정보를 찾을 수 없습니다.', 404);
+    }
+
+    if (sns.user_id !== userId) {
+      throw new AppError('Forbidden', '해당 SNS 정보를 삭제할 권한이 없습니다.', 403);
+    }
+
+    return this.memberRepository.deleteSns(snsId);
+  }
+
+  async getSnsList(userId: number) {
+    return this.memberRepository.getSnsListByUserId(userId);
+  }
+
+  async followUser(followerId: number, followingId: number) {
+    if (followerId === followingId) {
+      throw new AppError('BadRequest', '자기 자신을 팔로우할 수 없습니다.', 400);
+    }
+
+    const followingUser = await this.memberRepository.findMemberById(followingId);
+    if (!followingUser) {
+      throw new AppError('NotFound', '해당 사용자를 찾을 수 없습니다.', 404);
+    }
+
+    const existingFollow = await this.memberRepository.findFollowing(followerId, followingId);
+    if (existingFollow) {
+      throw new AppError('Conflict', '이미 팔로우한 사용자입니다.', 409);
+    }
+
+    return this.memberRepository.followUser(followerId, followingId);
+  }
+
+  async unfollowUser(followerId: number, followingId: number) {
+    const followingUser = await this.memberRepository.findMemberById(followingId);
+    if (!followingUser) {
+      throw new AppError('NotFound', '해당 사용자를 찾을 수 없습니다.', 404);
+    }
+
+    const existingFollow = await this.memberRepository.findFollowing(followerId, followingId);
+    if (!existingFollow) {
+      throw new AppError('NotFound', '팔로우 관계를 찾을 수 없습니다.', 404);
+    }
+
+    return this.memberRepository.unfollowUser(followerId, followingId);
+  }
+} 

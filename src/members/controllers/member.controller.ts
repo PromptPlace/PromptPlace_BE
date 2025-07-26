@@ -1,67 +1,154 @@
 import { Request, Response, NextFunction } from 'express';
-import MemberService from '../services/member.service';
+import { MemberService } from '../services/member.service';
+import { CreateSnsDto } from '../dtos/create-sns.dto';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 import { AppError } from '../../errors/AppError';
-import multer from 'multer';
+import { UpdateSnsDto } from '../dtos/update-sns.dto';
 
-class MemberController {
-  async uploadProfileImage(req: Request, res: Response): Promise<void> {
+export class MemberController {
+  private memberService: MemberService;
+
+  constructor() {
+    this.memberService = new MemberService();
+  }
+
+  public async createSns(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      if (!req.file) {
-        res.status(400).json({
-          error: 'BadRequest',
-          message: '파일이 업로드되지 않았습니다.',
-          statusCode: 400,
-        });
-        return;
+      const user = req.user as any;
+      const createSnsDto = plainToInstance(CreateSnsDto, req.body);
+      const errors = await validate(createSnsDto);
+
+      if (errors.length > 0) {
+        const message = errors.map((error) => Object.values(error.constraints || {})).join(', ');
+        throw new AppError('BadRequest', message, 400);
       }
 
+      const sns = await this.memberService.createSns(user.user_id, createSnsDto);
+
+      res.status(201).json({
+        message: 'SNS가 성공적으로 작성되었습니다.',
+        sns_id: sns.sns_id,
+        url: sns.url,
+        description: sns.description,
+        created_at: sns.created_at,
+        statusCode: 201,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async updateSns(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
       const user = req.user as any;
-      await MemberService.uploadProfileImage(user.user_id, req.file);
+      const snsId = parseInt(req.params.snsId, 10);
+
+      if (isNaN(snsId)) {
+        throw new AppError('BadRequest', '유효하지 않은 SNS ID입니다.', 400);
+      }
+
+      const updateSnsDto = plainToInstance(UpdateSnsDto, req.body);
+      const errors = await validate(updateSnsDto);
+
+      if (errors.length > 0) {
+        const message = errors.map((error) => Object.values(error.constraints || {})).join(', ');
+        throw new AppError('BadRequest', message, 400);
+      }
+
+      const updatedSns = await this.memberService.updateSns(user.user_id, snsId, updateSnsDto);
 
       res.status(200).json({
-        message: '프로필 이미지 등록 완료',
+        message: 'SNS가 성공적으로 수정되었습니다.',
+        sns_id: updatedSns.sns_id,
+        url: updatedSns.url,
+        description: updatedSns.description,
+        updated_at: updatedSns.updated_at,
         statusCode: 200,
       });
-
     } catch (error) {
-      console.error(error); // 서버 로그는 남겨두는 것이 좋습니다.
-      res.status(500).json({
-        error: 'InternalServerError',
-        message: '알 수 없는 오류가 발생했습니다.',
-        statusCode: 500,
-      });
+      next(error);
     }
   }
 
-  async getProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const memberId = parseInt(req.params.memberId, 10);
-      const authenticatedUser = req.user as any;
-
-      // 로그인한 사용자가 자신의 정보에만 접근하는지 확인
-      if (authenticatedUser.user_id !== memberId) {
-        throw new AppError('해당 회원 정보에 접근할 권한이 없습니다.', 403, 'Forbidden');
-      }
-
-      const memberProfile = await MemberService.getMemberProfile(memberId);
-      
-      res.success(memberProfile, '회원 정보 조회 완료');
-
-    } catch (error) {
-      next(error); // 모든 에러를 errorHandler로 전달
-    }
-  }
-
-  async withdraw(req: Request, res: Response): Promise<void> {
+  public async deleteSns(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const user = req.user as any;
-      await MemberService.withdrawUser(user.user_id);
-      res.status(200).json({ message: '회원 탈퇴가 성공적으로 처리되었습니다.' });
+      const snsId = parseInt(req.params.snsId, 10);
+
+      if (isNaN(snsId)) {
+        throw new AppError('BadRequest', '유효하지 않은 SNS ID입니다.', 400);
+      }
+
+      await this.memberService.deleteSns(user.user_id, snsId);
+
+      res.status(200).json({
+        message: 'SNS 정보가 삭제되었습니다.',
+        statusCode: 200,
+      });
     } catch (error) {
-      console.error('Withdrawal error:', error);
-      res.status(500).json({ message: '회원 탈퇴 처리 중 오류가 발생했습니다.' });
+      next(error);
     }
   }
-}
 
-export default new MemberController(); 
+  public async getSnsList(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const memberId = parseInt(req.params.memberId, 10);
+
+      if (isNaN(memberId)) {
+        throw new AppError('BadRequest', '유효하지 않은 회원 ID입니다.', 400);
+      }
+
+      const snsList = await this.memberService.getSnsList(memberId);
+
+      res.status(200).json({
+        message: 'SNS 목록 조회 완료',
+        data: snsList,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async followUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const followerUser = req.user as any;
+      const followingId = parseInt(req.params.memberId, 10);
+
+      if (isNaN(followingId)) {
+        throw new AppError('BadRequest', '유효하지 않은 회원 ID입니다.', 400);
+      }
+
+      const follow = await this.memberService.followUser(followerUser.user_id, followingId);
+
+      res.status(200).json({
+        message: '팔로우가 완료되었습니다.',
+        data: follow,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async unfollowUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const followerUser = req.user as any;
+      const followingId = parseInt(req.params.memberId, 10);
+
+      if (isNaN(followingId)) {
+        throw new AppError('BadRequest', '유효하지 않은 회원 ID입니다.', 400);
+      }
+
+      await this.memberService.unfollowUser(followerUser.user_id, followingId);
+
+      res.status(200).json({
+        message: '언팔로우가 완료되었습니다.',
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+} 

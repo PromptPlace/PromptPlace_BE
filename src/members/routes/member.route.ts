@@ -1,53 +1,32 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import { authenticateJwt } from '../../config/passport';
-import MemberController from '../controllers/member.controller';
-import { upload } from '../../middlewares/upload';
-import multer from 'multer';
+import express from 'express';
+import { MemberController } from '../controllers/member.controller';
+import passport from 'passport';
 
-const router = Router();
+const router = express.Router();
+const memberController = new MemberController();
 
-const uploadMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const uploadHandler = upload.single('profile_image');
-
-  uploadHandler(req, res, (err) => {
-    if (err instanceof multer.MulterError) {
-      if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(413).json({
-          error: 'PayloadTooLarge',
-          message: '파일 크기가 너무 큽니다. (최대 5MB)',
-          statusCode: 413,
-        });
-      }
-      return res.status(400).json({ 
-        error: 'BadRequest',
-        message: err.message,
-        statusCode: 400
-       });
-    } else if (err) {
-      // fileFilter에서 발생시킨 커스텀 에러
-      return res.status(400).json({
-        error: 'BadRequest',
-        message: err.message,
-        statusCode: 400,
-      });
-    }
-    // 성공 시에만 다음 미들웨어(컨트롤러)로 넘어감
-    next();
-  });
-};
-
-// 회원 정보 조회
-router.get('/:memberId', authenticateJwt, MemberController.getProfile);
-
-// 프로필 이미지 등록
-router.post(
-  '/images',
-  authenticateJwt,
-  uploadMiddleware,
-  MemberController.uploadProfileImage
+router.post('/sns', passport.authenticate('jwt', { session: false }), (req, res, next) =>
+  memberController.createSns(req, res, next)
 );
 
-// 회원 탈퇴
-router.delete('/withdrawal', authenticateJwt, MemberController.withdraw);
+router.patch('/sns/:snsId', passport.authenticate('jwt', { session: false }), (req, res, next) =>
+  memberController.updateSns(req, res, next)
+);
+
+router.delete('/sns/:snsId', passport.authenticate('jwt', { session: false }), (req, res, next) =>
+  memberController.deleteSns(req, res, next)
+);
+
+router.get('/:memberId/sns', passport.authenticate('jwt', { session: false }), (req, res, next) =>
+  memberController.getSnsList(req, res, next)
+);
+
+router.post('/follows/:memberId', passport.authenticate('jwt', { session: false }), (req, res, next) =>
+  memberController.followUser(req, res, next)
+);
+
+router.delete('/follows/:memberId', passport.authenticate('jwt', { session: false }), (req, res, next) =>
+  memberController.unfollowUser(req, res, next)
+);
 
 export default router; 
