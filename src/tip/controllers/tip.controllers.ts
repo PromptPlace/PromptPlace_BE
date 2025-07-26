@@ -35,6 +35,15 @@ export const getTipList = async (
 
 // 팁 생성 - 관리자 인증 필요
 export const createTip = async (req: Request, res: Response) => {
+  if (!req.user) {
+    res.fail({
+      statusCode: 401,
+      error: "no user",
+      message: "로그인이 필요합니다.",
+    });
+    return;
+  }
+
   try {
     const result = await createTipService(req.body);
     return res.success({
