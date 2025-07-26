@@ -1,32 +1,24 @@
-import express from 'express';
+import { Router } from 'express';
 import { MemberController } from '../controllers/member.controller';
-import passport from 'passport';
+import { authenticateJwt } from '../../config/passport';
 
-const router = express.Router();
+const router = Router();
 const memberController = new MemberController();
 
-router.post('/sns', passport.authenticate('jwt', { session: false }), (req, res, next) =>
-  memberController.createSns(req, res, next)
+router.get(
+  '/followers/:memberId',
+  authenticateJwt,
+  memberController.getFollowers.bind(memberController),
 );
-
-router.patch('/sns/:snsId', passport.authenticate('jwt', { session: false }), (req, res, next) =>
-  memberController.updateSns(req, res, next)
+router.post(
+  '/follow/:memberId',
+  authenticateJwt,
+  memberController.followUser.bind(memberController),
 );
-
-router.delete('/sns/:snsId', passport.authenticate('jwt', { session: false }), (req, res, next) =>
-  memberController.deleteSns(req, res, next)
-);
-
-router.get('/:memberId/sns', passport.authenticate('jwt', { session: false }), (req, res, next) =>
-  memberController.getSnsList(req, res, next)
-);
-
-router.post('/follows/:memberId', passport.authenticate('jwt', { session: false }), (req, res, next) =>
-  memberController.followUser(req, res, next)
-);
-
-router.delete('/follows/:memberId', passport.authenticate('jwt', { session: false }), (req, res, next) =>
-  memberController.unfollowUser(req, res, next)
+router.delete(
+  '/unfollow/:memberId',
+  authenticateJwt,
+  memberController.unfollowUser.bind(memberController),
 );
 
 export default router; 

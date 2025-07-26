@@ -1,57 +1,17 @@
 import { MemberRepository } from '../repositories/member.repository';
-import { CreateSnsDto } from '../dtos/create-sns.dto';
 import { AppError } from '../../errors/AppError';
-import { UpdateSnsDto } from '../dtos/update-sns.dto';
+import { Service } from 'typedi';
 
+@Service()
 export class MemberService {
-  private memberRepository: MemberRepository;
-
-  constructor() {
-    this.memberRepository = new MemberRepository();
-  }
-
-  async createSns(userId: number, createSnsDto: CreateSnsDto) {
-    return this.memberRepository.createSns(userId, createSnsDto);
-  }
-
-  async updateSns(userId: number, snsId: number, updateSnsDto: UpdateSnsDto) {
-    const sns = await this.memberRepository.findSnsById(snsId);
-
-    if (!sns) {
-      throw new AppError('NotFound', '해당 SNS를 찾을 수 없습니다.', 404);
-    }
-
-    if (sns.user_id !== userId) {
-      throw new AppError('Forbidden', '자신의 SNS만 수정할 수 있습니다.', 403);
-    }
-
-    return this.memberRepository.updateSns(snsId, updateSnsDto);
-  }
-
-  async deleteSns(userId: number, snsId: number) {
-    const sns = await this.memberRepository.findSnsById(snsId);
-
-    if (!sns) {
-      throw new AppError('NotFound', '해당 SNS 정보를 찾을 수 없습니다.', 404);
-    }
-
-    if (sns.user_id !== userId) {
-      throw new AppError('Forbidden', '해당 SNS 정보를 삭제할 권한이 없습니다.', 403);
-    }
-
-    return this.memberRepository.deleteSns(snsId);
-  }
-
-  async getSnsList(userId: number) {
-    return this.memberRepository.getSnsListByUserId(userId);
-  }
+  constructor(private memberRepository: MemberRepository) {}
 
   async followUser(followerId: number, followingId: number) {
     if (followerId === followingId) {
       throw new AppError('BadRequest', '자기 자신을 팔로우할 수 없습니다.', 400);
     }
 
-    const followingUser = await this.memberRepository.findMemberById(followingId);
+    const followingUser = await this.memberRepository.findUserById(followingId);
     if (!followingUser) {
       throw new AppError('NotFound', '해당 사용자를 찾을 수 없습니다.', 404);
     }
@@ -65,16 +25,30 @@ export class MemberService {
   }
 
   async unfollowUser(followerId: number, followingId: number) {
-    const followingUser = await this.memberRepository.findMemberById(followingId);
-    if (!followingUser) {
+    const following = await this.memberRepository.findFollowing(followerId, followingId);
+
+    if (!following) {
+      throw new AppError('NotFound', '팔로우 관계를 찾을 수 없습니다.', 404);
+    }
+    await this.memberRepository.unfollowUser(followerId, followingId);
+    return { message: '언팔로우 성공' };
+  }
+
+  async getFollowers(memberId: number) {
+    const user = await this.memberRepository.findUserById(memberId);
+    if (!user) {
       throw new AppError('NotFound', '해당 사용자를 찾을 수 없습니다.', 404);
     }
 
-    const existingFollow = await this.memberRepository.findFollowing(followerId, followingId);
-    if (!existingFollow) {
-      throw new AppError('NotFound', '팔로우 관계를 찾을 수 없습니다.', 404);
-    }
+    const followers = await this.memberRepository.findFollowersByMemberId(memberId);
 
-    return this.memberRepository.unfollowUser(followerId, followingId);
+    return followers.map((f) => ({
+      follow_id: f.follow_id,
+      follower_id: f.follower_id,
+      nickname: f.follower.nickname,
+      email: f.follower.email,
+      created_at: f.created_at,
+      updated_at: f.updated_at,
+    }));
   }
 } 
