@@ -4,6 +4,7 @@ import * as promptService from "../services/prompt.service";
 import { DEFAULT_PROMPT_SEARCH_SIZE } from "../../config/constants";
 import { errorHandler } from "../../middlewares/errorHandler";
 import { CreatePromptImageDto } from "../dtos/prompt-image.dto";
+import { CreatePromptDto } from "../dtos/create-prompt.dto";
 
 export const searchPrompts = async (req: Request, res: Response) => {
   try {
@@ -86,6 +87,7 @@ export const createPromptImage = async (req: Request, res: Response) => {
   }
 };
 
+
 export const createPrompt = async (req: Request, res: Response) => {
   try {
     const userId = (req.user as { user_id: number }).user_id;
@@ -96,10 +98,28 @@ export const createPrompt = async (req: Request, res: Response) => {
         message: "인증이 필요합니다.",
       });
     }
-    const dto = req.body;
+    // 2. 필수 필드 검사
+    const dto: CreatePromptDto = req.body;
+    const { title, prompt, model, prompt_result, description, price, is_free, has_image } = dto;
+
+    if (!title || !prompt  || !model || !prompt_result || !description || !price || !is_free || !has_image) {
+      return res.fail({
+        statusCode: 400,
+        error: 'BadRequest',
+        message: '필수 필드(title, prompt, model, prompt_result, description, price, is_free, has_image)가 누락되었습니다.',
+      });
+    }
     const result = await promptService.createPromptWrite(userId, dto);
     return res.status(201).success(result, "프롬프트 업로드 성공");
   } catch (error) {
+    //레포지토리에서 모델 없으면 에러 쓰로우
+    if (error instanceof Error && error.message === '해당 모델이 존재하지 않습니다.') {
+      return res.fail({
+        statusCode: 404,
+        error: 'NotFound',
+        message: error.message,
+      });
+    }
     return errorHandler(error, req, res, () => {});
   }
 };
