@@ -4,6 +4,7 @@ import * as promptService from "../services/prompt.service";
 import { DEFAULT_PROMPT_SEARCH_SIZE } from "../../config/constants";
 import { errorHandler } from "../../middlewares/errorHandler";
 import { CreatePromptImageDto } from "../dtos/prompt-image.dto";
+import { CreatePromptDto } from "../dtos/create-prompt.dto";
 
 export const searchPrompts = async (req: Request, res: Response) => {
   try {
@@ -82,6 +83,67 @@ export const createPromptImage = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
+    return errorHandler(error, req, res, () => {});
+  }
+};
+
+
+export const createPrompt = async (req: Request, res: Response) => {
+  try {
+    console.log('Received Body:', req.body); // 디버깅용 로그
+
+    // 1. 인증 확인
+    if (!req.user) {
+      return res.fail({
+        statusCode: 401,
+        error: 'Unauthorized',
+        message: '인증이 필요합니다.',
+      });
+    }
+    const userId = (req.user as { user_id: number }).user_id;
+
+    // 2. DTO 유효성 검사
+    const dto = req.body;
+    const requiredFields = [
+      'title',
+      'prompt',
+      'prompt_result',
+      'description',
+      'price',
+      'tags',
+      'model',
+      'is_free'
+    ];
+
+    const missingFields = requiredFields.filter(field => !dto[field] && dto[field] !== false);
+    
+    if (missingFields.length > 0) {
+      console.log('Missing fields:', missingFields); // 디버깅용 로그
+      return res.fail({
+        statusCode: 400,
+        error: 'BadRequest',
+        message: `필수 필드(${missingFields.join(', ')})가 누락되었습니다.`,
+      });
+    }
+
+    // has_image 기본값 설정
+    dto.has_image = dto.has_image ?? false;
+
+    // 3. 서비스 호출
+    const result = await promptService.createPromptWrite(userId, dto);
+    return res.status(201).success(result, '프롬프트 업로드 성공');
+
+  } catch (error) {
+    // 4. 서비스/레포지토리 레이어에서 발생한 특정 에러 처리
+    if (error instanceof Error && error.message === '해당 모델이 존재하지 않습니다.') {
+      return res.fail({
+        statusCode: 404,
+        error: 'NotFound',
+        message: error.message,
+      });
+    }
+
+    // 5. 그 외 모든 에러는 공통 핸들러로 위임
     return errorHandler(error, req, res, () => {});
   }
 };

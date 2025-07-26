@@ -4,6 +4,7 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { CreatePromptImageDto } from "../dtos/prompt-image.dto";
 import { v4 as uuidv4 } from "uuid";
+import { CreatePromptDto } from "../dtos/create-prompt.dto";
 
 /**
  * 프롬프트 검색 서비스
@@ -55,4 +56,11 @@ export const createPromptImage = async (
   dto: CreatePromptImageDto
 ) => {
   return await promptRepository.createPromptImageRepo(prompt_id, dto);
+};
+
+export const createPromptWrite = async (
+  user_id: number,
+  dto: CreatePromptDto
+) => {
+  return await promptRepository.createPromptWriteRepo(user_id, dto);
 };

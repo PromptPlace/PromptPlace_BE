@@ -17,4 +17,6 @@ router.post(
   promptController.createPromptImage
 );
 
+// 프롬프트 업로드(작성) API
+router.post("/", authenticateJwt, promptController.createPrompt);
 export default router;
