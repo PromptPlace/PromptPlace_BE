@@ -153,3 +153,29 @@ export const updateReviewById = async (
     }
   });
 };
+
+// 내가 작성한 리뷰 조회 
+export const findAllReviewsByUserId = async (
+  userId: number,
+  cursor?: number,
+  limit?: number
+) => {
+  return await prisma.review.findMany({
+    where: {
+      user_id: userId,
+      ...(cursor && { review_id: { lt: cursor } }),
+    },
+    orderBy: {
+      review_id: 'desc',
+    },
+    take: limit,
+    include: {
+      prompt: {
+        select: {
+          prompt_id: true,
+          title: true,
+        },
+      },
+    },
+  });
+};
