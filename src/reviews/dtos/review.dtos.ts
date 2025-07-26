@@ -133,3 +133,18 @@ export const mapToReviewUpdateResponse = (
   updated_at: review.updated_at.toISOString()
 });
 
+// 내가 작성한 리뷰 리스트 반환 DTO
+export const mapToMyReviewListDTO = (
+  rawReviews: (Review & { prompt: { prompt_id: number; title: string } })[],
+  limit: number
+) => {
+  return rawReviews.map(review => ({
+    review_id: review.review_id,
+    prompt_id: review.prompt.prompt_id,
+    prompt_title: review.prompt.title,
+    rating: review.rating,
+    content: review.content,
+    created_at: review.created_at.toISOString(),
+    updated_at: review.updated_at.toISOString(),
+  }));
+};

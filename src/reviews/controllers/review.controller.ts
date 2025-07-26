@@ -5,6 +5,7 @@ import {
   deleteReviewService,
   getReviewEditDataService,
   editReviewService,
+  findReviewsWrittenByUser,
 } from '../services/review.service';
 
 interface RawPromptParams {
@@ -210,6 +211,44 @@ export const editReview = async (
     res.fail({
       error: err.name || 'InternalServerError',
       message: err.message || '리뷰 수정 중 오류가 발생했습니다.',
+      statusCode: err.statusCode || 500,
+    });
+  }
+};
+
+
+// 내가 작성한 리뷰 목록 조회
+export const getReviewsWrittenByMe = async (
+  req: Request<any, any, any, RawPaginationQuery>,
+  res: Response
+): Promise<void> => {
+  if (!req.user) {
+    res.fail({
+      statusCode: 401,
+      error: 'no user',
+      message: '로그인이 필요합니다.',
+    });
+    return;
+  }
+
+  try {
+    const userId = (req.user as { user_id: number }).user_id;
+    const { cursor, limit } = req.query;
+
+    const reviews = await findReviewsWrittenByUser(userId, cursor, limit);
+
+    res.success({
+      statusCode: 200,
+      message: '내가 작성한 리뷰 목록을 성공적으로 불러왔습니다.',
+      data: {
+        reviews,
+      },
+    });
+  } catch (err: any) {
+    console.error(err);
+    res.fail({
+      error: err.name || 'InternalServerError',
+      message: err.message || '내가 작성한 리뷰 목록을 불러오는 중 오류가 발생했습니다.',
       statusCode: err.statusCode || 500,
     });
   }
