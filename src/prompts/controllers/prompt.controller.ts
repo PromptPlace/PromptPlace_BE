@@ -88,8 +88,8 @@ export const createPromptImage = async (req: Request, res: Response) => {
 
 export const createPrompt = async (req: Request, res: Response) => {
   try {
-    const user = req.user;
-    if (!user) {
+    const userId = (req.user as { user_id: number }).user_id;
+    if (!req.user) {
       return res.fail({
         statusCode: 401,
         error: "Unauthorized",
@@ -97,7 +97,7 @@ export const createPrompt = async (req: Request, res: Response) => {
       });
     }
     const dto = req.body;
-    const result = await promptService.createPromptWrite(user.user_id, dto);
+    const result = await promptService.createPromptWrite(userId, dto);
     return res.status(201).success(result, "프롬프트 업로드 성공");
   } catch (error) {
     return errorHandler(error, req, res, () => {});
