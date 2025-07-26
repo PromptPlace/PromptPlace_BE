@@ -58,4 +58,58 @@ export class MemberController {
       next(error);
     }
   }
+
+  public async getMemberPrompts(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { memberId } = req.params;
+      const { cursor, limit } = req.query;
+      
+      // memberId 검증
+      const memberIdNum = parseInt(memberId, 10);
+      
+      // 쿼리 파라미터 검증
+      const cursorNum = cursor ? parseInt(cursor as string, 10) : undefined;
+      const limitNum = limit ? parseInt(limit as string, 10) : 10; // 기본값 10
+      
+      
+      if (limit && (isNaN(limitNum) || limitNum <= 0 || limitNum > 50)) {
+        res.status(400).json({
+          error: 'BadRequest',
+          message: 'limit은 1-50 사이의 숫자여야 합니다.',
+          statusCode: 400,
+        });
+        return;
+      }
+
+      const result = await this.memberService.getMemberPrompts(memberIdNum, cursorNum, limitNum);
+      
+      res.status(200).json({
+        message: '회원 프롬프트 목록 조회 완료',
+        data: {
+          prompts: result.prompts,
+          pagination: {
+            nextCursor: result.nextCursor,
+            has_more: result.has_more,
+            limit: limitNum
+          }
+        },
+        statusCode: 200,
+      });
+    } catch (error) {
+      // 에러 예외 처리
+      if (error instanceof Error) {
+        res.status(500).json({
+          error: 'InternalServerError',
+          message: error.message,
+          statusCode: 500,
+        });
+      } else {
+        res.status(500).json({
+          error: 'InternalServerError',
+          message: '알 수 없는 오류가 발생했습니다.',
+          statusCode: 500,
+        });
+      }
+    }
+  }
 } 

@@ -27,4 +27,7 @@ router.get(
   memberController.getFollowings.bind(memberController),
 );
 
+// 특정 회원의 프롬프트 목록 조회 API
+router.get('/:memberId/prompts', memberController.getMemberPrompts.bind(memberController));
+
 export default router; 
