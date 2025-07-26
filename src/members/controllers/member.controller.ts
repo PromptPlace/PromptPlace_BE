@@ -44,4 +44,18 @@ export class MemberController {
       next(error);
     }
   }
+
+  public async getFollowings(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const memberId = parseInt(req.params.memberId, 10);
+      const followings = await this.memberService.getFollowings(memberId);
+      res.status(200).json({
+        message: '팔로잉 목록 조회 완료',
+        data: followings,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 } 

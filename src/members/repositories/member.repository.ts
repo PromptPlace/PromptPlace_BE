@@ -108,4 +108,24 @@ export class MemberRepository {
       },
     });
   }
+
+  async findFollowingsByMemberId(memberId: number) {
+    return prisma.following.findMany({
+      where: {
+        follower_id: memberId,
+      },
+      select: {
+        follow_id: true,
+        following_id: true,
+        created_at: true,
+        updated_at: true,
+        following: {
+          select: {
+            nickname: true,
+            email: true,
+          },
+        },
+      },
+    });
+  }
 }

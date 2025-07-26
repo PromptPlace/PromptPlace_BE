@@ -21,4 +21,10 @@ router.delete(
   memberController.unfollowUser.bind(memberController),
 );
 
+router.get(
+  '/following/:memberId',
+  authenticateJwt,
+  memberController.getFollowings.bind(memberController),
+);
+
 export default router; 

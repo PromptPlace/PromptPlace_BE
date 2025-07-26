@@ -51,4 +51,22 @@ export class MemberService {
       updated_at: f.updated_at,
     }));
   }
+
+  async getFollowings(memberId: number) {
+    const user = await this.memberRepository.findUserById(memberId);
+    if (!user) {
+      throw new AppError('NotFound', '해당 사용자를 찾을 수 없습니다.', 404);
+    }
+
+    const followings = await this.memberRepository.findFollowingsByMemberId(memberId);
+
+    return followings.map((f) => ({
+      follow_id: f.follow_id,
+      following_id: f.following_id,
+      nickname: f.following.nickname,
+      email: f.following.email,
+      created_at: f.created_at,
+      updated_at: f.updated_at,
+    }));
+  }
 } 
