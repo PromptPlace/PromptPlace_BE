@@ -1,6 +1,7 @@
 import { MemberRepository } from '../repositories/member.repository';
 import { AppError } from '../../errors/AppError';
 import { Service } from 'typedi';
+import { getMemberPromptsRepo } from '../repositories/member.repository';
 
 @Service()
 export class MemberService {
@@ -68,5 +69,12 @@ export class MemberService {
       created_at: f.created_at,
       updated_at: f.updated_at,
     }));
+  }
+
+  async getMemberPrompts(memberId: number, cursor?: number, limit?: number) {
+    const DEFAULT_LIMIT = 10;
+    const actualLimit = limit && limit > 0 && limit <= 50 ? limit : DEFAULT_LIMIT;
+    
+    return await getMemberPromptsRepo(memberId, cursor, actualLimit);
   }
 } 
