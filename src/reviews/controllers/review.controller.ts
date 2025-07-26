@@ -157,9 +157,8 @@ export const getReviewEditData = async (
       (req.user as {user_id: number}).user_id
     );
 
-    res.success({
-      data: review,
-    });
+    res.success({ ...review });
+    
   } catch (err: any) {
     console.error(err);
     res.fail({
