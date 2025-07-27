@@ -9,7 +9,7 @@ interface Tokens {
 class AuthService {
   async generateTokens(user: any): Promise<Tokens> {
     const accessToken = jwt.sign({ id: user.user_id }, process.env.JWT_SECRET!, {
-      expiresIn: '1h',
+      expiresIn: '3h',
     });
     const refreshToken = jwt.sign({ id: user.user_id }, process.env.JWT_SECRET!, {
       expiresIn: '14d',
