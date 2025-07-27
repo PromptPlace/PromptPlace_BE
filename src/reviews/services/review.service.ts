@@ -18,6 +18,7 @@ import {
   updateReviewById,
   findAllReviewsByUserId,
   findAllMyReviewsByUserId,
+  findUserById,
 } from '../repositories/review.repository';
 import { Review } from '@prisma/client';
 
@@ -88,7 +89,7 @@ export const deleteReviewService = async (
   const numericReviewId = Number(reviewId);
 
   const review = await findReviewById(numericReviewId);
-
+  
   if (!review) {
     throw {
       name: 'NotFound',
@@ -97,28 +98,41 @@ export const deleteReviewService = async (
     };
   }
 
-  if (review.user_id !== userId) {
+  const user = await findUserById(userId);
+  if(!user) {
     throw {
-      name: 'Forbidden',
-      message: '리뷰를 삭제할 권한이 없습니다.',
-      statusCode: 403
+      name: 'NotFound',
+      message: '해당 사용자를 찾을 수 없습니다.',
+      statusCode: 404
     };
   }
 
-  // 30일 초과 여부 확인
-  const now = new Date();
-  const createdAt = new Date(review.created_at);
-  const diffInMs = now.getTime() - createdAt.getTime();
-  const diffInDays = diffInMs / (1000 * 60 * 60 * 24); 
+  const isAdmin = user.role === 'ADMIN'; // 관리자 여부 확인
+  
+  // 일반 사용자일 경우 
+  if (!isAdmin) { 
+    if (review.user_id !== userId) {
+      throw {
+        name: 'Forbidden',
+        message: '리뷰를 삭제할 권한이 없습니다.',
+        statusCode: 403,
+      };
+    }
 
-  if(diffInDays > 30) {
-    throw{
-      name: 'Forbidden',
-      message: '리뷰 작성일로부터 30일이 지나 삭제할 수 없습니다.',
-      statusCode: 403
-    };
+    const now = new Date();
+    const createdAt = new Date(review.created_at);
+    const diffInDays = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+    
+    if (diffInDays > 30) {
+      throw {
+        name: 'Forbidden',
+        message: '리뷰 작성일로부터 30일이 지나 삭제할 수 없습니다.',
+        statusCode: 403,
+      };
+    }
   }
 
+  // 관리자일 경우 바로 삭제
   await deleteReviewById(numericReviewId);
 };
 
