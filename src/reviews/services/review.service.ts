@@ -4,6 +4,7 @@ import {
   mapToReviewEditDataDTO,
   mapToReviewUpdateResponse,
   mapToMyReviewListDTO,
+  mapToMyReceivedReviewListDTO,
 } from '../dtos/review.dtos';
 import {
   findAllByPromptId,
@@ -16,6 +17,7 @@ import {
   findModelByPromptId,
   updateReviewById,
   findAllReviewsByUserId,
+  findAllMyReviewsByUserId,
 } from '../repositories/review.repository';
 import { Review } from '@prisma/client';
 
@@ -242,4 +244,22 @@ export const findReviewsWrittenByUser = async (
 
   const rawReviews = await findAllReviewsByUserId(userId, cursor, limit);
   return mapToMyReviewListDTO(rawReviews, limit);
+};
+
+// 내가 받은 리뷰 목록 조회
+export const findMyReceivedReviews = async (
+  userId: number,
+  rawCursor?: string,
+  rawLimit?: string
+) => {
+  const cursor = rawCursor ? parseInt(rawCursor, 10) : undefined;
+  const limit = rawLimit ? parseInt(rawLimit, 10) : 10;
+
+  if (cursor !== undefined && isNaN(cursor)) throw new Error('cursor값이 적절하지 않습니다');
+  if (isNaN(limit)) throw new Error('limit값이 적절하지 않습니다');
+
+  const rawReviews = await findAllMyReviewsByUserId(userId, cursor, limit);
+  const writerIds = rawReviews.map(review => review.user_id);
+  const userProfiles = await findUserProfilesByUserIds(writerIds);
+  return mapToMyReceivedReviewListDTO(rawReviews, userProfiles, limit);
 };

@@ -137,8 +137,19 @@ export const mapToReviewUpdateResponse = (
 export const mapToMyReviewListDTO = (
   rawReviews: (Review & { prompt: { prompt_id: number; title: string } })[],
   limit: number
-) => {
-  return rawReviews.map(review => ({
+): {
+  reviews: {
+    review_id: number;
+    prompt_id: number;
+    prompt_title: string;
+    rating: number;
+    content: string;
+    created_at: string;
+    updated_at: string;
+  }[];
+  has_more: boolean;
+} => {
+  const reviews = rawReviews.map(review => ({
     review_id: review.review_id,
     prompt_id: review.prompt.prompt_id,
     prompt_title: review.prompt.title,
@@ -147,4 +158,85 @@ export const mapToMyReviewListDTO = (
     created_at: review.created_at.toISOString(),
     updated_at: review.updated_at.toISOString(),
   }));
+
+  return {
+    reviews,
+    has_more: rawReviews.length >= limit
+  };
+};
+
+
+// 내가 받은 리뷰 리스트 반환 DTO
+export interface MyReceivedReviewDTO {
+  review_id: number;
+  prompt_id: number;
+  prompt_title: string;
+  writer_id: number;
+  writer_nickname: string;
+  writer_profile_image_url: string | null;
+  rating: number;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// 수정된 DTO 반환 타입
+export interface MyReceivedReviewDTO {
+  review_id: number;
+  prompt_id: number;
+  prompt_title: string;
+  writer_id: number;
+  writer_nickname: string;
+  writer_profile_image_url: string | null;
+  rating: number;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export const mapToMyReceivedReviewListDTO = (
+  rawReviews: (Review & {
+    prompt: { prompt_id: number; title: string };
+  })[],
+  userProfiles: {
+    user_id: number;
+    nickname: string;
+    profileImage: { url: string } | null;
+  }[],
+  limit: number
+): {
+  reviews: MyReceivedReviewDTO[];
+  has_more: boolean;
+} => {
+  const userMap = new Map(
+    userProfiles.map(user => [
+      user.user_id,
+      {
+        nickname: user.nickname,
+        imageUrl: user.profileImage?.url || null
+      }
+    ])
+  );
+
+  const reviews: MyReceivedReviewDTO[] = rawReviews.map((review) => {
+    const writer = userMap.get(review.user_id);
+
+    return {
+      review_id: review.review_id,
+      prompt_id: review.prompt.prompt_id,
+      prompt_title: review.prompt.title,
+      writer_id: review.user_id,
+      writer_nickname: writer?.nickname || 'Unknown',
+      writer_profile_image_url: writer?.imageUrl || null,
+      rating: review.rating,
+      content: review.content,
+      created_at: review.created_at.toISOString(),
+      updated_at: review.updated_at.toISOString(),
+    };
+  });
+
+  return {
+    reviews,
+    has_more: rawReviews.length >= limit,
+  };
 };
