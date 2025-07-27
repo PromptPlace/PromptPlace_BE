@@ -17,20 +17,29 @@ export function configureNaverStrategy() {
             return done(new Error('네이버 프로필에 이메일이 없습니다.'), false);
           }
 
-          const user = await prisma.user.upsert({
+          let user = await prisma.user.findUnique({
             where: { email },
-            update: {
-              name: profile.name || 'Unknown',
-            },
-            create: {
-              email,
-              name: profile.name || 'Unknown',
-              nickname: profile.nickname || profile.name || 'Unknown',
-              social_type: 'NAVER',
-              status: true,
-              role: 'USER',
-            },
           });
+
+          if (user) {
+            // 사용자가 존재하면 이름만 업데이트
+            user = await prisma.user.update({
+              where: { email },
+              data: { name: profile.name || 'Unknown' },
+            });
+          } else {
+            // 사용자가 없으면 새로 생성
+            user = await prisma.user.create({
+              data: {
+                email,
+                name: profile.name || 'Unknown',
+                nickname: profile.nickname || profile.name || 'Unknown',
+                social_type: 'NAVER',
+                status: true,
+                role: 'USER',
+              },
+            });
+          }
 
           return done(null, user);
         } catch (error) {
