@@ -6,6 +6,7 @@ import {
   deleteTip,
 } from "../controllers/tip.controllers";
 import { isAdmin } from "../../middlewares/isAdmin";
+import { authenticateJwt } from "../../config/passport";
 
 const router = express.Router({ mergeParams: true });
 
@@ -13,8 +14,8 @@ const router = express.Router({ mergeParams: true });
 router.get("/", getTipList);
 
 // 관리자만 접근 가능
-router.post("/", isAdmin, createTip);
-router.patch("/:tipId", isAdmin, patchTip);
-router.patch("/:tipId/delete", isAdmin, deleteTip);
+router.post("/", authenticateJwt, isAdmin, createTip);
+router.patch("/:tipId", authenticateJwt, isAdmin, patchTip);
+router.patch("/:tipId/delete", authenticateJwt, isAdmin, deleteTip);
 
 export default router;
