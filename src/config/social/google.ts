@@ -17,21 +17,29 @@ export function configureGoogleStrategy() {
             return done(new Error('구글 프로필에 이메일이 없습니다.'), false);
           }
           
-          const user = await prisma.user.upsert({
+          let user = await prisma.user.findUnique({
             where: { email },
-            update: {
-              // 기존 회원이 다시 로그인했을 때 업데이트할 내용 (예: 이름)
-              name: profile.displayName,
-            },
-            create: {
-              email,
-              name: profile.displayName,
-              nickname: profile.displayName,
-              social_type: 'GOOGLE',
-              status: true,
-              role: 'USER',
-            },
           });
+
+          if (user) {
+            // 사용자가 존재하면 이름만 업데이트
+            user = await prisma.user.update({
+              where: { email },
+              data: { name: profile.displayName },
+            });
+          } else {
+            // 사용자가 없으면 새로 생성
+            user = await prisma.user.create({
+              data: {
+                email,
+                name: profile.displayName,
+                nickname: profile.displayName,
+                social_type: 'GOOGLE',
+                status: true,
+                role: 'USER',
+              },
+            });
+          }
 
           return done(null, user);
         } catch (error) {
