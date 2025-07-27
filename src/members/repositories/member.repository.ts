@@ -129,3 +129,51 @@ export class MemberRepository {
     });
   }
 }
+
+export const getMemberPromptsRepo = async (
+  memberId: number, 
+  cursor?: number, 
+  limit: number = 10
+) => {
+  const whereCondition: any = { user_id: memberId };
+  
+  // 커서가 있으면 해당 ID보다 작은 것들만 조회 (최신순이므로)
+  if (cursor) {
+    whereCondition.prompt_id = { lt: cursor };
+  }
+
+  // limit + 1개를 가져와서 다음 페이지 존재 여부 확인
+  const prompts = await prisma.prompt.findMany({
+    where: whereCondition,
+    select: {
+      prompt_id: true,
+      title: true,
+      models: {
+        select: {
+          model: {
+            select: { name: true }
+          }
+        }
+      },
+      tags: {
+        select: {
+          tag: {
+            select: { name: true }
+          }
+        }
+      }
+    },
+    orderBy: { prompt_id: 'desc' }, // 최신순 (ID 내림차순)
+    take: limit + 1
+  });
+
+  const hasNext = prompts.length > limit;
+  const resultPrompts = hasNext ? prompts.slice(0, limit) : prompts;
+  const nextCursor = hasNext ? resultPrompts[resultPrompts.length - 1].prompt_id : null;
+
+  return {
+    prompts: resultPrompts,
+    has_more: hasNext,
+    nextCursor
+  };
+};
