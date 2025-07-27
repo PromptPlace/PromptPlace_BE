@@ -179,3 +179,32 @@ export const findAllReviewsByUserId = async (
     },
   });
 };
+
+
+// 내가 받은 리뷰 조회
+export const findAllMyReviewsByUserId = async (
+  userId: number,
+  cursor?: number,
+  limit?: number
+) => {
+  return await prisma.review.findMany({
+    where: {
+      prompt: {
+        user_id: userId,
+      },
+      ...(cursor && { review_id: { lt: cursor } })
+    },
+    include: {
+      prompt: {
+        select: {
+          prompt_id: true,
+          title: true
+        }
+      }
+    },
+    take: limit,
+    orderBy: {
+      review_id: 'desc',
+    }
+  });
+};

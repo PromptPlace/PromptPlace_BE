@@ -6,6 +6,7 @@ import {
   getReviewEditDataService,
   editReviewService,
   findReviewsWrittenByUser,
+  findMyReceivedReviews
 } from '../services/review.service';
 
 interface RawPromptParams {
@@ -40,7 +41,7 @@ export const getReviewsByPromptId = async (
 
     
     res.success({
-      data: result,
+      ...result,
     });
   } catch (err: any) {
     console.error(err);
@@ -80,7 +81,7 @@ export const getReviewsByPromptId = async (
     const result = await createReviewService(promptId, userId, rating, content);
 
     res.success({
-      data: result,
+      ...result,
     });
   } catch (err: any) {
     console.error(err);
@@ -204,7 +205,7 @@ export const editReview = async (
 
     res.success({
       message: '리뷰가 성공적으로 수정되었습니다.',
-      data: updatedReview,
+      review: updatedReview,
     });
   } catch (err: any) {
     console.error(err);
@@ -240,9 +241,43 @@ export const getReviewsWrittenByMe = async (
     res.success({
       statusCode: 200,
       message: '내가 작성한 리뷰 목록을 성공적으로 불러왔습니다.',
-      data: {
-        reviews,
-      },
+      ...reviews
+    });
+  } catch (err: any) {
+    console.error(err);
+    res.fail({
+      error: err.name || 'InternalServerError',
+      message: err.message || '내가 작성한 리뷰 목록을 불러오는 중 오류가 발생했습니다.',
+      statusCode: err.statusCode || 500,
+    });
+  }
+};
+
+
+// 내가 받은 리뷰 목록 조회
+export const getMyReceivedReviews = async (
+  req: Request<any, any, any, RawPaginationQuery>,
+  res: Response
+): Promise<void> => {
+  if (!req.user) {
+    res.fail({
+      statusCode: 401,
+      error: 'no user',
+      message: '로그인이 필요합니다.',
+    });
+    return;
+  }
+
+  try {
+    const userId = (req.user as { user_id: number }).user_id;
+    const { cursor, limit } = req.query;
+
+    const reviews = await findMyReceivedReviews(userId, cursor, limit);
+
+    res.success({
+      statusCode: 200,
+      message: '내가 받은 리뷰 목록을 성공적으로 불러왔습니다.',
+      ...reviews,
     });
   } catch (err: any) {
     console.error(err);
