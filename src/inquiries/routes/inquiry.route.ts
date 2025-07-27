@@ -11,4 +11,10 @@ router.post(
   inquiryController.createInquiry.bind(inquiryController),
 );
 
+router.get(
+  '/received',
+  authenticateJwt,
+  inquiryController.getReceivedInquiries.bind(inquiryController),
+);
+
 export default router; 

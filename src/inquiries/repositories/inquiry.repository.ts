@@ -16,4 +16,30 @@ export class InquiryRepository {
       },
     });
   }
+
+  async findReceivedInquiries(receiverId: number, type?: 'buyer' | 'non_buyer') {
+    return prisma.inquiry.findMany({
+      where: {
+        receiver_id: receiverId,
+        ...(type && { type }),
+      },
+      select: {
+        inquiry_id: true,
+        sender_id: true,
+        sender: {
+          select: {
+            nickname: true,
+          },
+        },
+        type: true,
+        status: true,
+        title: true,
+        created_at: true,
+        updated_at: true,
+      },
+      orderBy: {
+        created_at: 'desc',
+      },
+    });
+  }
 } 
