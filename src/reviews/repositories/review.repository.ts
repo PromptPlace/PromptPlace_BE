@@ -208,3 +208,12 @@ export const findAllMyReviewsByUserId = async (
     }
   });
 };
+
+// 사용자 ID로 사용자 정보 조회
+export const findUserById = async (userId: number) => {
+  return await prisma.user.findUnique({
+    where: {
+      user_id: userId
+    }
+  });
+};
