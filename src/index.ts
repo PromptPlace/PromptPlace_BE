@@ -22,7 +22,7 @@ const app = express();
 app.use(express.json());
 
 // CORS 설정
-const allowedOrigins = ['https://promptplace-fe.vercel.app'];
+const allowedOrigins = ['https://promptplace-develop.vercel.app'];
 
 app.use(cors({
   origin: allowedOrigins,
