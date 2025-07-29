@@ -357,4 +357,29 @@ export class MemberController {
       next(error);
     }
   }
+
+  public async getHistories(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const requesterId = (req.user as any).user_id;
+      const memberId = parseInt(req.params.memberId, 10);
+
+      const histories = await this.memberService.getHistories(
+        requesterId,
+        memberId
+      );
+
+      res.status(200).json({
+        message: "회원 이력 조회 완료",
+        histories: histories,
+        total_count: histories.length,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

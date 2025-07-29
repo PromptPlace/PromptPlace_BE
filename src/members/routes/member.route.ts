@@ -82,4 +82,11 @@ router.delete(
   memberController.deleteHistory.bind(memberController)
 );
 
+// 회원 이력 조회 API
+router.get(
+  "/:memberId/histories",
+  authenticateJwt,
+  memberController.getHistories.bind(memberController)
+);
+
 export default router;

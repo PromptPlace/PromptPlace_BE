@@ -104,6 +104,32 @@ export class MemberRepository {
     });
   }
 
+  async findPurchasesByUserId(userId: number) {
+    return prisma.purchase.findMany({
+      where: { user_id: userId },
+      include: {
+        prompt: {
+          select: {
+            title: true,
+            description: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findPromptsByUserId(userId: number) {
+    return prisma.prompt.findMany({
+      where: { user_id: userId },
+    });
+  }
+
+  async findWithdrawalsByUserId(userId: number) {
+    return prisma.withdrawRequest.findMany({
+      where: { user_id: userId },
+    });
+  }
+
   async findUserById(memberId: number): Promise<User | null> {
     return prisma.user.findUnique({
       where: { user_id: memberId },
