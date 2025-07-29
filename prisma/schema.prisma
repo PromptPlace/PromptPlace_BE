@@ -54,7 +54,7 @@ model User {
   withdraw_requests  WithdrawRequest[]
   prompts            Prompt[]
   prompt_likes       PromptLike[]
-  prompt_reports     PromptReport[]
+  reports            Report[]           @relation("UserReports")
   purchases          Purchase[]
   reviews            Review[]
   refreshTokens      RefreshToken[]
@@ -246,9 +246,9 @@ model Prompt {
   tags           PromptTag[]
   models         PromptModel[]
   prompt_likes   PromptLike[]
-  prompt_reports PromptReport[]
+  reports        Report[]       @relation("PromptReports")
   purchases      Purchase[]
-  reviews        Review[]
+  reviews        Review[]       
 }
 
 model PromptModel {
@@ -312,34 +312,23 @@ model PromptImage {
   prompt Prompt @relation(fields: [prompt_id], references: [prompt_id])
 }
 
-model PromptReport {
-  report_id   Int      @id @default(autoincrement())
-  user_id     Int
-  prompt_id   Int
-  category_id Int
-  content     String   @db.Text
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-
-  user     User           @relation(fields: [user_id], references: [user_id])
-  prompt   Prompt         @relation(fields: [prompt_id], references: [prompt_id])
-  category ReportCategory @relation(fields: [category_id], references: [category_id])
+enum ReportType {
+  FALSE_OR_EXAGGERATED         // 허위 또는 과장된 콘텐츠
+  COPYRIGHT_INFRINGEMENT       // 저작권 및 지적재산권 침해
+  INAPPROPRIATE_OR_HARMFUL     // 불쾌하거나 부적절한 내용
+  ETC                          // 기타
 }
 
-model ReportCategory {
-  category_id Int    @id @default(autoincrement())
-  name        String
+model Report {
+  report_id     Int      @id @default(autoincrement())
+  report_type   ReportType  // enum 타입 사용
+  description   String
+  prompt_id     Int
+  reporter_id   Int
+  created_at    DateTime @default(now())
 
-  prompt_reports PromptReport[]
-  details        ReportCategoryDetail[]
-}
-
-model ReportCategoryDetail {
-  detail_id   Int    @id @default(autoincrement())
-  content     String
-  category_id Int
-
-  category ReportCategory @relation(fields: [category_id], references: [category_id])
+  prompt   Prompt @relation("PromptReports", fields: [prompt_id], references: [prompt_id])
+  reporter User @relation("UserReports", fields: [reporter_id], references: [user_id])
 }
 
 model Purchase {
@@ -395,24 +384,3 @@ model Review {
   prompt Prompt @relation(fields: [prompt_id], references: [prompt_id])
 }
 
-model UserProfile {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  nickname  String
-  job       String?
-  about     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  sns       Sns[]
-}
-
-model Sns {
-  id          Int         @id @default(autoincrement())
-  url         String
-  description String?
-  profileId   Int
-  profile     UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-}
