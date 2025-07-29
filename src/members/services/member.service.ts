@@ -383,4 +383,21 @@ export class MemberService {
     // 팔로우 관계 삭제
     return this.memberRepository.deleteFollow(existingFollow.follow_id);
   }
+
+  async withdrawMember(userId: number) {
+    const user = await this.memberRepository.findUserById(userId);
+    // findUserById가 null을 반환할 수 없다고 가정 (authenticateJwt 미들웨어에서 거르므로)
+    // 하지만 안전을 위해 체크
+    if (!user) {
+      throw new AppError("NotFound", "해당 사용자를 찾을 수 없습니다.", 404);
+    }
+
+    // 이미 탈퇴한 회원인지 확인
+    if (!user.status) {
+      throw new AppError("BadRequest", "이미 탈퇴한 회원입니다.", 400);
+    }
+
+    // 회원 비활성화
+    return this.memberRepository.deactivateUser(userId);
+  }
 }

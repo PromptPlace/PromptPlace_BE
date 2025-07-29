@@ -129,4 +129,11 @@ router.delete(
   memberController.unfollowMember.bind(memberController)
 );
 
+// 회원 탈퇴 API
+router.delete(
+  "/withdrawl",
+  authenticateJwt,
+  memberController.withdrawMember.bind(memberController)
+);
+
 export default router;

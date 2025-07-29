@@ -559,4 +559,23 @@ export class MemberController {
       next(error);
     }
   }
+
+  public async withdrawMember(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = (req.user as any).user_id;
+
+      await this.memberService.withdrawMember(userId);
+
+      res.status(200).json({
+        message: "회원 탈퇴가 완료되었습니다.",
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

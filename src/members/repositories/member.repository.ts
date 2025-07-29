@@ -143,6 +143,16 @@ export class MemberRepository {
     });
   }
 
+  async deactivateUser(userId: number) {
+    return prisma.user.update({
+      where: { user_id: userId },
+      data: {
+        status: false,
+        inactive_date: new Date(),
+      },
+    });
+  }
+
   async findPurchasesByUserId(userId: number) {
     return prisma.purchase.findMany({
       where: { user_id: userId },
