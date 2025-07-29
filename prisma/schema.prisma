@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,52 +7,37 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Status {
-  Pending
-  Succeed
-  Failed
-}
-
-enum Role {
-  USER
-  ADMIN
-}
-
 model User {
-  user_id       Int       @id @default(autoincrement())
-  name          String    @db.VarChar(50)
-  nickname      String    @db.VarChar(50)
-  email         String    @unique @db.VarChar(255)
-  social_type   String    @db.VarChar(50)
-  status        Boolean
-  inactive_date DateTime?
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
-  role          Role      @default(USER)
-
-  // Relations
-  intro              UserIntro?
-  history            UserHistory[]
-  profileImage       UserImage?
-  sns_list           UserSNS[]
+  user_id            Int               @id @default(autoincrement())
+  name               String            @db.VarChar(50)
+  nickname           String            @db.VarChar(50)
+  email              String            @unique @db.VarChar(255)
+  social_type        String            @db.VarChar(50)
+  status             Boolean
+  inactive_date      DateTime?
+  created_at         DateTime          @default(now())
+  updated_at         DateTime          @updatedAt
+  role               Role              @default(USER)
+  announcements      Announcement[]
   followings         Following[]       @relation("Follower")
   followers          Following[]       @relation("Following")
-  announcements      Announcement[]
-  tips               Tip[]
-  notifications      Notification[]
-  messagesSent       Message[]         @relation("MessageSender")
-  messagesReceived   Message[]         @relation("MessageReceiver")
-  inquiries          Inquiry[]         @relation("InquirySender")
   inquiries_received Inquiry[]         @relation("InquiryReceiver")
+  inquiries          Inquiry[]         @relation("InquirySender")
   replies            InquiryReply[]
-  withdraw_requests  WithdrawRequest[]
+  messagesReceived   Message[]         @relation("MessageReceiver")
+  messagesSent       Message[]         @relation("MessageSender")
+  notifications      Notification[]
   prompts            Prompt[]
   prompt_likes       PromptLike[]
   prompt_reports     PromptReport[]
   purchases          Purchase[]
-  reviews            Review[]
   refreshTokens      RefreshToken[]
-  userProfile        UserProfile?
+  reviews            Review[]
+  tips               Tip[]
+  profileImage       UserImage?
+  intro              UserIntro?
+  sns_list           UserSNS[]
+  withdraw_requests  WithdrawRequest[]
 }
 
 model UserIntro {
@@ -67,8 +46,7 @@ model UserIntro {
   description String   @db.VarChar(255)
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
-
-  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  user        User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 }
 
 model UserHistory {
@@ -77,8 +55,6 @@ model UserHistory {
   history    String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-
-  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 }
 
 model UserSNS {
@@ -88,8 +64,9 @@ model UserSNS {
   description String
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+  user        User     @relation(fields: [user_id], references: [user_id])
 
-  user User @relation(fields: [user_id], references: [user_id])
+  @@index([user_id], map: "UserSNS_user_id_fkey")
 }
 
 model Following {
@@ -98,9 +75,11 @@ model Following {
   following_id Int
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
+  follower     User     @relation("Follower", fields: [follower_id], references: [user_id])
+  following    User     @relation("Following", fields: [following_id], references: [user_id])
 
-  follower  User @relation("Follower", fields: [follower_id], references: [user_id])
-  following User @relation("Following", fields: [following_id], references: [user_id])
+  @@index([follower_id], map: "Following_follower_id_fkey")
+  @@index([following_id], map: "Following_following_id_fkey")
 }
 
 model PromptLike {
@@ -109,12 +88,11 @@ model PromptLike {
   prompt_id  Int
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-
-  // Relations
-  user   User   @relation(fields: [user_id], references: [user_id])
-  prompt Prompt @relation(fields: [prompt_id], references: [prompt_id])
+  prompt     Prompt   @relation(fields: [prompt_id], references: [prompt_id])
+  user       User     @relation(fields: [user_id], references: [user_id])
 
   @@unique([user_id, prompt_id])
+  @@index([prompt_id], map: "PromptLike_prompt_id_fkey")
 }
 
 model Announcement {
@@ -126,9 +104,9 @@ model Announcement {
   file_url        String?  @db.VarChar(255)
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
+  writer          User     @relation(fields: [writer_id], references: [user_id])
 
-  // Relations
-  writer User @relation(fields: [writer_id], references: [user_id])
+  @@index([writer_id], map: "Announcement_writer_id_fkey")
 }
 
 model Tip {
@@ -139,8 +117,9 @@ model Tip {
   is_visible Boolean
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  writer     User     @relation(fields: [writer_id], references: [user_id])
 
-  writer User @relation(fields: [writer_id], references: [user_id])
+  @@index([writer_id], map: "Tip_writer_id_fkey")
 }
 
 model Notification {
@@ -149,8 +128,9 @@ model Notification {
   content         String   @db.Text
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
+  user            User     @relation(fields: [user_id], references: [user_id])
 
-  user User @relation(fields: [user_id], references: [user_id])
+  @@index([user_id], map: "Notification_user_id_fkey")
 }
 
 model Message {
@@ -164,36 +144,29 @@ model Message {
   is_deleted  Boolean   @default(false)
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
+  receiver    User      @relation("MessageReceiver", fields: [receiver_id], references: [user_id])
+  sender      User      @relation("MessageSender", fields: [sender_id], references: [user_id])
 
-  sender   User @relation("MessageSender", fields: [sender_id], references: [user_id])
-  receiver User @relation("MessageReceiver", fields: [receiver_id], references: [user_id])
-}
-
-enum InquiryType {
-  buyer
-  non_buyer
-}
-
-enum InquiryStatus {
-  waiting
-  read
+  @@index([receiver_id], map: "Message_receiver_id_fkey")
+  @@index([sender_id], map: "Message_sender_id_fkey")
 }
 
 model Inquiry {
-  inquiry_id  Int           @id @default(autoincrement())
+  inquiry_id  Int            @id @default(autoincrement())
   sender_id   Int
   receiver_id Int
   type        InquiryType
   status      InquiryStatus
   title       String
-  content     String        @db.Text
-  created_at  DateTime      @default(now())
-  updated_at  DateTime      @updatedAt
+  content     String         @db.Text
+  created_at  DateTime       @default(now())
+  updated_at  DateTime       @updatedAt
+  receiver    User           @relation("InquiryReceiver", fields: [receiver_id], references: [user_id])
+  sender      User           @relation("InquirySender", fields: [sender_id], references: [user_id])
+  replies     InquiryReply[]
 
-  sender   User @relation("InquirySender", fields: [sender_id], references: [user_id])
-  receiver User @relation("InquiryReceiver", fields: [receiver_id], references: [user_id])
-
-  replies InquiryReply[]
+  @@index([receiver_id], map: "Inquiry_receiver_id_fkey")
+  @@index([sender_id], map: "Inquiry_sender_id_fkey")
 }
 
 model InquiryReply {
@@ -203,9 +176,11 @@ model InquiryReply {
   content     String   @db.Text
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+  inquiry     Inquiry  @relation(fields: [inquiry_id], references: [inquiry_id])
+  user        User     @relation(fields: [receiver_id], references: [user_id])
 
-  inquiry Inquiry @relation(fields: [inquiry_id], references: [inquiry_id])
-  user    User    @relation(fields: [receiver_id], references: [user_id])
+  @@index([inquiry_id], map: "InquiryReply_inquiry_id_fkey")
+  @@index([receiver_id], map: "InquiryReply_receiver_id_fkey")
 }
 
 model WithdrawRequest {
@@ -215,71 +190,74 @@ model WithdrawRequest {
   status              Status
   created_at          DateTime @default(now())
   updated_at          DateTime @updatedAt
+  user                User     @relation(fields: [user_id], references: [user_id])
 
-  user User @relation(fields: [user_id], references: [user_id])
+  @@index([user_id], map: "WithdrawRequest_user_id_fkey")
 }
 
 model Prompt {
-  prompt_id     Int       @id @default(autoincrement())
-  user_id       Int
-  title         String    @db.Text
-  prompt        String    @db.Text
-  prompt_result String    @db.Text
-  has_image     Boolean
-  description   String    @db.Text
-  usage_guide   String    @db.Text
-  price         Int
-  is_free       Boolean
-  download_url  String    @db.Text
-  downloads     Int
-  views         Int
-  likes         Int
-  review_counts Int
-  rating_avg    Float
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
-  inactive_date DateTime?
-
-  // Relations
+  prompt_id      Int            @id @default(autoincrement())
+  user_id        Int
+  title          String         @db.Text
+  prompt         String         @db.Text
+  prompt_result  String         @db.Text
+  has_image      Boolean
+  description    String         @db.Text
+  usage_guide    String         @db.Text
+  price          Int
+  is_free        Boolean
+  downloads      Int
+  views          Int
+  likes          Int
+  review_counts  Int
+  rating_avg     Float
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  inactive_date  DateTime?
+  download_url   String         @db.Text
   user           User           @relation(fields: [user_id], references: [user_id])
   images         PromptImage[]
-  tags           PromptTag[]
-  models         PromptModel[]
   prompt_likes   PromptLike[]
+  models         PromptModel[]
   prompt_reports PromptReport[]
+  tags           PromptTag[]
   purchases      Purchase[]
   reviews        Review[]
+
+  @@index([user_id], map: "Prompt_user_id_fkey")
 }
 
 model PromptModel {
-  promptmodel_id Int @id @default(autoincrement())
+  promptmodel_id Int    @id @default(autoincrement())
   prompt_id      Int
   model_id       Int
+  model          Model  @relation(fields: [model_id], references: [model_id])
+  prompt         Prompt @relation(fields: [prompt_id], references: [prompt_id])
 
-  prompt Prompt @relation(fields: [prompt_id], references: [prompt_id])
-  model  Model  @relation(fields: [model_id], references: [model_id])
+  @@index([model_id], map: "PromptModel_model_id_fkey")
+  @@index([prompt_id], map: "PromptModel_prompt_id_fkey")
 }
 
 model Model {
-  model_id Int    @id @default(autoincrement())
-  name     String @db.VarChar(50)
-
+  model_id      Int           @id @default(autoincrement())
+  name          String        @db.VarChar(50)
   prompt_models PromptModel[]
 }
 
 model PromptTag {
-  prompttag_id Int @id @default(autoincrement())
+  prompttag_id Int    @id @default(autoincrement())
   prompt_id    Int
   tag_id       Int
+  prompt       Prompt @relation(fields: [prompt_id], references: [prompt_id])
+  tag          Tag    @relation(fields: [tag_id], references: [tag_id])
 
-  prompt Prompt @relation(fields: [prompt_id], references: [prompt_id])
-  tag    Tag    @relation(fields: [tag_id], references: [tag_id])
+  @@index([prompt_id], map: "PromptTag_prompt_id_fkey")
+  @@index([tag_id], map: "PromptTag_tag_id_fkey")
 }
 
 model Tag {
-  tag_id Int    @id @default(autoincrement())
-  name   String @db.VarChar(50)
-
+  tag_id      Int         @id @default(autoincrement())
+  name        String      @db.VarChar(50)
   prompt_tags PromptTag[]
 }
 
@@ -287,18 +265,20 @@ model RefreshToken {
   id        Int      @id @default(autoincrement())
   token     String   @unique @db.VarChar(500)
   userId    Int
-  user      User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+
+  @@index([userId], map: "RefreshToken_userId_fkey")
 }
 
 model UserImage {
   id         Int      @id @default(autoincrement())
   url        String   @db.VarChar(500)
   userId     Int      @unique
-  user       User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 }
 
 model PromptImage {
@@ -308,38 +288,42 @@ model PromptImage {
   order_index Int
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+  prompt      Prompt   @relation(fields: [prompt_id], references: [prompt_id])
 
-  prompt Prompt @relation(fields: [prompt_id], references: [prompt_id])
+  @@index([prompt_id], map: "PromptImage_prompt_id_fkey")
 }
 
 model PromptReport {
-  report_id   Int      @id @default(autoincrement())
+  report_id   Int            @id @default(autoincrement())
   user_id     Int
   prompt_id   Int
   category_id Int
-  content     String   @db.Text
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  content     String         @db.Text
+  created_at  DateTime       @default(now())
+  updated_at  DateTime       @updatedAt
+  category    ReportCategory @relation(fields: [category_id], references: [category_id])
+  prompt      Prompt         @relation(fields: [prompt_id], references: [prompt_id])
+  user        User           @relation(fields: [user_id], references: [user_id])
 
-  user     User           @relation(fields: [user_id], references: [user_id])
-  prompt   Prompt         @relation(fields: [prompt_id], references: [prompt_id])
-  category ReportCategory @relation(fields: [category_id], references: [category_id])
+  @@index([category_id], map: "PromptReport_category_id_fkey")
+  @@index([prompt_id], map: "PromptReport_prompt_id_fkey")
+  @@index([user_id], map: "PromptReport_user_id_fkey")
 }
 
 model ReportCategory {
-  category_id Int    @id @default(autoincrement())
-  name        String
-
+  category_id    Int                    @id @default(autoincrement())
+  name           String
   prompt_reports PromptReport[]
   details        ReportCategoryDetail[]
 }
 
 model ReportCategoryDetail {
-  detail_id   Int    @id @default(autoincrement())
+  detail_id   Int            @id @default(autoincrement())
   content     String
   category_id Int
+  category    ReportCategory @relation(fields: [category_id], references: [category_id])
 
-  category ReportCategory @relation(fields: [category_id], references: [category_id])
+  @@index([category_id], map: "ReportCategoryDetail_category_id_fkey")
 }
 
 model Purchase {
@@ -350,24 +334,25 @@ model Purchase {
   is_free     Boolean
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+  payment     Payment?
+  prompt      Prompt   @relation(fields: [prompt_id], references: [prompt_id])
+  user        User     @relation(fields: [user_id], references: [user_id])
 
-  user    User     @relation(fields: [user_id], references: [user_id])
-  prompt  Prompt   @relation(fields: [prompt_id], references: [prompt_id])
-  payment Payment?
+  @@index([prompt_id], map: "Purchase_prompt_id_fkey")
+  @@index([user_id], map: "Purchase_user_id_fkey")
 }
 
 model Payment {
-  payment_id   Int      @id @default(autoincrement())
-  purchase_id  Int      @unique
+  payment_id   Int         @id @default(autoincrement())
+  purchase_id  Int         @unique
   status       Status
-  provider     String   @db.VarChar(50)
+  provider     String      @db.VarChar(50)
   iamport_uid  String
   merchant_uid String
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
-
-  purchase   Purchase    @relation(fields: [purchase_id], references: [purchase_id])
-  settlement Settlement?
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
+  purchase     Purchase    @relation(fields: [purchase_id], references: [purchase_id])
+  settlement   Settlement?
 }
 
 model Settlement {
@@ -378,8 +363,7 @@ model Settlement {
   status        Status
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
-
-  payment Payment @relation(fields: [payment_id], references: [payment_id])
+  payment       Payment  @relation(fields: [payment_id], references: [payment_id])
 }
 
 model Review {
@@ -390,29 +374,30 @@ model Review {
   updated_at DateTime @updatedAt
   user_id    Int
   prompt_id  Int
+  prompt     Prompt   @relation(fields: [prompt_id], references: [prompt_id])
+  user       User     @relation(fields: [user_id], references: [user_id])
 
-  user   User   @relation(fields: [user_id], references: [user_id])
-  prompt Prompt @relation(fields: [prompt_id], references: [prompt_id])
+  @@index([prompt_id], map: "Review_prompt_id_fkey")
+  @@index([user_id], map: "Review_user_id_fkey")
 }
 
-model UserProfile {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  nickname  String
-  job       String?
-  about     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  sns       Sns[]
+enum Status {
+  Pending
+  Succeed
+  Failed
 }
 
-model Sns {
-  id          Int         @id @default(autoincrement())
-  url         String
-  description String?
-  profileId   Int
-  profile     UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+enum Role {
+  USER
+  ADMIN
+}
+
+enum InquiryType {
+  buyer
+  non_buyer
+}
+
+enum InquiryStatus {
+  waiting
+  read
 }
