@@ -7,6 +7,7 @@ import { plainToInstance } from "class-transformer";
 import { validate } from "class-validator";
 import { AppError } from "../../errors/AppError";
 import { GetInquiriesDto } from "../dtos/get-inquiries.dto";
+import { CreateReplyDto } from "../dtos/create-reply.dto";
 
 export class InquiryController {
   private inquiryService: InquiryService;
@@ -99,6 +100,64 @@ export class InquiryController {
       res.status(200).json({
         message: "받은 문의 목록 조회 완료",
         data: inquiries,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async createInquiryReply(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = (req.user as any).user_id;
+      const inquiryId = parseInt(req.params.inquiryId, 10);
+
+      const dto = plainToInstance(CreateReplyDto, req.body);
+      const errors = await validate(dto);
+      if (errors.length > 0) {
+        const message = errors
+          .map((error) => Object.values(error.constraints!))
+          .join(", ");
+        throw new AppError("BadRequest", message, 400);
+      }
+
+      const reply = await this.inquiryService.createInquiryReply(
+        userId,
+        inquiryId,
+        dto.content
+      );
+
+      res.status(201).json({
+        message: "문의 답변이 등록되었습니다.",
+        data: reply,
+        statusCode: 201,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async markInquiryAsRead(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = (req.user as any).user_id;
+      const inquiryId = parseInt(req.params.inquiryId, 10);
+
+      const updatedInquiry = await this.inquiryService.markInquiryAsRead(
+        userId,
+        inquiryId
+      );
+
+      res.status(200).json({
+        message: "문의가 읽음 처리되었습니다.",
+        data: updatedInquiry,
         statusCode: 200,
       });
     } catch (error) {
