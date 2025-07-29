@@ -453,4 +453,24 @@ export class MemberController {
       next(error);
     }
   }
+
+  public async deleteSns(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = (req.user as any).user_id;
+      const snsId = parseInt(req.params.snsId, 10);
+
+      await this.memberService.deleteSns(userId, snsId);
+
+      res.status(200).json({
+        message: "SNS 정보가 삭제되었습니다.",
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

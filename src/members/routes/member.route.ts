@@ -103,4 +103,11 @@ router.patch(
   memberController.updateSns.bind(memberController)
 );
 
+// 회원 SNS 삭제 API
+router.delete(
+  "/sns/:snsId",
+  authenticateJwt,
+  memberController.deleteSns.bind(memberController)
+);
+
 export default router;

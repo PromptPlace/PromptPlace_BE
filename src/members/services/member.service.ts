@@ -303,4 +303,22 @@ export class MemberService {
 
     return this.memberRepository.updateSns(snsId, updateSnsDto);
   }
+
+  async deleteSns(userId: number, snsId: number) {
+    const sns = await this.memberRepository.findSnsById(snsId);
+
+    if (!sns) {
+      throw new AppError("NotFound", "해당 SNS 정보를 찾을 수 없습니다.", 404);
+    }
+
+    if (sns.user_id !== userId) {
+      throw new AppError(
+        "Forbidden",
+        "해당 SNS 정보를 삭제할 권한이 없습니다.",
+        403
+      );
+    }
+
+    return this.memberRepository.deleteSns(snsId);
+  }
 }
