@@ -7,6 +7,7 @@ import { CreateIntroDto } from "../dtos/create-intro.dto";
 import { UpdateIntroDto } from "../dtos/update-intro.dto";
 import { CreateHistoryDto } from "../dtos/create-history.dto";
 import { UpdateHistoryDto } from "../dtos/update-history.dto";
+import { CreateSnsDto } from "../dtos/create-sns.dto";
 
 @Service()
 export class MemberService {
@@ -278,5 +279,9 @@ export class MemberService {
     );
 
     return allHistories;
+  }
+
+  async createSns(userId: number, createSnsDto: CreateSnsDto) {
+    return this.memberRepository.createSns(userId, createSnsDto);
   }
 }

@@ -9,6 +9,7 @@ import { CreateIntroDto } from "../dtos/create-intro.dto";
 import { UpdateIntroDto } from "../dtos/update-intro.dto";
 import { CreateHistoryDto } from "../dtos/create-history.dto";
 import { UpdateHistoryDto } from "../dtos/update-history.dto";
+import { CreateSnsDto } from "../dtos/create-sns.dto";
 
 export class MemberController {
   private memberService: MemberService;
@@ -376,6 +377,38 @@ export class MemberController {
         message: "회원 이력 조회 완료",
         histories: histories,
         total_count: histories.length,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async createSns(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = (req.user as any).user_id;
+      const createSnsDto = plainToInstance(CreateSnsDto, req.body);
+
+      const errors = await validate(createSnsDto);
+      if (errors.length > 0) {
+        const message = errors
+          .map((error) => Object.values(error.constraints || {}))
+          .join(", ");
+        throw new AppError("BadRequest", message, 400);
+      }
+
+      const newSns = await this.memberService.createSns(userId, createSnsDto);
+
+      res.status(200).json({
+        message: "SNS가 성공적으로 작성되었습니다.",
+        sns_id: newSns.sns_id,
+        url: newSns.url,
+        description: newSns.description,
+        created_at: newSns.created_at,
         statusCode: 200,
       });
     } catch (error) {

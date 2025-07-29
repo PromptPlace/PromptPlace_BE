@@ -89,4 +89,11 @@ router.get(
   memberController.getHistories.bind(memberController)
 );
 
+// 회원 SNS 작성 API
+router.post(
+  "/sns",
+  authenticateJwt,
+  memberController.createSns.bind(memberController)
+);
+
 export default router;
