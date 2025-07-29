@@ -5,9 +5,25 @@ import prisma from "../../config/prisma";
 import { CreateSnsDto } from "../dtos/create-sns.dto";
 import { UpdateSnsDto } from "../dtos/update-sns.dto";
 import { User } from "@prisma/client";
+import { UpdateMemberDto } from "../dtos/update-member.dto";
 
 @Service()
 export class MemberRepository {
+  async findUserByNickname(nickname: string) {
+    return prisma.user.findFirst({ where: { nickname } });
+  }
+
+  async findUserByEmail(email: string) {
+    return prisma.user.findUnique({ where: { email } });
+  }
+
+  async updateUser(userId: number, updateMemberDto: UpdateMemberDto) {
+    return prisma.user.update({
+      where: { user_id: userId },
+      data: updateMemberDto,
+    });
+  }
+
   async findSnsByUserId(userId: number) {
     return await prisma.userSNS.findMany({ where: { user_id: userId } });
   }

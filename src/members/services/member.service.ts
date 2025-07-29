@@ -2,6 +2,7 @@ import { MemberRepository } from "../repositories/member.repository";
 import { AppError } from "../../errors/AppError";
 import { Service } from "typedi";
 import { getMemberPromptsRepo } from "../repositories/member.repository";
+import { UpdateMemberDto } from "../dtos/update-member.dto";
 
 @Service()
 export class MemberService {
@@ -117,6 +118,41 @@ export class MemberService {
       created_at: member.created_at,
       updated_at: member.updated_at,
       status: member.status ? 1 : 0,
+    };
+  }
+
+  async updateMember(userId: number, updateMemberDto: UpdateMemberDto) {
+    const { nickname, email } = updateMemberDto;
+
+    if (nickname) {
+      const existingUser = await this.memberRepository.findUserByNickname(
+        nickname
+      );
+      if (existingUser && existingUser.user_id !== userId) {
+        throw new AppError("Conflict", "이미 사용 중인 닉네임입니다.", 409);
+      }
+    }
+
+    if (email) {
+      const existingUser = await this.memberRepository.findUserByEmail(email);
+      if (existingUser && existingUser.user_id !== userId) {
+        throw new AppError("Conflict", "이미 사용 중인 이메일입니다.", 409);
+      }
+    }
+
+    const updatedUser = await this.memberRepository.updateUser(
+      userId,
+      updateMemberDto
+    );
+    return {
+      user_id: updatedUser.user_id,
+      name: updatedUser.name,
+      nickname: updatedUser.nickname,
+      email: updatedUser.email,
+      social_type: updatedUser.social_type,
+      status: updatedUser.status ? "ACTIVE" : "INACTIVE",
+      role: updatedUser.role,
+      updated_at: updatedUser.updated_at,
     };
   }
 }

@@ -40,4 +40,11 @@ router.get(
   memberController.getMemberById.bind(memberController)
 );
 
+// 회원 정보 수정 API
+router.patch(
+  "/",
+  authenticateJwt,
+  memberController.updateMember.bind(memberController)
+);
+
 export default router;

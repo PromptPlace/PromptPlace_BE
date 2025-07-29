@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { MemberService } from "../services/member.service";
 import { MemberRepository } from "../repositories/member.repository";
+import { UpdateMemberDto } from "../dtos/update-member.dto";
+import { plainToInstance } from "class-transformer";
+import { validate } from "class-validator";
+import { AppError } from "../../errors/AppError";
 
 export class MemberController {
   private memberService: MemberService;
@@ -153,6 +157,38 @@ export class MemberController {
       res.status(200).json({
         message: "회원 정보 조회 완료",
         data: member,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async updateMember(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = (req.user as any).user_id;
+      const updateMemberDto = plainToInstance(UpdateMemberDto, req.body);
+
+      const errors = await validate(updateMemberDto);
+      if (errors.length > 0) {
+        const message = errors
+          .map((error) => Object.values(error.constraints || {}))
+          .join(", ");
+        throw new AppError("BadRequest", message, 400);
+      }
+
+      const updatedUser = await this.memberService.updateMember(
+        userId,
+        updateMemberDto
+      );
+
+      res.status(200).json({
+        message: "회원 정보 수정 완료",
+        user: updatedUser,
         statusCode: 200,
       });
     } catch (error) {
