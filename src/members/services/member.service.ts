@@ -334,4 +334,33 @@ export class MemberService {
   async uploadProfileImage(userId: number, imageUrl: string) {
     return this.memberRepository.upsertProfileImage(userId, imageUrl);
   }
+
+  async followMember(followerId: number, followingId: number) {
+    // 1. 자기 자신 팔로우 불가
+    if (followerId === followingId) {
+      throw new AppError(
+        "BadRequest",
+        "자기 자신을 팔로우할 수 없습니다.",
+        400
+      );
+    }
+
+    // 2. 팔로우할 사용자가 존재하는지 확인
+    const followingUser = await this.memberRepository.findUserById(followingId);
+    if (!followingUser) {
+      throw new AppError("NotFound", "해당 사용자를 찾을 수 없습니다.", 404);
+    }
+
+    // 3. 이미 팔로우하고 있는지 확인
+    const existingFollow = await this.memberRepository.findFollow(
+      followerId,
+      followingId
+    );
+    if (existingFollow) {
+      throw new AppError("Conflict", "이미 팔로우한 사용자입니다.", 409);
+    }
+
+    // 팔로우 생성
+    return this.memberRepository.createFollow(followerId, followingId);
+  }
 }

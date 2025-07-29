@@ -515,4 +515,28 @@ export class MemberController {
       next(error);
     }
   }
+
+  public async followMember(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const followerId = (req.user as any).user_id;
+      const followingId = parseInt(req.params.memberId, 10);
+
+      const follow = await this.memberService.followMember(
+        followerId,
+        followingId
+      );
+
+      res.status(200).json({
+        message: "팔로우가 완료되었습니다.",
+        data: follow,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

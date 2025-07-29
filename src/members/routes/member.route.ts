@@ -11,11 +11,6 @@ router.get(
   authenticateJwt,
   memberController.getFollowers.bind(memberController)
 );
-router.post(
-  "/follow/:memberId",
-  authenticateJwt,
-  memberController.followUser.bind(memberController)
-);
 router.delete(
   "/unfollow/:memberId",
   authenticateJwt,
@@ -124,6 +119,13 @@ router.post(
   authenticateJwt,
   upload.single("profile_image"),
   memberController.uploadProfileImage.bind(memberController)
+);
+
+// 회원 팔로우 API
+router.post(
+  "/follows/:memberId",
+  authenticateJwt,
+  memberController.followMember.bind(memberController)
 );
 
 export default router;

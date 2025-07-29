@@ -119,6 +119,24 @@ export class MemberRepository {
     });
   }
 
+  async findFollow(followerId: number, followingId: number) {
+    return prisma.following.findFirst({
+      where: {
+        follower_id: followerId,
+        following_id: followingId,
+      },
+    });
+  }
+
+  async createFollow(followerId: number, followingId: number) {
+    return prisma.following.create({
+      data: {
+        follower_id: followerId,
+        following_id: followingId,
+      },
+    });
+  }
+
   async findPurchasesByUserId(userId: number) {
     return prisma.purchase.findMany({
       where: { user_id: userId },
@@ -126,7 +144,6 @@ export class MemberRepository {
         prompt: {
           select: {
             title: true,
-            description: true,
           },
         },
       },
