@@ -4,6 +4,7 @@ import { Service } from "typedi";
 import { getMemberPromptsRepo } from "../repositories/member.repository";
 import { UpdateMemberDto } from "../dtos/update-member.dto";
 import { CreateIntroDto } from "../dtos/create-intro.dto";
+import { CreateHistoryDto } from "../dtos/create-history.dto";
 
 @Service()
 export class MemberService {
@@ -172,5 +173,9 @@ export class MemberService {
     }
 
     return this.memberRepository.updateIntro(userId, updateIntroDto.intro);
+  }
+
+  async createHistory(userId: number, createHistoryDto: CreateHistoryDto) {
+    return this.memberRepository.createHistory(userId, createHistoryDto);
   }
 }

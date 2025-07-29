@@ -61,4 +61,11 @@ router.patch(
   memberController.updateIntro.bind(memberController)
 );
 
+// 회원 이력 작성 API
+router.post(
+  "/histories",
+  authenticateJwt,
+  memberController.createHistory.bind(memberController)
+);
+
 export default router;

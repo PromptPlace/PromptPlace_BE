@@ -7,6 +7,7 @@ import { validate } from "class-validator";
 import { AppError } from "../../errors/AppError";
 import { CreateIntroDto } from "../dtos/create-intro.dto";
 import { UpdateIntroDto } from "../dtos/update-intro.dto";
+import { CreateHistoryDto } from "../dtos/create-history.dto";
 
 export class MemberController {
   private memberService: MemberService;
@@ -258,6 +259,41 @@ export class MemberController {
         intro: result.description,
         updated_at: result.updated_at,
         statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async createHistory(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = (req.user as any).user_id;
+      const createHistoryDto = plainToInstance(CreateHistoryDto, req.body);
+
+      const errors = await validate(createHistoryDto);
+      if (errors.length > 0) {
+        const message = errors
+          .map((error) => Object.values(error.constraints || {}))
+          .join(", ");
+        throw new AppError("BadRequest", message, 400);
+      }
+
+      const newHistory = await this.memberService.createHistory(
+        userId,
+        createHistoryDto
+      );
+
+      res.status(201).json({
+        message: "이력이 성공적으로 작성되었습니다.",
+        history: {
+          history_id: newHistory.history_id,
+          history: newHistory.history,
+        },
+        statusCode: 201,
       });
     } catch (error) {
       next(error);
