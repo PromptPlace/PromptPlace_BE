@@ -1,10 +1,10 @@
-import { Service } from 'typedi';
-import { CreateHistoryDto } from '../dtos/create-history.dto';
-import { UpdateHistoryDto } from '../dtos/update-history.dto';
-import prisma from '../../config/prisma';
-import { CreateSnsDto } from '../dtos/create-sns.dto';
-import { UpdateSnsDto } from '../dtos/update-sns.dto';
-import { User } from '@prisma/client';
+import { Service } from "typedi";
+import { CreateHistoryDto } from "../dtos/create-history.dto";
+import { UpdateHistoryDto } from "../dtos/update-history.dto";
+import prisma from "../../config/prisma";
+import { CreateSnsDto } from "../dtos/create-sns.dto";
+import { UpdateSnsDto } from "../dtos/update-sns.dto";
+import { User } from "@prisma/client";
 
 @Service()
 export class MemberRepository {
@@ -53,12 +53,23 @@ export class MemberRepository {
   }
 
   async deleteHistory(historyId: number) {
-    return await prisma.userHistory.delete({ where: { history_id: historyId } });
+    return await prisma.userHistory.delete({
+      where: { history_id: historyId },
+    });
   }
 
   async findUserById(memberId: number): Promise<User | null> {
     return prisma.user.findUnique({
       where: { user_id: memberId },
+    });
+  }
+
+  async findUserWithIntroById(memberId: number) {
+    return prisma.user.findUnique({
+      where: { user_id: memberId },
+      include: {
+        intro: true,
+      },
     });
   }
 
@@ -131,12 +142,12 @@ export class MemberRepository {
 }
 
 export const getMemberPromptsRepo = async (
-  memberId: number, 
-  cursor?: number, 
+  memberId: number,
+  cursor?: number,
   limit: number = 10
 ) => {
   const whereCondition: any = { user_id: memberId };
-  
+
   // 커서가 있으면 해당 ID보다 작은 것들만 조회 (최신순이므로)
   if (cursor) {
     whereCondition.prompt_id = { lt: cursor };
@@ -151,29 +162,31 @@ export const getMemberPromptsRepo = async (
       models: {
         select: {
           model: {
-            select: { name: true }
-          }
-        }
+            select: { name: true },
+          },
+        },
       },
       tags: {
         select: {
           tag: {
-            select: { name: true }
-          }
-        }
-      }
+            select: { name: true },
+          },
+        },
+      },
     },
-    orderBy: { prompt_id: 'desc' }, // 최신순 (ID 내림차순)
-    take: limit + 1
+    orderBy: { prompt_id: "desc" }, // 최신순 (ID 내림차순)
+    take: limit + 1,
   });
 
   const hasNext = prompts.length > limit;
   const resultPrompts = hasNext ? prompts.slice(0, limit) : prompts;
-  const nextCursor = hasNext ? resultPrompts[resultPrompts.length - 1].prompt_id : null;
+  const nextCursor = hasNext
+    ? resultPrompts[resultPrompts.length - 1].prompt_id
+    : null;
 
   return {
     prompts: resultPrompts,
     has_more: hasNext,
-    nextCursor
+    nextCursor,
   };
 };

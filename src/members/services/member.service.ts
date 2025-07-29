@@ -1,7 +1,7 @@
-import { MemberRepository } from '../repositories/member.repository';
-import { AppError } from '../../errors/AppError';
-import { Service } from 'typedi';
-import { getMemberPromptsRepo } from '../repositories/member.repository';
+import { MemberRepository } from "../repositories/member.repository";
+import { AppError } from "../../errors/AppError";
+import { Service } from "typedi";
+import { getMemberPromptsRepo } from "../repositories/member.repository";
 
 @Service()
 export class MemberService {
@@ -9,39 +9,51 @@ export class MemberService {
 
   async followUser(followerId: number, followingId: number) {
     if (followerId === followingId) {
-      throw new AppError('BadRequest', '자기 자신을 팔로우할 수 없습니다.', 400);
+      throw new AppError(
+        "BadRequest",
+        "자기 자신을 팔로우할 수 없습니다.",
+        400
+      );
     }
 
     const followingUser = await this.memberRepository.findUserById(followingId);
     if (!followingUser) {
-      throw new AppError('NotFound', '해당 사용자를 찾을 수 없습니다.', 404);
+      throw new AppError("NotFound", "해당 사용자를 찾을 수 없습니다.", 404);
     }
 
-    const existingFollow = await this.memberRepository.findFollowing(followerId, followingId);
+    const existingFollow = await this.memberRepository.findFollowing(
+      followerId,
+      followingId
+    );
     if (existingFollow) {
-      throw new AppError('Conflict', '이미 팔로우한 사용자입니다.', 409);
+      throw new AppError("Conflict", "이미 팔로우한 사용자입니다.", 409);
     }
 
     return this.memberRepository.followUser(followerId, followingId);
   }
 
   async unfollowUser(followerId: number, followingId: number) {
-    const following = await this.memberRepository.findFollowing(followerId, followingId);
+    const following = await this.memberRepository.findFollowing(
+      followerId,
+      followingId
+    );
 
     if (!following) {
-      throw new AppError('NotFound', '팔로우 관계를 찾을 수 없습니다.', 404);
+      throw new AppError("NotFound", "팔로우 관계를 찾을 수 없습니다.", 404);
     }
     await this.memberRepository.unfollowUser(followerId, followingId);
-    return { message: '언팔로우 성공' };
+    return { message: "언팔로우 성공" };
   }
 
   async getFollowers(memberId: number) {
     const user = await this.memberRepository.findUserById(memberId);
     if (!user) {
-      throw new AppError('NotFound', '해당 사용자를 찾을 수 없습니다.', 404);
+      throw new AppError("NotFound", "해당 사용자를 찾을 수 없습니다.", 404);
     }
 
-    const followers = await this.memberRepository.findFollowersByMemberId(memberId);
+    const followers = await this.memberRepository.findFollowersByMemberId(
+      memberId
+    );
 
     return followers.map((f) => ({
       follow_id: f.follow_id,
@@ -56,10 +68,12 @@ export class MemberService {
   async getFollowings(memberId: number) {
     const user = await this.memberRepository.findUserById(memberId);
     if (!user) {
-      throw new AppError('NotFound', '해당 사용자를 찾을 수 없습니다.', 404);
+      throw new AppError("NotFound", "해당 사용자를 찾을 수 없습니다.", 404);
     }
 
-    const followings = await this.memberRepository.findFollowingsByMemberId(memberId);
+    const followings = await this.memberRepository.findFollowingsByMemberId(
+      memberId
+    );
 
     return followings.map((f) => ({
       follow_id: f.follow_id,
@@ -73,8 +87,36 @@ export class MemberService {
 
   async getMemberPrompts(memberId: number, cursor?: number, limit?: number) {
     const DEFAULT_LIMIT = 10;
-    const actualLimit = limit && limit > 0 && limit <= 50 ? limit : DEFAULT_LIMIT;
-    
+    const actualLimit =
+      limit && limit > 0 && limit <= 50 ? limit : DEFAULT_LIMIT;
+
     return await getMemberPromptsRepo(memberId, cursor, actualLimit);
   }
-} 
+
+  async getMemberById(requesterId: number, memberId: number) {
+    if (requesterId !== memberId) {
+      throw new AppError(
+        "Forbidden",
+        "해당 회원 정보에 접근할 권한이 없습니다.",
+        403
+      );
+    }
+
+    const member = await this.memberRepository.findUserWithIntroById(memberId);
+
+    if (!member) {
+      throw new AppError("NotFound", "해당 회원을 찾을 수 없습니다.", 404);
+    }
+
+    return {
+      member_id: member.user_id,
+      email: member.email,
+      name: member.name,
+      nickname: member.nickname,
+      intros: member.intro?.description || null,
+      created_at: member.created_at,
+      updated_at: member.updated_at,
+      status: member.status ? 1 : 0,
+    };
+  }
+}
