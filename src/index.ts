@@ -15,6 +15,7 @@ import promptDownloadRouter from './prompts/routes/prompt.downlaod.route';
 import promptLikeRouter from './prompts/routes/prompt.like.route';
 import tipRouter from "./tip/routes/tip.route"; // 팁 라우터 import
 import inquiryRouter from './inquiries/routes/inquiry.route';
+import reportRouter from './reports/routes/report.route'; // 신고 라우터 import
 // import * as swaggerDocument from './docs/swagger/swagger.json';
 // import { RegisterRoutes } from './routes/routes'; // tsoa가 생성하는 파일
 
@@ -56,6 +57,8 @@ app.use("/api/members", membersRouter);
 // 리뷰 라우터
 app.use('/api/reviews', ReviewRouter);
 
+// 신고 라우터
+app.use('/api/reports', reportRouter);
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 const PORT = 3000;
 
