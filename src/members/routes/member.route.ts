@@ -110,4 +110,11 @@ router.delete(
   memberController.deleteSns.bind(memberController)
 );
 
+// 회원 SNS 목록 조회 API
+router.get(
+  "/:memberId/sns",
+  authenticateJwt,
+  memberController.getSnsList.bind(memberController)
+);
+
 export default router;

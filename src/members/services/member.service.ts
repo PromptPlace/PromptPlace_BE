@@ -321,4 +321,13 @@ export class MemberService {
 
     return this.memberRepository.deleteSns(snsId);
   }
+
+  async getSnsList(memberId: number) {
+    const user = await this.memberRepository.findUserById(memberId);
+    if (!user) {
+      throw new AppError("NotFound", "해당 회원을 찾을 수 없습니다.", 404);
+    }
+
+    return this.memberRepository.findSnsByUserId(memberId);
+  }
 }
