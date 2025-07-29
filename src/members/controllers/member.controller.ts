@@ -539,4 +539,24 @@ export class MemberController {
       next(error);
     }
   }
+
+  public async unfollowMember(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const followerId = (req.user as any).user_id;
+      const followingId = parseInt(req.params.memberId, 10);
+
+      await this.memberService.unfollowMember(followerId, followingId);
+
+      res.status(200).json({
+        message: "언팔로우가 완료되었습니다.",
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

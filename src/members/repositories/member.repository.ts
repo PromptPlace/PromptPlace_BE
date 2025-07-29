@@ -137,6 +137,12 @@ export class MemberRepository {
     });
   }
 
+  async deleteFollow(followId: number) {
+    return prisma.following.delete({
+      where: { follow_id: followId },
+    });
+  }
+
   async findPurchasesByUserId(userId: number) {
     return prisma.purchase.findMany({
       where: { user_id: userId },

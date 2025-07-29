@@ -11,12 +11,6 @@ router.get(
   authenticateJwt,
   memberController.getFollowers.bind(memberController)
 );
-router.delete(
-  "/unfollow/:memberId",
-  authenticateJwt,
-  memberController.unfollowUser.bind(memberController)
-);
-
 router.get(
   "/following/:memberId",
   authenticateJwt,
@@ -126,6 +120,13 @@ router.post(
   "/follows/:memberId",
   authenticateJwt,
   memberController.followMember.bind(memberController)
+);
+
+// 회원 언팔로우 API
+router.delete(
+  "/follows/:memberId",
+  authenticateJwt,
+  memberController.unfollowMember.bind(memberController)
 );
 
 export default router;

@@ -363,4 +363,24 @@ export class MemberService {
     // 팔로우 생성
     return this.memberRepository.createFollow(followerId, followingId);
   }
+
+  async unfollowMember(followerId: number, followingId: number) {
+    // 1. 언팔로우할 사용자가 존재하는지 확인
+    const followingUser = await this.memberRepository.findUserById(followingId);
+    if (!followingUser) {
+      throw new AppError("NotFound", "해당 사용자를 찾을 수 없습니다.", 404);
+    }
+
+    // 2. 팔로우 관계가 존재하는지 확인
+    const existingFollow = await this.memberRepository.findFollow(
+      followerId,
+      followingId
+    );
+    if (!existingFollow) {
+      throw new AppError("NotFound", "팔로우 관계를 찾을 수 없습니다.", 404);
+    }
+
+    // 팔로우 관계 삭제
+    return this.memberRepository.deleteFollow(existingFollow.follow_id);
+  }
 }
