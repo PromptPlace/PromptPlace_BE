@@ -29,7 +29,7 @@ model User {
   notifications      Notification[]
   prompts            Prompt[]
   prompt_likes       PromptLike[]
-  prompt_reports     PromptReport[]
+  prompt_reports     PromptReport[]    @relation("UserReport")
   purchases          Purchase[]
   refreshTokens      RefreshToken[]
   reviews            Review[]
@@ -219,7 +219,7 @@ model Prompt {
   images         PromptImage[]
   prompt_likes   PromptLike[]
   models         PromptModel[]
-  prompt_reports PromptReport[]
+  prompt_reports PromptReport[] @relation("PromptReport")
   tags           PromptTag[]
   purchases      Purchase[]
   reviews        Review[]
@@ -293,38 +293,19 @@ model PromptImage {
   @@index([prompt_id], map: "PromptImage_prompt_id_fkey")
 }
 
+
 model PromptReport {
-  report_id   Int            @id @default(autoincrement())
-  user_id     Int
-  prompt_id   Int
-  category_id Int
-  content     String         @db.Text
-  created_at  DateTime       @default(now())
-  updated_at  DateTime       @updatedAt
-  category    ReportCategory @relation(fields: [category_id], references: [category_id])
-  prompt      Prompt         @relation(fields: [prompt_id], references: [prompt_id])
-  user        User           @relation(fields: [user_id], references: [user_id])
+  report_id     Int      @id @default(autoincrement())
+  report_type   ReportType  // enum 타입 사용
+  description   String
+  prompt_id     Int
+  reporter_id   Int
+  created_at    DateTime @default(now())
 
-  @@index([category_id], map: "PromptReport_category_id_fkey")
-  @@index([prompt_id], map: "PromptReport_prompt_id_fkey")
-  @@index([user_id], map: "PromptReport_user_id_fkey")
+  prompt   Prompt @relation("PromptReport", fields: [prompt_id], references: [prompt_id])
+  reporter User @relation("UserReport", fields: [reporter_id], references: [user_id])
 }
 
-model ReportCategory {
-  category_id    Int                    @id @default(autoincrement())
-  name           String
-  prompt_reports PromptReport[]
-  details        ReportCategoryDetail[]
-}
-
-model ReportCategoryDetail {
-  detail_id   Int            @id @default(autoincrement())
-  content     String
-  category_id Int
-  category    ReportCategory @relation(fields: [category_id], references: [category_id])
-
-  @@index([category_id], map: "ReportCategoryDetail_category_id_fkey")
-}
 
 model Purchase {
   purchase_id Int      @id @default(autoincrement())
@@ -400,4 +381,11 @@ enum InquiryType {
 enum InquiryStatus {
   waiting
   read
+}
+
+enum ReportType {
+  FALSE_OR_EXAGGERATED         // 허위 또는 과장된 콘텐츠
+  COPYRIGHT_INFRINGEMENT       // 저작권 및 지적재산권 침해
+  INAPPROPRIATE_OR_HARMFUL     // 불쾌하거나 부적절한 내용
+  ETC                          // 기타
 }
