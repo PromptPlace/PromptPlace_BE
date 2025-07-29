@@ -4,7 +4,9 @@ import { Service } from "typedi";
 import { getMemberPromptsRepo } from "../repositories/member.repository";
 import { UpdateMemberDto } from "../dtos/update-member.dto";
 import { CreateIntroDto } from "../dtos/create-intro.dto";
+import { UpdateIntroDto } from "../dtos/update-intro.dto";
 import { CreateHistoryDto } from "../dtos/create-history.dto";
+import { UpdateHistoryDto } from "../dtos/update-history.dto";
 
 @Service()
 export class MemberService {
@@ -177,5 +179,27 @@ export class MemberService {
 
   async createHistory(userId: number, createHistoryDto: CreateHistoryDto) {
     return this.memberRepository.createHistory(userId, createHistoryDto);
+  }
+
+  async updateHistory(
+    userId: number,
+    historyId: number,
+    updateHistoryDto: UpdateHistoryDto
+  ) {
+    const history = await this.memberRepository.findHistoryById(historyId);
+
+    if (!history) {
+      throw new AppError("NotFound", "해당 이력을 찾을 수 없습니다.", 404);
+    }
+
+    if (history.user_id !== userId) {
+      throw new AppError(
+        "Forbidden",
+        "해당 이력을 수정할 권한이 없습니다.",
+        403
+      );
+    }
+
+    return this.memberRepository.updateHistory(historyId, updateHistoryDto);
   }
 }

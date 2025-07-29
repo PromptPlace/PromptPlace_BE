@@ -72,6 +72,12 @@ export class MemberRepository {
     return await prisma.userSNS.delete({ where: { sns_id: snsId } });
   }
 
+  async findHistoryById(historyId: number) {
+    return prisma.userHistory.findUnique({
+      where: { history_id: historyId },
+    });
+  }
+
   async findHistoriesByUserId(userId: number) {
     return await prisma.userHistory.findMany({ where: { user_id: userId } });
   }

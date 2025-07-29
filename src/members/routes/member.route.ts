@@ -68,4 +68,11 @@ router.post(
   memberController.createHistory.bind(memberController)
 );
 
+// 회원 이력 수정 API
+router.patch(
+  "/histories/:historyId",
+  authenticateJwt,
+  memberController.updateHistory.bind(memberController)
+);
+
 export default router;

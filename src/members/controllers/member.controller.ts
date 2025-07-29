@@ -8,6 +8,7 @@ import { AppError } from "../../errors/AppError";
 import { CreateIntroDto } from "../dtos/create-intro.dto";
 import { UpdateIntroDto } from "../dtos/update-intro.dto";
 import { CreateHistoryDto } from "../dtos/create-history.dto";
+import { UpdateHistoryDto } from "../dtos/update-history.dto";
 
 export class MemberController {
   private memberService: MemberService;
@@ -294,6 +295,41 @@ export class MemberController {
           history: newHistory.history,
         },
         statusCode: 201,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async updateHistory(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = (req.user as any).user_id;
+      const historyId = parseInt(req.params.historyId, 10);
+      const updateHistoryDto = plainToInstance(UpdateHistoryDto, req.body);
+
+      const errors = await validate(updateHistoryDto);
+      if (errors.length > 0) {
+        const message = errors
+          .map((error) => Object.values(error.constraints || {}))
+          .join(", ");
+        throw new AppError("BadRequest", message, 400);
+      }
+
+      const updatedHistory = await this.memberService.updateHistory(
+        userId,
+        historyId,
+        updateHistoryDto
+      );
+
+      res.status(200).json({
+        message: "이력이 성공적으로 수정되었습니다.",
+        history_id: updatedHistory.history_id,
+        history: updatedHistory.history,
+        statusCode: 200,
       });
     } catch (error) {
       next(error);
