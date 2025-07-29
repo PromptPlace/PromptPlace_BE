@@ -24,6 +24,17 @@ export class MemberRepository {
     });
   }
 
+  async upsertIntro(userId: number, intro: string) {
+    return prisma.userIntro.upsert({
+      where: { user_id: userId },
+      update: { description: intro },
+      create: {
+        user_id: userId,
+        description: intro,
+      },
+    });
+  }
+
   async findSnsByUserId(userId: number) {
     return await prisma.userSNS.findMany({ where: { user_id: userId } });
   }

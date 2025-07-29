@@ -5,6 +5,7 @@ import { UpdateMemberDto } from "../dtos/update-member.dto";
 import { plainToInstance } from "class-transformer";
 import { validate } from "class-validator";
 import { AppError } from "../../errors/AppError";
+import { CreateIntroDto } from "../dtos/create-intro.dto";
 
 export class MemberController {
   private memberService: MemberService;
@@ -189,6 +190,39 @@ export class MemberController {
       res.status(200).json({
         message: "회원 정보 수정 완료",
         user: updatedUser,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async createOrUpdateIntro(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = (req.user as any).user_id;
+      const createIntroDto = plainToInstance(CreateIntroDto, req.body);
+
+      const errors = await validate(createIntroDto);
+      if (errors.length > 0) {
+        const message = errors
+          .map((error) => Object.values(error.constraints || {}))
+          .join(", ");
+        throw new AppError("BadRequest", message, 400);
+      }
+
+      const result = await this.memberService.createOrUpdateIntro(
+        userId,
+        createIntroDto
+      );
+
+      res.status(200).json({
+        message: "한줄 소개가 성공적으로 작성되었습니다.",
+        intro: result.description,
+        updated_at: result.updated_at,
         statusCode: 200,
       });
     } catch (error) {

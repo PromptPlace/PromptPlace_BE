@@ -47,4 +47,11 @@ router.patch(
   memberController.updateMember.bind(memberController)
 );
 
+// 회원 한줄 소개 작성/수정 API
+router.post(
+  "/intros",
+  authenticateJwt,
+  memberController.createOrUpdateIntro.bind(memberController)
+);
+
 export default router;

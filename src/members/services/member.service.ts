@@ -3,6 +3,7 @@ import { AppError } from "../../errors/AppError";
 import { Service } from "typedi";
 import { getMemberPromptsRepo } from "../repositories/member.repository";
 import { UpdateMemberDto } from "../dtos/update-member.dto";
+import { CreateIntroDto } from "../dtos/create-intro.dto";
 
 @Service()
 export class MemberService {
@@ -154,5 +155,9 @@ export class MemberService {
       role: updatedUser.role,
       updated_at: updatedUser.updated_at,
     };
+  }
+
+  async createOrUpdateIntro(userId: number, createIntroDto: CreateIntroDto) {
+    return this.memberRepository.upsertIntro(userId, createIntroDto.intro);
   }
 }
