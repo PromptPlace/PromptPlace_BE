@@ -96,4 +96,11 @@ router.post(
   memberController.createSns.bind(memberController)
 );
 
+// 회원 SNS 수정 API
+router.patch(
+  "/sns/:snsId",
+  authenticateJwt,
+  memberController.updateSns.bind(memberController)
+);
+
 export default router;

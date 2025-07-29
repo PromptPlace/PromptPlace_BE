@@ -8,6 +8,7 @@ import { UpdateIntroDto } from "../dtos/update-intro.dto";
 import { CreateHistoryDto } from "../dtos/create-history.dto";
 import { UpdateHistoryDto } from "../dtos/update-history.dto";
 import { CreateSnsDto } from "../dtos/create-sns.dto";
+import { UpdateSnsDto } from "../dtos/update-sns.dto";
 
 @Service()
 export class MemberService {
@@ -283,5 +284,23 @@ export class MemberService {
 
   async createSns(userId: number, createSnsDto: CreateSnsDto) {
     return this.memberRepository.createSns(userId, createSnsDto);
+  }
+
+  async updateSns(userId: number, snsId: number, updateSnsDto: UpdateSnsDto) {
+    const sns = await this.memberRepository.findSnsById(snsId);
+
+    if (!sns) {
+      throw new AppError("NotFound", "해당 SNS를 찾을 수 없습니다.", 404);
+    }
+
+    if (sns.user_id !== userId) {
+      throw new AppError(
+        "Forbidden",
+        "해당 SNS를 수정할 권한이 없습니다.",
+        403
+      );
+    }
+
+    return this.memberRepository.updateSns(snsId, updateSnsDto);
   }
 }

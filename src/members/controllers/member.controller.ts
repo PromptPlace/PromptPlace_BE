@@ -10,6 +10,7 @@ import { UpdateIntroDto } from "../dtos/update-intro.dto";
 import { CreateHistoryDto } from "../dtos/create-history.dto";
 import { UpdateHistoryDto } from "../dtos/update-history.dto";
 import { CreateSnsDto } from "../dtos/create-sns.dto";
+import { UpdateSnsDto } from "../dtos/update-sns.dto";
 
 export class MemberController {
   private memberService: MemberService;
@@ -409,6 +410,43 @@ export class MemberController {
         url: newSns.url,
         description: newSns.description,
         created_at: newSns.created_at,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async updateSns(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = (req.user as any).user_id;
+      const snsId = parseInt(req.params.snsId, 10);
+      const updateSnsDto = plainToInstance(UpdateSnsDto, req.body);
+
+      const errors = await validate(updateSnsDto);
+      if (errors.length > 0) {
+        const message = errors
+          .map((error) => Object.values(error.constraints || {}))
+          .join(", ");
+        throw new AppError("BadRequest", message, 400);
+      }
+
+      const updatedSns = await this.memberService.updateSns(
+        userId,
+        snsId,
+        updateSnsDto
+      );
+
+      res.status(200).json({
+        message: "SNS가 성공적으로 수정되었습니다.",
+        sns_id: updatedSns.sns_id,
+        url: updatedSns.url,
+        description: updatedSns.description,
+        updated_at: updatedSns.updated_at,
         statusCode: 200,
       });
     } catch (error) {
