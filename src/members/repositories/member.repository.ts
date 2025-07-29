@@ -35,6 +35,19 @@ export class MemberRepository {
     });
   }
 
+  async findIntroByUserId(userId: number) {
+    return prisma.userIntro.findUnique({
+      where: { user_id: userId },
+    });
+  }
+
+  async updateIntro(userId: number, intro: string) {
+    return prisma.userIntro.update({
+      where: { user_id: userId },
+      data: { description: intro },
+    });
+  }
+
   async findSnsByUserId(userId: number) {
     return await prisma.userSNS.findMany({ where: { user_id: userId } });
   }

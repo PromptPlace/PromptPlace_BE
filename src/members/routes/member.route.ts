@@ -54,4 +54,11 @@ router.post(
   memberController.createOrUpdateIntro.bind(memberController)
 );
 
+// 회원 한줄 소개 수정 API
+router.patch(
+  "/intros",
+  authenticateJwt,
+  memberController.updateIntro.bind(memberController)
+);
+
 export default router;

@@ -160,4 +160,17 @@ export class MemberService {
   async createOrUpdateIntro(userId: number, createIntroDto: CreateIntroDto) {
     return this.memberRepository.upsertIntro(userId, createIntroDto.intro);
   }
+
+  async updateIntro(userId: number, updateIntroDto: UpdateIntroDto) {
+    const existingIntro = await this.memberRepository.findIntroByUserId(userId);
+    if (!existingIntro) {
+      throw new AppError(
+        "NotFound",
+        "수정할 한줄 소개를 찾을 수 없습니다.",
+        404
+      );
+    }
+
+    return this.memberRepository.updateIntro(userId, updateIntroDto.intro);
+  }
 }
