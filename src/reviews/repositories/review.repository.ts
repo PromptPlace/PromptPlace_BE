@@ -48,7 +48,7 @@ export const findUserProfilesByUserIds = async (userIds: number[]) => {
     select: {
       user_id: true,
       nickname: true,
-      profileImage: {
+      profileImage: { 
         select: {
           url: true
         }
