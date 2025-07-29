@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { MemberController } from "../controllers/member.controller";
 import { authenticateJwt } from "../../config/passport";
+import { upload } from "../../middlewares/upload";
 
 const router = Router();
 const memberController = new MemberController();
@@ -115,6 +116,14 @@ router.get(
   "/:memberId/sns",
   authenticateJwt,
   memberController.getSnsList.bind(memberController)
+);
+
+// 회원 프로필 이미지 등록 API
+router.post(
+  "/images",
+  authenticateJwt,
+  upload.single("profile_image"),
+  memberController.uploadProfileImage.bind(memberController)
 );
 
 export default router;

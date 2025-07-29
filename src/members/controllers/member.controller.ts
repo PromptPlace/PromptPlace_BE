@@ -492,4 +492,27 @@ export class MemberController {
       next(error);
     }
   }
+
+  public async uploadProfileImage(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = (req.user as any).user_id;
+      if (!req.file) {
+        throw new AppError("BadRequest", "이미지 파일이 필요합니다.", 400);
+      }
+      const imageUrl = req.file.path;
+
+      await this.memberService.uploadProfileImage(userId, imageUrl);
+
+      res.status(200).json({
+        message: "프로필 이미지 등록 완료",
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

@@ -330,4 +330,8 @@ export class MemberService {
 
     return this.memberRepository.findSnsByUserId(memberId);
   }
+
+  async uploadProfileImage(userId: number, imageUrl: string) {
+    return this.memberRepository.upsertProfileImage(userId, imageUrl);
+  }
 }

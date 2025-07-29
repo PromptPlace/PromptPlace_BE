@@ -108,6 +108,17 @@ export class MemberRepository {
     });
   }
 
+  async upsertProfileImage(userId: number, imageUrl: string) {
+    return prisma.userImage.upsert({
+      where: { userId: userId },
+      update: { url: imageUrl },
+      create: {
+        userId: userId,
+        url: imageUrl,
+      },
+    });
+  }
+
   async findPurchasesByUserId(userId: number) {
     return prisma.purchase.findMany({
       where: { user_id: userId },
