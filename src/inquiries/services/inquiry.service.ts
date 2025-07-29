@@ -76,6 +76,26 @@ export class InquiryService {
     );
   }
 
+  async markInquiryAsRead(userId: number, inquiryId: number) {
+    // 1. 문의 존재 여부 확인
+    const inquiry = await this.inquiryRepository.findInquiryById(inquiryId);
+    if (!inquiry) {
+      throw new AppError("NotFound", "해당 문의를 찾을 수 없습니다.", 404);
+    }
+
+    // 2. 읽음 처리 권한 확인 (문의의 수신자인지)
+    if (inquiry.receiver_id !== userId) {
+      throw new AppError(
+        "Forbidden",
+        "해당 문의를 읽음 처리할 권한이 없습니다.",
+        403
+      );
+    }
+
+    // 3. 문의 상태 변경
+    return this.inquiryRepository.updateInquiryStatus(inquiryId, "read");
+  }
+
   async getReceivedInquiries(receiverId: number, type?: "buyer" | "non_buyer") {
     const inquiries = await this.inquiryRepository.findReceivedInquiries(
       receiverId,

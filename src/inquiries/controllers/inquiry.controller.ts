@@ -140,4 +140,28 @@ export class InquiryController {
       next(error);
     }
   }
+
+  public async markInquiryAsRead(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = (req.user as any).user_id;
+      const inquiryId = parseInt(req.params.inquiryId, 10);
+
+      const updatedInquiry = await this.inquiryService.markInquiryAsRead(
+        userId,
+        inquiryId
+      );
+
+      res.status(200).json({
+        message: "문의가 읽음 처리되었습니다.",
+        data: updatedInquiry,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

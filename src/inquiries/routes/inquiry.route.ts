@@ -30,4 +30,11 @@ router.post(
   inquiryController.createInquiryReply.bind(inquiryController)
 );
 
+// 문의 읽음 처리 API
+router.patch(
+  "/:inquiryId/read",
+  authenticateJwt,
+  inquiryController.markInquiryAsRead.bind(inquiryController)
+);
+
 export default router;

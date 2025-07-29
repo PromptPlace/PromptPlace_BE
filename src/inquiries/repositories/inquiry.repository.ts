@@ -47,6 +47,18 @@ export class InquiryRepository {
     });
   }
 
+  async updateInquiryStatus(inquiryId: number, status: "waiting" | "read") {
+    return prisma.inquiry.update({
+      where: { inquiry_id: inquiryId },
+      data: { status: status },
+      select: {
+        inquiry_id: true,
+        status: true,
+        updated_at: true,
+      },
+    });
+  }
+
   async findReceivedInquiries(
     receiverId: number,
     type?: "buyer" | "non_buyer"
