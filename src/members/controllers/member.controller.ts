@@ -335,4 +335,26 @@ export class MemberController {
       next(error);
     }
   }
+
+  public async deleteHistory(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = (req.user as any).user_id;
+      const historyId = parseInt(req.params.historyId, 10);
+
+      await this.memberService.deleteHistory(userId, historyId);
+
+      res.status(200).json({
+        message: "이력이 성공적으로 삭제되었습니다.",
+        history_id: historyId,
+        deleted_at: new Date(),
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

@@ -75,4 +75,11 @@ router.patch(
   memberController.updateHistory.bind(memberController)
 );
 
+// 회원 이력 삭제 API
+router.delete(
+  "/histories/:historyId",
+  authenticateJwt,
+  memberController.deleteHistory.bind(memberController)
+);
+
 export default router;

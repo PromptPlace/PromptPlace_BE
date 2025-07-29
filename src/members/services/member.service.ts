@@ -202,4 +202,22 @@ export class MemberService {
 
     return this.memberRepository.updateHistory(historyId, updateHistoryDto);
   }
+
+  async deleteHistory(userId: number, historyId: number) {
+    const history = await this.memberRepository.findHistoryById(historyId);
+
+    if (!history) {
+      throw new AppError("NotFound", "해당 이력을 찾을 수 없습니다.", 404);
+    }
+
+    if (history.user_id !== userId) {
+      throw new AppError(
+        "Forbidden",
+        "해당 이력을 삭제할 권한이 없습니다.",
+        403
+      );
+    }
+
+    return this.memberRepository.deleteHistory(historyId);
+  }
 }
