@@ -37,6 +37,16 @@ export class InquiryRepository {
     });
   }
 
+  async createInquiryReply(inquiryId: number, userId: number, content: string) {
+    return prisma.inquiryReply.create({
+      data: {
+        inquiry_id: inquiryId,
+        receiver_id: userId, // 스키마에 따라 답변자를 receiver_id에 저장
+        content: content,
+      },
+    });
+  }
+
   async findReceivedInquiries(
     receiverId: number,
     type?: "buyer" | "non_buyer"
