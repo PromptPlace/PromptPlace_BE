@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { AppError } from "../../errors/AppError";
 const prisma = new PrismaClient();
 
 export const findtips = async (page: number, size: number) => {
@@ -37,6 +38,19 @@ export const updateTipRepository = async (tipId: string, data: any) => {
 
 export const removeTipRepository = async (tipId: string) => {
   const parsedTipId = parseInt(tipId, 10);
+
+  const tip = await prisma.tip.findUnique({
+    where: { tip_id: parsedTipId },
+  });
+
+  if (!tip) {
+    throw new AppError("해당 팁이 존재하지 않습니다.", 404, "NotFound");
+  }
+
+  if (!tip.is_visible) {
+    throw new AppError("이미 삭제된 팁입니다.", 400, "AlreadyDeleted");
+  }
+
   return await prisma.tip.update({
     where: { tip_id: parsedTipId },
     data: {
