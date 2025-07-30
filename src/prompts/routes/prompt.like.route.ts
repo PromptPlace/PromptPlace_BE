@@ -1,5 +1,4 @@
 import { Router } from 'express';
-
 import { authenticateJwt } from '../../config/passport';
 import { likePrompt, getLikedPrompts, unlikePrompt } from '../controllers/prompt.like.controller';
 

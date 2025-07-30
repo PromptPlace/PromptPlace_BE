@@ -5,6 +5,8 @@ import { errorHandler } from "./middlewares/errorHandler";
 
 import passport from './config/passport';
 import swaggerUi from 'swagger-ui-express';
+import swaggerJsdoc from "swagger-jsdoc";
+import { swaggerSpec } from './docs/swagger';
 import session from 'express-session';
 import cors from "cors";
 import authRouter from './auth/routes/auth.route'; // auth 라우터 경로 수정
@@ -15,8 +17,6 @@ import promptDownloadRouter from './prompts/routes/prompt.downlaod.route';
 import promptLikeRouter from './prompts/routes/prompt.like.route';
 import tipRouter from "./tip/routes/tip.route"; // 팁 라우터 import
 import inquiryRouter from './inquiries/routes/inquiry.route';
-import * as swaggerDocument from './docs/swagger/swagger.json';
-import { RegisterRoutes } from './docs/routes/routes'; // tsoa가 생성하는 파일
 
 const PORT = 3000;
 const app = express();
@@ -57,9 +57,8 @@ app.use("/api/members", membersRouter);
 // 리뷰 라우터
 app.use('/api/reviews', ReviewRouter);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerJsdoc(swaggerSpec)));
 
-RegisterRoutes(app);
 
 // 라우트 등록
 
