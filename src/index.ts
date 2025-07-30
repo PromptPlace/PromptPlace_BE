@@ -15,9 +15,10 @@ import promptDownloadRouter from './prompts/routes/prompt.downlaod.route';
 import promptLikeRouter from './prompts/routes/prompt.like.route';
 import tipRouter from "./tip/routes/tip.route"; // 팁 라우터 import
 import inquiryRouter from './inquiries/routes/inquiry.route';
-// import * as swaggerDocument from './docs/swagger/swagger.json';
-// import { RegisterRoutes } from './routes/routes'; // tsoa가 생성하는 파일
+import * as swaggerDocument from './docs/swagger/swagger.json';
+import { RegisterRoutes } from './docs/routes'; // tsoa가 생성하는 파일
 
+const PORT = 3000;
 const app = express();
 app.use(express.json());
 
@@ -56,10 +57,9 @@ app.use("/api/members", membersRouter);
 // 리뷰 라우터
 app.use('/api/reviews', ReviewRouter);
 
-// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-const PORT = 3000;
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// RegisterRoutes(app);
+RegisterRoutes(app);
 
 // 라우트 등록
 
