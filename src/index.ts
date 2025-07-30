@@ -16,7 +16,7 @@ import promptLikeRouter from './prompts/routes/prompt.like.route';
 import tipRouter from "./tip/routes/tip.route"; // 팁 라우터 import
 import inquiryRouter from './inquiries/routes/inquiry.route';
 import * as swaggerDocument from './docs/swagger/swagger.json';
-import { RegisterRoutes } from './docs/routes'; // tsoa가 생성하는 파일
+import { RegisterRoutes } from './docs/routes/routes'; // tsoa가 생성하는 파일
 
 const PORT = 3000;
 const app = express();
