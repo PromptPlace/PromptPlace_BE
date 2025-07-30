@@ -44,15 +44,6 @@ export const findUserById = async (userId: number) => {
 }; 
 
 
-// 신고 단건 조회
-export const findReportById = async (reportId: number) => {
-  return await prisma.promptReport.findUnique({
-    where: {
-      report_id: reportId
-    }
-  });
-};
-
 // 신고 목록 조회 (페이징 지원)
 export const findAllReports = async (
   cursor?: number,
@@ -95,6 +86,30 @@ export const markReportAsRead = async (reportId: number) => {
     },
     data: {
       is_read: true
+    }
+  });
+};
+
+
+
+// reportId로 신고 개별 조회 
+export const findReportById = async (reportId: number) => {
+  return await prisma.promptReport.findUnique({
+    where: {
+      report_id: reportId
+    },
+    include: {
+      prompt: { // 프롬프트
+        select: {
+          title: true
+        }
+      },
+      reporter: { // 신고자 
+        select: {
+          nickname: true,
+          email: true
+        }
+      }
     }
   });
 };

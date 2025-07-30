@@ -69,3 +69,45 @@ export const toReportedPromptListResponse = (
     has_more: reports.length >= limit// limit보다 많으면 더 있음
   };
 };
+
+
+
+
+
+
+// 단일 신고 응답 타입
+export interface ReportedPromptDetailDTO {
+  report_id: number;
+  prompt_id: number;
+  prompt_title: string;
+  reporter_id: number;
+  reporter_nickname: string;
+  reporter_email: string;
+  prompt_type: string; // Enum: ReportType
+  description: string;
+  created_at: string;
+  isRead: boolean;
+}
+
+// 단일 신고 조회 변환 함수
+export const toReportedPromptResponse = (
+  report: PromptReport & {
+    prompt: { title: string };
+    reporter: { nickname: string; email: string };
+  }
+): { report: ReportedPromptDetailDTO } => {
+  return {
+    report: {
+      report_id: report.report_id,
+      prompt_id: report.prompt_id,
+      prompt_title: report.prompt.title,
+      reporter_id: report.reporter_id,
+      reporter_nickname: report.reporter.nickname,
+      reporter_email: report.reporter.email,
+      prompt_type: report.report_type,
+      description: report.description,
+      created_at: report.created_at.toISOString(),
+      isRead: report.is_read
+    }
+  };
+};
