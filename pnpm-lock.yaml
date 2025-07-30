@@ -14,9 +14,6 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: ^3.848.0
         version: 3.848.0
-      '@types/cors':
-        specifier: ^2.8.19
-        version: 2.8.19
       '@types/express-session':
         specifier: ^1.18.2
         version: 1.18.2
