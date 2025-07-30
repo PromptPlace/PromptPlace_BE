@@ -13,9 +13,10 @@ import promptRoutes from './prompts/routes/prompt.route'; // 프롬프트 관련
 import ReviewRouter from './reviews/routes/review.route';
 import promptDownloadRouter from './prompts/routes/prompt.downlaod.route';
 import promptLikeRouter from './prompts/routes/prompt.like.route';
-import tipRouter from "./tip/routes/tip.route"; // 팁 라우터 import
+import tipRouter from "./tips/routes/tip.route"; // 팁 라우터 import
 import inquiryRouter from './inquiries/routes/inquiry.route';
 import reportRouter from './reports/routes/report.route'; // 신고 라우터 import
+import announcementRouter from './announcements/routes/announcement.route'; // 공지사항 라우터 import
 // import * as swaggerDocument from './docs/swagger/swagger.json';
 // import { RegisterRoutes } from './routes/routes'; // tsoa가 생성하는 파일
 
@@ -78,6 +79,9 @@ app.use("/api/prompts", promptLikeRouter);
 
 // 팁 라우터
 app.use("/api/tips", tipRouter);
+
+//공지사항 라우터
+app.use('/api/announcements', announcementRouter);
 
 // 문의 라우터
 app.use('/api/inquiries', inquiryRouter);
