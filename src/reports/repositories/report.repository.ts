@@ -1,7 +1,8 @@
 
 import { 
     PrismaClient, 
-    ReportType // report enum type
+    ReportType, // report enum type
+    PromptReport,
 } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -55,26 +56,28 @@ export const findReportById = async (reportId: number) => {
 // 신고 목록 조회 (페이징 지원)
 export const findAllReports = async (
   cursor?: number,
-  limit: number = 10
+  limit?: number
 ) => {
   return await prisma.promptReport.findMany({
-    where: {},
+    where: {}, // 필터 없음-> 모든 신고 조회
     orderBy: {
-      report_id: 'desc'
+      report_id: 'desc' // 최신순 정렬
     },
-    take: limit,
+    take: limit, 
+    // cursor가 있으면 해당 cursor 이후의 데이터만 조회
     ...(cursor && {
-      skip: 1,
+      skip: 1, // cursor 건너뛰기
       cursor: { report_id: cursor }
     }),
+    // 관련된 프롬프트와 신고자 정보 포함
     include: {
-      prompt: {
+      prompt: { // 프롬프트
         select: {
           prompt_id: true,
-          title: true
+          title: true,
         }
       },
-      reporter: {
+      reporter: { // 신고자
         select: {
           user_id: true,
           nickname: true

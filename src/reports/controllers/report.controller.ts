@@ -55,13 +55,16 @@ export const getReportedPrompts = async (
   }
   try {
     const userId = (req.user as { user_id: number }).user_id;
+    const cursor = typeof req.query.cursor === 'string' ? req.query.cursor : undefined;
+    const limit = typeof req.query.limit === 'string' ? req.query.limit : undefined;
+
     const reportedPrompts = await getReportedPromptsService(
       userId, 
-      req.query.cursor,
-      req.query.limit
+      cursor,
+      limit
     );
     res.success({
-      reportedPrompts,
+      ...reportedPrompts,
     });
   } catch (err: any) {
     console.error(err);

@@ -1,10 +1,11 @@
 import {
     toCreateReportResponse,
+    toReportedPromptListResponse
 } from '../dtos/report.dto';
 import {
     createReport,
     findUserById,
-    findReportedPromptList,
+    findAllReports,
 } from '../repositories/report.repository';
 
 import { ReportType } from '@prisma/client';
@@ -54,6 +55,6 @@ export const getReportedPromptsService = async (
 
 
   // 관리자 권한이 있는 사용자만 신고된 프롬프트 조회 가능
-  const reportedPrompts = await findReportedPromptList(cursor, limit);
-  return reportedPrompts;
+  const reportedPrompts = await findAllReports(cursor, limit);
+  return toReportedPromptListResponse(reportedPrompts, limit);
 };

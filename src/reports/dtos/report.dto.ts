@@ -10,8 +10,6 @@ export interface CreateReportResponse {
   description: string;
   created_at: Date;
 }
-
-
 // 신고 등록 응답 DTO
 export const toCreateReportResponse = ({
     report_id,
@@ -29,3 +27,45 @@ export const toCreateReportResponse = ({
   };
 };
 
+
+
+
+// 신고된 프롬프트 목록 조회 응답 인터페이스
+export interface ReportedPromptDTO {
+  report_id: number;
+  prompt_id: number;
+  prompt_title: string;
+  reporter_id: number;
+  reporter_nickname: string;
+  created_at: string;
+  is_read: boolean;
+}
+// 전체 신고 목록 응답 타입
+export interface ReportedPromptListResponse {
+  reports: ReportedPromptDTO[];// 신고 목록 배열
+  has_more: boolean; // 다음 페이지 여부
+}
+// 변환 함수(신고목록->api응답)
+export const toReportedPromptListResponse = (
+  reports: (PromptReport & {
+    prompt: { prompt_id: number; title: string };// 프롬프트 정보 (프롬프트 ID & 제목)
+    reporter: { user_id: number; nickname: string };// 신고자 정보 (ID & 닉네임)
+  })[],
+  limit: number// 페이징 제한 개수
+): ReportedPromptListResponse => {
+  // DB 원본 데이터를 ReportedPromptDTO 배열로 변환
+  const transformed: ReportedPromptDTO[] = reports.map((report) => ({
+    report_id: report.report_id,
+    prompt_id: report.prompt.prompt_id,
+    prompt_title: report.prompt.title,
+    reporter_id: report.reporter.user_id,
+    reporter_nickname: report.reporter.nickname,
+    created_at: report.created_at.toISOString(),
+    is_read: report.is_read
+  }));
+  // 최종 응답 객체 반환 (has_more은 페이징 기준으로 판단)
+  return {
+    reports: transformed,
+    has_more: reports.length >= limit// limit보다 많으면 더 있음
+  };
+};
