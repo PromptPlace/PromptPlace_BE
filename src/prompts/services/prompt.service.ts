@@ -5,6 +5,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { CreatePromptImageDto } from "../dtos/prompt-image.dto";
 import { v4 as uuidv4 } from "uuid";
 import { CreatePromptDto } from "../dtos/create-prompt.dto";
+import { UpdatePromptDto } from '../dtos/update-prompt.dto';
 
 /**
  * 프롬프트 검색 서비스
@@ -63,4 +64,16 @@ export const createPromptWrite = async (
   dto: CreatePromptDto
 ) => {
   return await promptRepository.createPromptWriteRepo(user_id, dto);
+};
+
+export const getPromptById = async (promptId: number) => {
+  return await promptRepository.getPromptByIdRepo(promptId);
+};
+
+export const updatePrompt = async (promptId: number, dto: UpdatePromptDto) => {
+  return await promptRepository.updatePromptRepo(promptId, dto);
+};
+
+export const deletePrompt = async (promptId: number) => {
+  return await promptRepository.deletePromptRepo(promptId);
 };
