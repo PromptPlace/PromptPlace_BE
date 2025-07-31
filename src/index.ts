@@ -5,8 +5,8 @@ import { errorHandler } from "./middlewares/errorHandler";
 
 import passport from './config/passport';
 import swaggerUi from 'swagger-ui-express';
-import swaggerJsdoc from "swagger-jsdoc";
-import { swaggerSpec } from './docs/swagger';
+import swaggerJsdoc from 'swagger-jsdoc';
+import { swaggerOptions } from './docs/swagger/options';
 import session from 'express-session';
 import cors from "cors";
 import authRouter from './auth/routes/auth.route'; // auth 라우터 경로 수정
@@ -57,7 +57,7 @@ app.use("/api/members", membersRouter);
 // 리뷰 라우터
 app.use('/api/reviews', ReviewRouter);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerJsdoc(swaggerSpec)));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerJsdoc(swaggerOptions)));
 
 
 // 라우트 등록
