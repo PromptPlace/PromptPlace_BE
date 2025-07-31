@@ -1,5 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, NotificationType } from '@prisma/client';
 const prisma = new PrismaClient();
+import { CreateNotificationParams } from '../dtos/notification.dto';
 
 // user와 prompter의 팔로우 관계 조회
 export const findFollowing = async (
@@ -54,3 +55,24 @@ export const deleteSubscription = async (
         }
     })
 }
+
+
+
+// 알림 등록 (공통)
+export const createNotification = async ({
+  userId,
+  actorId = null,
+  type,
+  content,
+  linkUrl = null,
+}: CreateNotificationParams) => {
+  return prisma.notification.create({
+    data: {
+      user_id: userId,
+      actor_id: actorId,
+      type,
+      content,
+      link_url: linkUrl,
+    },
+  });
+};

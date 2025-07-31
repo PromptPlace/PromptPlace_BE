@@ -18,7 +18,7 @@ import inquiryRouter from './inquiries/routes/inquiry.route';
 import reportRouter from './reports/routes/report.route'; // 신고 라우터 import
 import announcementRouter from './announcements/routes/announcement.route'; // 공지사항 라우터 import
 import notificationRouter from './notifications/routes/notification.route'; // 알림 라우터 import
-import './notifications/listeners'; // 이벤트 리스너 import
+import './notifications/listeners/notification.listener'; // 알림 리스터 import
 
 // import * as swaggerDocument from './docs/swagger/swagger.json';
 // import { RegisterRoutes } from './routes/routes'; // tsoa가 생성하는 파일

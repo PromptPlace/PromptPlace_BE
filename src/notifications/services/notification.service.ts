@@ -1,5 +1,6 @@
 import {
-    mapToSubscribeResponse
+    mapToSubscribeResponse,
+    CreateNotificationParams,
 } from '../dtos/notification.dto';
 
 import {
@@ -7,7 +8,13 @@ import {
     findSubscription,
     createSubscription,
     deleteSubscription,
+    createNotification ,
 } from '../repositories/notification.repository';
+
+import { NotificationType } from '@prisma/client';
+
+import eventBus from '../../config/eventBus';
+
 
 
 export const createSubscriptionService = async (
@@ -51,3 +58,20 @@ export const createSubscriptionService = async (
     return mapToSubscribeResponse(userId, prompterId, subscribed) // 객체로 반환
 }
 
+// 알림 접수(공통)
+export const createNotificationService = async (
+  params: CreateNotificationParams
+) => {
+  return createNotification(params);
+};
+
+// 신고 접수 알림 
+export const createReportNotificationService = async (userId: number) => {
+  return createNotificationService({
+    userId,
+    type: NotificationType.REPORT,
+    content: '신고가 접수되었습니다.',
+    linkUrl: null,
+    actorId: null,
+  });
+};

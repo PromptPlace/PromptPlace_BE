@@ -10,6 +10,7 @@ import {
     markReportAsRead,
     findReportById,
 } from '../repositories/report.repository';
+import eventBus from '../../config/eventBus';
 
 import { ReportType } from '@prisma/client';
 
@@ -28,13 +29,17 @@ export const createReportService = async (
     description
   });
 
+  
+  // 알림 이벤트 발생 → 리스너에서 처리
+  eventBus.emit('report.created', newReport.reporter_id);
+
   return toCreateReportResponse(newReport);
 };
 
 export const getReportedPromptsService = async (
   userId: number,  
   rawCursor?: string,
-  rawLimit?: string
+  rawLimit?: string 
 ) => {
   const user = await findUserById(userId);
   if (!user) {
