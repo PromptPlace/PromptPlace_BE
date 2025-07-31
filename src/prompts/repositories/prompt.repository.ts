@@ -64,6 +64,99 @@ export const searchPromptRepo = async (data: SearchPromptDto) => {
   return results;
 };
 
+
+export const getPromptDetailRepo = async (promptId: number) => {
+  const prompt = await prisma.prompt.findUnique({
+    where: { prompt_id: promptId },
+    include: {
+      user: {
+        select: {
+          user_id: true,
+          nickname: true,
+          profileImage: {
+            select: { url: true },
+          },
+        },
+      },
+      models: {
+        include: {
+          model: {
+            select: { name: true },
+          },
+        },
+      },
+      tags: {
+        include: {
+          tag: {
+            select: {
+              tag_id: true,
+              name: true,
+            },
+          },
+        },
+      },
+      images: {
+        select: {
+          image_url: true,
+        },
+        orderBy: {
+          order_index: 'asc',
+        },
+      },
+    },
+  });
+
+  if (!prompt) return null;
+
+const {
+  title,
+  prompt: promptText,
+  prompt_result,
+  has_image,
+  description,
+  usage_guide,
+  price,
+  is_free,
+  models,
+  tags,
+  images,
+  user,
+} = prompt;
+
+
+return {
+  title,
+  prompt: promptText,
+  prompt_result,
+  has_image,
+  description,
+  usage_guide,
+  price,
+  is_free,
+
+  tags: tags.map(
+    ({ tag }: { tag: { tag_id: number; name: string } }) => ({
+      tag_id: tag.tag_id,
+      name: tag.name,
+    })
+  ),
+
+  models: models.map(
+    ({ model }: { model: { name: string } }) => model.name
+  ),
+
+  images: images.map(
+    ({ image_url }: { image_url: string }) => image_url
+  ),
+
+  writer: {
+    user_id: user.user_id,
+    nickname: user.nickname,
+    profile_image_url: user.profileImage?.url ?? null,
+  },
+};
+};
+
 export const createPromptWriteRepo = async (
   user_id: number,
   data: {
