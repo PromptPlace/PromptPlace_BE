@@ -7,6 +7,9 @@ const router = Router();
 // 프롬프트 검색 API
 router.get("/searches", promptController.searchPrompts);
 
+//프롬프트 상세 조회 API
+router.get("/:promptId/details", authenticateJwt, promptController.getPromptDetails);
+
 // S3 presign url 발급 API
 router.post("/presign-url", authenticateJwt, promptController.presignUrl);
 

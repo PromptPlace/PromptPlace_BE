@@ -14,6 +14,11 @@ export const searchPrompts = async (dto: SearchPromptDto) => {
   return await promptRepository.searchPromptRepo(dto);
 };
 
+export const getPromptDetail = async (promptId: number) => {
+  return await promptRepository.getPromptDetailRepo(promptId);
+}
+
+
 /**
  * S3 presigned url 발급 (key는 promptimages/uuid_파일명 형식으로 강제)
  * @param key 원본 파일 경로 또는 파일명
