@@ -17,6 +17,7 @@ import tipRouter from "./tips/routes/tip.route"; // 팁 라우터 import
 import inquiryRouter from './inquiries/routes/inquiry.route';
 import reportRouter from './reports/routes/report.route'; // 신고 라우터 import
 import announcementRouter from './announcements/routes/announcement.route'; // 공지사항 라우터 import
+import notificationRouter from './notifications/routes/notification.route'; // 알림 라우터 import
 import './notifications/listeners'; // 이벤트 리스너 import
 
 // import * as swaggerDocument from './docs/swagger/swagger.json';
@@ -91,6 +92,9 @@ app.use('/api/announcements', announcementRouter);
 
 // 문의 라우터
 app.use('/api/inquiries', inquiryRouter);
+
+// 알림 라우터
+app.use('/api/notifications', notificationRouter);
 
 // 예시 라우터
 app.get("/", (req, res) => {

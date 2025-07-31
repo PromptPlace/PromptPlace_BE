@@ -70,7 +70,7 @@ export const getReviewsByPromptId = async (
 
     try {
       const userId = (req.user as { user_id: number }).user_id;
-      const promptId = (req.params.promptId)?.toString();;
+      const promptId = (req.params.promptId)?.toString();
       const { rating, content } = req.body;
 
     if (!promptId) {
