@@ -9,8 +9,8 @@ const memberController = new MemberController();
 /**
  * @swagger
  * tags:
- *   name: Member
- *   description: 회원 관련 API
+ *   - name: Member
+ *     description: 회원 관련 API
  */
 
 /**
@@ -195,7 +195,8 @@ router.post(
  *       required: true
  *       content:
  *         application/json:
- *           type: object
+ *           schema:
+ *             type: object
  *             properties:
  *               description:
  *                 type: string
