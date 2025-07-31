@@ -300,6 +300,7 @@ model PromptReport {
   description   String
   prompt_id     Int
   reporter_id   Int
+  is_read       Boolean  @default(false)
   created_at    DateTime @default(now())
 
   prompt   Prompt @relation("PromptReport", fields: [prompt_id], references: [prompt_id])
