@@ -49,7 +49,9 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerJsdoc(swaggerOptions)));
 
+// 라우트 등록
 // 인증 라우터
 app.use("/api/auth", authRouter); // /api 접두사 추가
 
@@ -58,11 +60,6 @@ app.use("/api/members", membersRouter);
 
 // 리뷰 라우터
 app.use('/api/reviews', ReviewRouter);
-
-const PORT = 3000;
-
-
-// 라우트 등록
 
 // 프롬프트 관련 라우터
 // 프롬프트 검색 API

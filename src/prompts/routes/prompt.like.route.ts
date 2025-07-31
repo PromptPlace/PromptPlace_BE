@@ -13,20 +13,57 @@ const router = Router();
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     PromptModel:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *     PromptTag:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *     Prompt:
+ *       type: object
+ *       properties:
+ *         prompt_id:
+ *           type: integer
+ *         title:
+ *           type: string
+ *         models:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               model:
+ *                 $ref: '#/components/schemas/PromptModel'
+ *         tags:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               tag:
+ *                 $ref: '#/components/schemas/PromptTag'
+ */
+
+/**
+ * @swagger
  * /api/prompts/{promptId}/likes:
  *   post:
- *     summary: 프롬프트를 찜합니다.
+ *     summary: 프롬프트 찜하기
  *     description: 현재 로그인한 사용자가 특정 프롬프트를 찜합니다.
  *     tags: [PromptLike]
  *     security:
  *       - jwt: []
  *     parameters:
- *       - name: promptId
- *         in: path
+ *       - in: path
+ *         name: promptId
  *         required: true
- *         description: 찜할 프롬프트 ID
  *         schema:
  *           type: integer
+ *         description: 찜할 프롬프트 ID
  *     responses:
  *       201:
  *         description: 프롬프트 찜 성공
@@ -41,8 +78,10 @@ const router = Router();
  *                   type: number
  *       401:
  *         description: 인증이 필요합니다
- *       500:
- *         description: 서버 오류
+ *       409:
+ *         description: 이미 찜한 프롬프트
+ *       404:
+ *         description: 프롬프트를 찾을 수 없음
  */
 router.post('/:promptId/likes', authenticateJwt, likePrompt);
 /**
@@ -50,13 +89,13 @@ router.post('/:promptId/likes', authenticateJwt, likePrompt);
  * /api/prompts/likes:
  *   get:
  *     summary: 찜한 프롬프트 목록 조회
- *     description: 로그인한 사용자가 찜한 프롬프트들을 조회합니다.
+ *     description: 로그인한 사용자가 찜한 프롬프트 목록을 조회합니다.
  *     tags: [PromptLike]
  *     security:
  *       - jwt: []
  *     responses:
  *       200:
- *         description: 찜한 프롬프트 목록 조회 성공
+ *         description: 찜한 프롬프트 목록
  *         content:
  *           application/json:
  *             schema:
@@ -65,13 +104,11 @@ router.post('/:promptId/likes', authenticateJwt, likePrompt);
  *                 data:
  *                   type: array
  *                   items:
- *                     type: object
+ *                     $ref: '#/components/schemas/Prompt'
  *                 message:
  *                   type: string
  *       401:
  *         description: 인증이 필요합니다
- *       500:
- *         description: 서버 오류
  */
 router.get('/likes', authenticateJwt, getLikedPrompts);
 /**
@@ -79,17 +116,17 @@ router.get('/likes', authenticateJwt, getLikedPrompts);
  * /api/prompts/{promptId}/likes:
  *   delete:
  *     summary: 프롬프트 찜 취소
- *     description: 로그인한 사용자가 특정 프롬프트 찜을 취소합니다.
+ *     description: 로그인한 사용자가 특정 프롬프트에 대한 찜을 취소합니다.
  *     tags: [PromptLike]
  *     security:
  *       - jwt: []
  *     parameters:
- *       - name: promptId
- *         in: path
+ *       - in: path
+ *         name: promptId
  *         required: true
- *         description: 찜을 취소할 프롬프트 ID
  *         schema:
  *           type: integer
+ *         description: 찜을 취소할 프롬프트 ID
  *     responses:
  *       200:
  *         description: 프롬프트 찜 취소 성공
@@ -102,8 +139,8 @@ router.get('/likes', authenticateJwt, getLikedPrompts);
  *                   type: string
  *       401:
  *         description: 인증이 필요합니다
- *       500:
- *         description: 서버 오류
+ *       404:
+ *         description: 찜 기록 없음
  */
 router.delete('/:promptId/likes', authenticateJwt, unlikePrompt);
 
