@@ -49,6 +49,27 @@ export const searchPrompts = async (req: Request, res: Response) => {
   }
 };
 
+export const getPromptDetails = async (req: Request, res: Response) => {
+  try {
+    const { promptId } = req.params;
+    const promptIdNum = Number(promptId);
+    if (isNaN(promptIdNum)) {
+      return res.status(400).json({ message: "유효하지 않은 프롬프트 ID입니다." });
+    } 
+    const promptDetails = await promptService.getPromptDetail(promptIdNum);
+    if (!promptDetails) {
+      return res.status(404).json({ message: "해당 프롬프트를 찾을 수 없습니다." });
+    }
+    return res.status(200).json({
+      statusCode: 200,
+      message: "프롬프트 상세 조회 성공",
+      data: promptDetails,
+    });
+  } catch (error) {
+    return errorHandler(error, req, res, () => {});
+  }
+}
+
 export const presignUrl = async (req: Request, res: Response) => {
   try {
     const { key, contentType } = req.body;

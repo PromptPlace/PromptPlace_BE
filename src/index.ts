@@ -22,6 +22,10 @@ import announcementRouter from './announcements/routes/announcement.route'; // �
 
 const PORT = 3000;
 const app = express();
+// 1. 응답 핸들러(json 파서보다 위에)
+app.use(responseHandler);
+
+// 2. express 기본 설정들
 app.use(express.json());
 
 // CORS 설정
@@ -32,7 +36,6 @@ app.use(cors({
   credentials: true, // 세션 쿠키 등 인증 정보 주고받을 경우 true
 }));
 
-app.use(responseHandler);
 
 // Session 설정 (OAuth용)
 app.use(
@@ -51,7 +54,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerJsdoc(swaggerOptions)));
 
-// 라우트 등록
+// 3. 모든 라우터들 
 // 인증 라우터
 app.use("/api/auth", authRouter); // /api 접두사 추가
 
@@ -90,6 +93,7 @@ app.get("/error", () => {
   throw new Error("테스트 오류입니다.");
 });
 
+// 4. 마지막 에러 핸들러 
 app.use(errorHandler as ErrorRequestHandler);
 
 app.listen(PORT, () => {

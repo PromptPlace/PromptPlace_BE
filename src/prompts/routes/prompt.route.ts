@@ -67,36 +67,9 @@ const router = Router();
 // 프롬프트 검색 API
 router.get("/searches", promptController.searchPrompts);
 
-/**
- * @swagger
- * /api/prompts/presign-url:
- *   post:
- *     summary: S3 Presigned URL 발급
- *     tags: [Prompts]
- *     security:
- *       - jwt: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               key:
- *                 type: string
- *               contentType:
- *                 type: string
- *             required:
- *               - key
- *               - contentType
- *     responses:
- *       200:
- *         description: URL 발급 성공
- *       400:
- *         description: 필수 값 누락
- *       401:
- *         description: 인증 실패
- */
+//프롬프트 상세 조회 API
+router.get("/:promptId/details", authenticateJwt, promptController.getPromptDetails);
+
 // S3 presign url 발급 API
 router.post("/presign-url", authenticateJwt, promptController.presignUrl);
 
