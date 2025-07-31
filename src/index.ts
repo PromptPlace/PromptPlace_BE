@@ -15,15 +15,17 @@ import promptRoutes from './prompts/routes/prompt.route'; // 프롬프트 관련
 import ReviewRouter from './reviews/routes/review.route';
 import promptDownloadRouter from './prompts/routes/prompt.downlaod.route';
 import promptLikeRouter from './prompts/routes/prompt.like.route';
-import tipRouter from "./tip/routes/tip.route"; // 팁 라우터 import
+import tipRouter from "./tips/routes/tip.route"; // 팁 라우터 import
 import inquiryRouter from './inquiries/routes/inquiry.route';
+import reportRouter from './reports/routes/report.route'; // 신고 라우터 import
+import announcementRouter from './announcements/routes/announcement.route'; // 공지사항 라우터 import
 
 const PORT = 3000;
 const app = express();
 app.use(express.json());
 
 // CORS 설정
-const allowedOrigins = ['https://promptplace-fe.vercel.app'];
+const allowedOrigins = ['https://promptplace-develop.vercel.app'];
 
 app.use(cors({
   origin: allowedOrigins,
@@ -57,7 +59,7 @@ app.use("/api/members", membersRouter);
 // 리뷰 라우터
 app.use('/api/reviews', ReviewRouter);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerJsdoc(swaggerOptions)));
+const PORT = 3000;
 
 
 // 라우트 등록
@@ -74,6 +76,9 @@ app.use("/api/prompts", promptLikeRouter);
 
 // 팁 라우터
 app.use("/api/tips", tipRouter);
+
+//공지사항 라우터
+app.use('/api/announcements', announcementRouter);
 
 // 문의 라우터
 app.use('/api/inquiries', inquiryRouter);

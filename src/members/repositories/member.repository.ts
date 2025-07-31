@@ -1,13 +1,53 @@
-import { Service } from 'typedi';
-import { CreateHistoryDto } from '../dtos/create-history.dto';
-import { UpdateHistoryDto } from '../dtos/update-history.dto';
-import prisma from '../../config/prisma';
-import { CreateSnsDto } from '../dtos/create-sns.dto';
-import { UpdateSnsDto } from '../dtos/update-sns.dto';
-import { User } from '@prisma/client';
+import { Service } from "typedi";
+import { CreateHistoryDto } from "../dtos/create-history.dto";
+import { UpdateHistoryDto } from "../dtos/update-history.dto";
+import prisma from "../../config/prisma";
+import { CreateSnsDto } from "../dtos/create-sns.dto";
+import { UpdateSnsDto } from "../dtos/update-sns.dto";
+import { User } from "@prisma/client";
+import { UpdateMemberDto } from "../dtos/update-member.dto";
 
 @Service()
 export class MemberRepository {
+  async findUserByNickname(nickname: string) {
+    return prisma.user.findFirst({ where: { nickname } });
+  }
+
+  async findUserByEmail(email: string) {
+    return prisma.user.findUnique({ where: { email } });
+  }
+
+  async updateUser(userId: number, updateMemberDto: UpdateMemberDto) {
+    return prisma.user.update({
+      where: { user_id: userId },
+      data: updateMemberDto,
+    });
+  }
+
+  async upsertIntro(userId: number, intro: string) {
+    return prisma.userIntro.upsert({
+      where: { user_id: userId },
+      update: { description: intro },
+      create: {
+        user_id: userId,
+        description: intro,
+      },
+    });
+  }
+
+  async findIntroByUserId(userId: number) {
+    return prisma.userIntro.findUnique({
+      where: { user_id: userId },
+    });
+  }
+
+  async updateIntro(userId: number, intro: string) {
+    return prisma.userIntro.update({
+      where: { user_id: userId },
+      data: { description: intro },
+    });
+  }
+
   async findSnsByUserId(userId: number) {
     return await prisma.userSNS.findMany({ where: { user_id: userId } });
   }
@@ -32,6 +72,16 @@ export class MemberRepository {
     return await prisma.userSNS.delete({ where: { sns_id: snsId } });
   }
 
+  async findSnsById(snsId: number) {
+    return prisma.userSNS.findUnique({ where: { sns_id: snsId } });
+  }
+
+  async findHistoryById(historyId: number) {
+    return prisma.userHistory.findUnique({
+      where: { history_id: historyId },
+    });
+  }
+
   async findHistoriesByUserId(userId: number) {
     return await prisma.userHistory.findMany({ where: { user_id: userId } });
   }
@@ -53,12 +103,93 @@ export class MemberRepository {
   }
 
   async deleteHistory(historyId: number) {
-    return await prisma.userHistory.delete({ where: { history_id: historyId } });
+    return await prisma.userHistory.delete({
+      where: { history_id: historyId },
+    });
+  }
+
+  async upsertProfileImage(userId: number, imageUrl: string) {
+    return prisma.userImage.upsert({
+      where: { userId: userId },
+      update: { url: imageUrl },
+      create: {
+        userId: userId,
+        url: imageUrl,
+      },
+    });
+  }
+
+  async findFollow(followerId: number, followingId: number) {
+    return prisma.following.findFirst({
+      where: {
+        follower_id: followerId,
+        following_id: followingId,
+      },
+    });
+  }
+
+  async createFollow(followerId: number, followingId: number) {
+    return prisma.following.create({
+      data: {
+        follower_id: followerId,
+        following_id: followingId,
+      },
+    });
+  }
+
+  async deleteFollow(followId: number) {
+    return prisma.following.delete({
+      where: { follow_id: followId },
+    });
+  }
+
+  async deactivateUser(userId: number) {
+    return prisma.user.update({
+      where: { user_id: userId },
+      data: {
+        status: false,
+        inactive_date: new Date(),
+      },
+    });
+  }
+
+  async findPurchasesByUserId(userId: number) {
+    return prisma.purchase.findMany({
+      where: { user_id: userId },
+      include: {
+        prompt: {
+          select: {
+            title: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findPromptsByUserId(userId: number) {
+    return prisma.prompt.findMany({
+      where: { user_id: userId },
+    });
+  }
+
+  async findWithdrawalsByUserId(userId: number) {
+    return prisma.withdrawRequest.findMany({
+      where: { user_id: userId },
+    });
   }
 
   async findUserById(memberId: number): Promise<User | null> {
     return prisma.user.findUnique({
       where: { user_id: memberId },
+    });
+  }
+
+  async findUserWithIntroById(memberId: number) {
+    return prisma.user.findUnique({
+      where: { user_id: memberId },
+      include: {
+        intro: true,
+      },
     });
   }
 
@@ -131,12 +262,12 @@ export class MemberRepository {
 }
 
 export const getMemberPromptsRepo = async (
-  memberId: number, 
-  cursor?: number, 
+  memberId: number,
+  cursor?: number,
   limit: number = 10
 ) => {
   const whereCondition: any = { user_id: memberId };
-  
+
   // 커서가 있으면 해당 ID보다 작은 것들만 조회 (최신순이므로)
   if (cursor) {
     whereCondition.prompt_id = { lt: cursor };
@@ -151,29 +282,31 @@ export const getMemberPromptsRepo = async (
       models: {
         select: {
           model: {
-            select: { name: true }
-          }
-        }
+            select: { name: true },
+          },
+        },
       },
       tags: {
         select: {
           tag: {
-            select: { name: true }
-          }
-        }
-      }
+            select: { name: true },
+          },
+        },
+      },
     },
-    orderBy: { prompt_id: 'desc' }, // 최신순 (ID 내림차순)
-    take: limit + 1
+    orderBy: { prompt_id: "desc" }, // 최신순 (ID 내림차순)
+    take: limit + 1,
   });
 
   const hasNext = prompts.length > limit;
   const resultPrompts = hasNext ? prompts.slice(0, limit) : prompts;
-  const nextCursor = hasNext ? resultPrompts[resultPrompts.length - 1].prompt_id : null;
+  const nextCursor = hasNext
+    ? resultPrompts[resultPrompts.length - 1].prompt_id
+    : null;
 
   return {
     prompts: resultPrompts,
     has_more: hasNext,
-    nextCursor
+    nextCursor,
   };
 };

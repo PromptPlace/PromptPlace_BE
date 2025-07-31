@@ -19,4 +19,11 @@ router.post(
 
 // 프롬프트 업로드(작성) API
 router.post("/", authenticateJwt, promptController.createPrompt);
+
+// 프롬프트 수정 API
+router.patch('/:promptId', authenticateJwt, promptController.updatePrompt);
+
+// 프롬프트 삭제 API
+router.delete('/:promptId', authenticateJwt, promptController.deletePrompt);
+
 export default router;
