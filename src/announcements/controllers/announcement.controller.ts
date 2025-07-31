@@ -5,6 +5,7 @@ import {
   patchAnnouncementService,
   deleteAnnouncementService,
 } from "../services/announcement.service";
+import eventBus from '../../config/eventBus';
 
 //jwt 인증 적용예정
 

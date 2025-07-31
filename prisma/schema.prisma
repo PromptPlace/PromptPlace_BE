@@ -143,7 +143,7 @@ model NotificationSubscription {
 
 model Notification {
   notification_id Int      @id @default(autoincrement())
-  user_id         Int                                 // 알림 받는 사용자
+  user_id         Int?                                 // 알림 받는 사용자
   type            NotificationType                    // 알림 종류 (enum)
   actor_id        Int?                               // 알림 유발 주체
   content         String   @db.Text
@@ -151,7 +151,7 @@ model Notification {
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
   
-  user            User     @relation("UserNotifications", fields: [user_id], references: [user_id])
+  user            User?     @relation("UserNotifications", fields: [user_id], references: [user_id])
   actor           User?    @relation("ActorNotifications", fields: [actor_id], references: [user_id])
   
   @@index([user_id], map: "Notification_user_id_fkey")

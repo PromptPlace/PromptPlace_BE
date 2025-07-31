@@ -60,7 +60,7 @@ export const deleteSubscription = async (
 
 // 알림 등록 (공통)
 export const createNotification = async ({
-  userId,
+  userId = null,
   actorId = null,
   type,
   content,
@@ -76,3 +76,4 @@ export const createNotification = async ({
     },
   });
 };
+

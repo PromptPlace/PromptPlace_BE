@@ -8,7 +8,9 @@ import {
     findSubscription,
     createSubscription,
     deleteSubscription,
-    createNotification ,
+    createNotification,
+    createNotifications,
+    findAllActiveUserIds,
 } from '../repositories/notification.repository';
 
 import { NotificationType } from '@prisma/client';
@@ -66,12 +68,25 @@ export const createNotificationService = async (
 };
 
 // 신고 접수 알림 
-export const createReportNotificationService = async (userId: number) => {
+export const createReportNotification = async (userId: number) => {
   return createNotificationService({
     userId,
     type: NotificationType.REPORT,
     content: '신고가 접수되었습니다.',
     linkUrl: null,
+    actorId: null,
+  });
+};
+
+// 공지사항 등록 알림
+export const createAnnouncementNotification = async (
+  announcementId: number
+) => {
+  await createNotificationService({
+    userId: null, // 모든 사용자 대상이므로 null
+    type: NotificationType.ANNOUNCEMENT,
+    content: '새로운 공지사항이 등록되었습니다.',
+    linkUrl: `/announcements/${announcementId}`,
     actorId: null,
   });
 };

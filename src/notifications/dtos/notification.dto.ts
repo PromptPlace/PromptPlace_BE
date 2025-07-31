@@ -22,7 +22,7 @@ export const mapToSubscribeResponse = (
 
 // 알림 등록 입력값(공통)
 export interface CreateNotificationParams {
-  userId: number;
+  userId?: number | null;
   actorId?: number | null;
   type: NotificationType;
   content: string;
