@@ -6,7 +6,7 @@ import {
   updateAnnouncementRepository,
   removeAnnouncementRepository,
 } from "../repositories/announcement.repository";
-
+import eventBus from '../../config/eventBus';
 export const findAnnouncementList = async (rawPage?: string, rawSize?: string) => {
   const page = rawPage ? parseInt(rawPage, 10) : 1;
   const size = rawSize ? parseInt(rawSize, 10) : 10;
@@ -28,6 +28,9 @@ export const createAnnouncementService = async (data: any) => {
     throw new Error("title과 content는 필수입니다.");
   }
   const result = await createAnnouncementRepository(data);
+  // 공지 생성 후 알림 생성 이벤트 호출
+  eventBus.emit('announcement.created', result.announcement_id);
+
   return mapToCreateAnnouncementDTO(result);
 };
 
