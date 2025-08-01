@@ -9,8 +9,6 @@ import {
     createSubscription,
     deleteSubscription,
     createNotification,
-    createNotifications,
-    findAllActiveUserIds,
 } from '../repositories/notification.repository';
 
 import { NotificationType } from '@prisma/client';

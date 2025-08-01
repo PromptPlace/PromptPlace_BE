@@ -5,6 +5,8 @@ import { errorHandler } from "./middlewares/errorHandler";
 
 import passport from './config/passport';
 import swaggerUi from 'swagger-ui-express';
+import swaggerJsdoc from 'swagger-jsdoc';
+import { swaggerOptions } from './docs/swagger/options';
 import session from 'express-session';
 import cors from "cors";
 import authRouter from './auth/routes/auth.route'; // auth 라우터 경로 수정
@@ -20,9 +22,7 @@ import announcementRouter from './announcements/routes/announcement.route'; // �
 import notificationRouter from './notifications/routes/notification.route'; // 알림 라우터 import
 import './notifications/listeners/notification.listener'; // 알림 리스터 import
 
-// import * as swaggerDocument from './docs/swagger/swagger.json';
-// import { RegisterRoutes } from './routes/routes'; // tsoa가 생성하는 파일
-
+const PORT = 3000;
 const app = express();
 // 1. 응답 핸들러(json 파서보다 위에)
 app.use(responseHandler);
@@ -54,6 +54,7 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerJsdoc(swaggerOptions)));
 
 // 3. 모든 라우터들 
 // 인증 라우터
@@ -64,15 +65,6 @@ app.use("/api/members", membersRouter);
 
 // 리뷰 라우터
 app.use('/api/reviews', ReviewRouter);
-
-// 신고 라우터
-app.use('/api/reports', reportRouter);
-// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-const PORT = 3000;
-
-// RegisterRoutes(app);
-
-// 라우트 등록
 
 // 프롬프트 관련 라우터
 // 프롬프트 검색 API
@@ -93,6 +85,7 @@ app.use('/api/announcements', announcementRouter);
 // 문의 라우터
 app.use('/api/inquiries', inquiryRouter);
 
+app.use('/api/reports', reportRouter);
 // 알림 라우터
 app.use('/api/notifications', notificationRouter);
 
