@@ -17,7 +17,7 @@ export const searchPrompts = async (req: Request, res: Response) => {
       size = String(DEFAULT_PROMPT_SEARCH_SIZE),
       sort = "recent",
       is_free = "false",
-    } = req.query;
+    } = req.body;
 
     // 필수 값(키워드) 유효성 검증
     if (typeof keyword !== "string" || !keyword.trim()) {
