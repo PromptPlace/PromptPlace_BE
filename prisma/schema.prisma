@@ -26,7 +26,8 @@ model User {
   replies            InquiryReply[]
   messagesReceived   Message[]         @relation("MessageReceiver")
   messagesSent       Message[]         @relation("MessageSender")
-  notifications      Notification[]
+  notifications     Notification[]     @relation("UserNotifications") // 내가 받은 알림들
+  sentNotifications Notification[]     @relation("ActorNotifications") // 내가 유발한 알림들
   prompts            Prompt[]
   prompt_likes       PromptLike[]
   prompt_reports     PromptReport[]    @relation("UserReport")
@@ -38,6 +39,8 @@ model User {
   intro              UserIntro?
   sns_list           UserSNS[]
   withdraw_requests  WithdrawRequest[]
+  subscriptions      NotificationSubscription[] @relation("NotificationSubscriber")
+  subscribers        NotificationSubscription[] @relation("NotificationTargetPrompter")
 }
 
 model UserIntro {
@@ -122,16 +125,39 @@ model Tip {
   @@index([writer_id], map: "Tip_writer_id_fkey")
 }
 
+
+model NotificationSubscription {
+  id           Int      @id @default(autoincrement())
+  user_id      Int      // 알림을 받을 사람
+  prompter_id  Int      // 프롬프트를 올리는 사람
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  user         User     @relation("NotificationSubscriber", fields: [user_id], references: [user_id])
+  prompter     User     @relation("NotificationTargetPrompter", fields: [prompter_id], references: [user_id])
+
+  @@unique([user_id, prompter_id])
+}
+
+
+
 model Notification {
   notification_id Int      @id @default(autoincrement())
-  user_id         Int
+  user_id         Int?                                 // 알림 받는 사용자
+  type            NotificationType                    // 알림 종류 (enum)
+  actor_id        Int?                               // 알림 유발 주체
   content         String   @db.Text
+  link_url        String?                            // 클릭 시 이동할 경로
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
-  user            User     @relation(fields: [user_id], references: [user_id])
-
+  
+  user            User?     @relation("UserNotifications", fields: [user_id], references: [user_id])
+  actor           User?    @relation("ActorNotifications", fields: [actor_id], references: [user_id])
+  
   @@index([user_id], map: "Notification_user_id_fkey")
+  @@index([type], map: "Notification_type_idx")
 }
+
 
 model Message {
   message_id  Int       @id @default(autoincrement())
@@ -389,4 +415,12 @@ enum ReportType {
   COPYRIGHT_INFRINGEMENT       // 저작권 및 지적재산권 침해
   INAPPROPRIATE_OR_HARMFUL     // 불쾌하거나 부적절한 내용
   ETC                          // 기타
+}
+
+enum NotificationType {
+  FOLLOW           // 팔로우 알림
+  NEW_PROMPT       // 프롬프트 업로드 알림
+  INQUIRY_REPLY    // 문의 답변 알림
+  ANNOUNCEMENT     // 시스템 공지
+  REPORT           // 내가 등록한 신고가 처리됨
 }
