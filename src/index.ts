@@ -96,6 +96,6 @@ app.get("/error", () => {
 // 4. 마지막 에러 핸들러 
 app.use(errorHandler as ErrorRequestHandler);
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running at http://localhost:${PORT}`);
 });
