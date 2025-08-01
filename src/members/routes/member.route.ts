@@ -245,7 +245,8 @@ router.patch(
  *       required: true
  *       content:
  *         application/json:
- *           type: object
+ *           schema:
+ *             type: object
  *             properties:
  *               history:
  *                 type: string
