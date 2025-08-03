@@ -54,38 +54,21 @@ jobs:
       - name: Restart systemd service
         run: |
           ssh promptplace 'sudo systemctl restart app'
-      - name: Debug Database Connection
-        run: |
-          ssh promptplace '
-            cd /opt/app &&
-            echo "=== Testing database connectivity ===" &&
-            ping -c 3 database-1.cf02m8wsktae.ap-northeast-2.rds.amazonaws.com || echo "Ping failed" &&
-            nslookup database-1.cf02m8wsktae.ap-northeast-2.rds.amazonaws.com || echo "DNS lookup failed" &&
-            telnet database-1.cf02m8wsktae.ap-northeast-2.rds.amazonaws.com 3306 <<< "quit" || echo "Port 3306 connection failed" &&
-            echo "=== Database connectivity test completed ==="
-          '
-      - name: Fix Failed Migration on Server
+      - name: Run All Prisma Operations in Single Connection
         run: |
           ssh promptplace '
             cd /opt/app &&
             cat <<EOF > .env
           ${{ secrets.ENV_CONTENT }}
           EOF
-            echo "=== Checking migration status ===" &&
-            npx prisma migrate status || echo "Migration status check completed" &&
-            echo "=== Resolving failed migration ===" &&
-            npx prisma migrate resolve --rolled-back "20250709151206_change_bigint_to_int" || echo "Migration resolve completed" &&
-            echo "=== Rechecking migration status ===" &&
+            echo "=== Starting all migration operations in single connection ===" &&
+            echo "=== Initial migration status ===" &&
             npx prisma migrate status &&
-            echo "=== Migration fix completed ==="
-          '
-      - name: Run Prisma Migrate on EC2
-        run: |
-          ssh promptplace '
-            cd /opt/app &&
-            echo "=== Starting Prisma migration ===" &&
+            echo "=== Resolving failed migration ===" &&
+            npx prisma migrate resolve --rolled-back "20250709151206_change_bigint_to_int" &&
+            echo "=== Deploying all pending migrations ===" &&
             npx prisma migrate deploy &&
             echo "=== Final migration status ===" &&
             npx prisma migrate status &&
-            echo "=== Migration process completed ==="
+            echo "=== All migration operations completed successfully ==="
           '
