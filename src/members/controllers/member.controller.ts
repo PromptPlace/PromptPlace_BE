@@ -184,7 +184,7 @@ export class MemberController {
         const message = errors
           .map((error) => Object.values(error.constraints || {}))
           .join(", ");
-        throw new AppError("BadRequest", message, 400);
+        throw new AppError(message, 400, "BadRequest");
       }
 
       const updatedUser = await this.memberService.updateMember(
@@ -216,7 +216,7 @@ export class MemberController {
         const message = errors
           .map((error) => Object.values(error.constraints || {}))
           .join(", ");
-        throw new AppError("BadRequest", message, 400);
+        throw new AppError(message, 400, "BadRequest");
       }
 
       const result = await this.memberService.createOrUpdateIntro(
@@ -249,7 +249,7 @@ export class MemberController {
         const message = errors
           .map((error) => Object.values(error.constraints || {}))
           .join(", ");
-        throw new AppError("BadRequest", message, 400);
+        throw new AppError(message, 400, "BadRequest");
       }
 
       const result = await this.memberService.updateIntro(
@@ -282,7 +282,7 @@ export class MemberController {
         const message = errors
           .map((error) => Object.values(error.constraints || {}))
           .join(", ");
-        throw new AppError("BadRequest", message, 400);
+        throw new AppError(message, 400, "BadRequest");
       }
 
       const newHistory = await this.memberService.createHistory(
@@ -318,7 +318,7 @@ export class MemberController {
         const message = errors
           .map((error) => Object.values(error.constraints || {}))
           .join(", ");
-        throw new AppError("BadRequest", message, 400);
+        throw new AppError(message, 400, "BadRequest");
       }
 
       const updatedHistory = await this.memberService.updateHistory(
@@ -399,7 +399,7 @@ export class MemberController {
         const message = errors
           .map((error) => Object.values(error.constraints || {}))
           .join(", ");
-        throw new AppError("BadRequest", message, 400);
+        throw new AppError(message, 400, "BadRequest");
       }
 
       const newSns = await this.memberService.createSns(userId, createSnsDto);
@@ -432,7 +432,7 @@ export class MemberController {
         const message = errors
           .map((error) => Object.values(error.constraints || {}))
           .join(", ");
-        throw new AppError("BadRequest", message, 400);
+        throw new AppError(message, 400, "BadRequest");
       }
 
       const updatedSns = await this.memberService.updateSns(
@@ -501,7 +501,7 @@ export class MemberController {
     try {
       const userId = (req.user as any).user_id;
       if (!req.file) {
-        throw new AppError("BadRequest", "이미지 파일이 필요합니다.", 400);
+        throw new AppError("이미지 파일이 필요합니다.", 400, "BadRequest");
       }
       const imageUrl = req.file.path;
 

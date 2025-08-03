@@ -16,7 +16,7 @@ export class InquiryService {
       createInquiryDto.receiver_id
     );
     if (!receiver) {
-      throw new AppError("NotFound", "해당 수신자를 찾을 수 없습니다.", 404);
+      throw new AppError("해당 수신자를 찾을 수 없습니다.", 404, "NotFound");
     }
 
     return this.inquiryRepository.createInquiry(senderId, createInquiryDto);
@@ -26,14 +26,14 @@ export class InquiryService {
     const inquiry = await this.inquiryRepository.findInquiryById(inquiryId);
 
     if (!inquiry) {
-      throw new AppError("NotFound", "해당 문의를 찾을 수 없습니다.", 404);
+      throw new AppError("해당 문의를 찾을 수 없습니다.", 404, "NotFound");
     }
 
     if (inquiry.sender_id !== userId && inquiry.receiver_id !== userId) {
       throw new AppError(
-        "Forbidden",
         "해당 문의를 조회할 권한이 없습니다.",
-        403
+        403,
+        "Forbidden"
       );
     }
 
@@ -56,15 +56,15 @@ export class InquiryService {
     // 1. 문의 존재 여부 확인
     const inquiry = await this.inquiryRepository.findInquiryById(inquiryId);
     if (!inquiry) {
-      throw new AppError("NotFound", "해당 문의를 찾을 수 없습니다.", 404);
+      throw new AppError("해당 문의를 찾을 수 없습니다.", 404, "NotFound");
     }
 
     // 2. 답변 권한 확인 (문의의 수신자인지)
     if (inquiry.receiver_id !== userId) {
       throw new AppError(
-        "Forbidden",
         "해당 문의에 답변할 권한이 없습니다.",
-        403
+        403,
+        "Forbidden"
       );
     }
 
@@ -80,15 +80,15 @@ export class InquiryService {
     // 1. 문의 존재 여부 확인
     const inquiry = await this.inquiryRepository.findInquiryById(inquiryId);
     if (!inquiry) {
-      throw new AppError("NotFound", "해당 문의를 찾을 수 없습니다.", 404);
+      throw new AppError("해당 문의를 찾을 수 없습니다.", 404, "NotFound");
     }
 
     // 2. 읽음 처리 권한 확인 (문의의 수신자인지)
     if (inquiry.receiver_id !== userId) {
       throw new AppError(
-        "Forbidden",
         "해당 문의를 읽음 처리할 권한이 없습니다.",
-        403
+        403,
+        "Forbidden"
       );
     }
 
