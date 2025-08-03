@@ -30,7 +30,13 @@ jobs:
         run: |
           ssh promptplace 'sudo mkdir -p /opt/app'
           ssh promptplace 'sudo chown ubuntu:ubuntu /opt/app'
-          scp -r ./[!.]* promptplace:/opt/app
+          scp -r \
+            ./package.json \
+            ./pnpm-lock.yaml \
+            ./tsconfig.json \
+            ./src \
+            ./prisma \
+            promptplace:/opt/app
       - name: Install dependencies
         run: |
           ssh promptplace 'pnpm install --prefix /opt/app/'
