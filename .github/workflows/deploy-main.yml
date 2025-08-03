@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Configure SSH with Keep Alive
+      - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
           echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa
@@ -21,10 +21,6 @@ jobs:
             User $EC2_USER
             IdentityFile ~/.ssh/id_rsa
             StrictHostKeyChecking no
-            ServerAliveInterval 60
-            ServerAliveCountMax 3
-            TCPKeepAlive yes
-            ConnectTimeout 30
           END
         env:
           EC2_USER: ubuntu
@@ -58,40 +54,13 @@ jobs:
       - name: Restart systemd service
         run: |
           ssh promptplace 'sudo systemctl restart app'
-      - name: Setup Environment
-        timeout-minutes: 2
+      - name: Run Prisma Migrate on EC2
         run: |
           ssh promptplace '
             cd /opt/app &&
-            cat <<EOF > .env
+          cat <<EOF > .env
           ${{ secrets.ENV_CONTENT }}
           EOF
-            echo "Environment setup completed"
-          '
-      - name: Fix Failed Migration
-        timeout-minutes: 3
-        run: |
-          ssh promptplace '
-            cd /opt/app &&
-            echo "=== Resolving failed migration ===" &&
-            npx prisma migrate resolve --rolled-back "20250709151206_change_bigint_to_int" &&
-            echo "Failed migration resolved successfully"
-          '
-      - name: Deploy All Migrations
-        timeout-minutes: 5
-        run: |
-          ssh promptplace '
-            cd /opt/app &&
-            echo "=== Deploying all pending migrations ===" &&
-            npx prisma migrate deploy &&
-            echo "All migrations deployed successfully"
-          '
-      - name: Verify Migration Status
-        timeout-minutes: 2
-        run: |
-          ssh promptplace '
-            cd /opt/app &&
-            echo "=== Final migration status ===" &&
-            npx prisma migrate status &&
-            echo "=== Migration verification completed ==="
+            pnpm install &&
+            npx prisma migrate deploy
           '
