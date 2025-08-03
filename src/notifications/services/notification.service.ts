@@ -9,6 +9,7 @@ import {
     createSubscription,
     deleteSubscription,
     createNotification,
+    findUserByUserId,
 } from '../repositories/notification.repository';
 
 import { NotificationType } from '@prisma/client';
@@ -86,5 +87,27 @@ export const createAnnouncementNotification = async (
     content: '새로운 공지사항이 등록되었습니다.',
     linkUrl: `/announcements/${announcementId}`,
     actorId: null,
+  });
+};
+
+// 새로운 팔로워 알림
+export const createFollowNotification = async (
+  followerId: number,
+  followingId: number
+) => {
+  
+  // 팔로워 Id로 팔로워 닉네임 조회
+  const user = await findUserByUserId(followerId);
+  if (!user) {
+    throw new Error('팔로워 정보를 찾을 수 없습니다.');
+  } 
+  const followerNickname = user.nickname; 
+
+  await createNotificationService({
+    userId: followingId,
+    type: NotificationType.FOLLOW,
+    content: `'${followerNickname}'님이 회원님을 팔로우합니다.`,
+    linkUrl: `/profile/${followerId}`,
+    actorId: followerId,
   });
 };

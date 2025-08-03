@@ -2,6 +2,7 @@ import eventBus from '../../config/eventBus';
 import { 
   createReportNotification,
   createAnnouncementNotification,
+  createFollowNotification,
 } from "../services/notification.service";
 
 
@@ -21,5 +22,14 @@ eventBus.on('announcement.created', async (announcementId: number) => {
     await createAnnouncementNotification(announcementId);
   } catch (err) {
     console.error("[알림 리스너 오류]: 공지사항 알림 생성 실패", err);
+  }
+});
+
+// 새로운 팔로워 알림 리스너
+eventBus.on('follow.created', async (followerId: number, followingId: number) => {
+  try {
+    await createFollowNotification(followerId, followingId);
+  } catch (err) {
+    console.error("[알림 리스너 오류]: 새로운 팔로워 알림 생성 실패", err);
   }
 });

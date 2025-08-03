@@ -1,4 +1,4 @@
-import { PrismaClient, NotificationType } from '@prisma/client';
+import { PrismaClient, NotificationType, User } from '@prisma/client';
 const prisma = new PrismaClient();
 import { CreateNotificationParams } from '../dtos/notification.dto';
 
@@ -57,6 +57,15 @@ export const deleteSubscription = async (
 }
 
 
+// 사용자 ID로 사용자 정보 조회
+export const findUserByUserId = async (userId: number):Promise<User | null> => {
+  const user = await prisma.user.findUnique({
+    where: {
+      user_id: userId
+    }
+  });
+  return user;
+};
 
 // 알림 등록 (공통)
 export const createNotification = async ({

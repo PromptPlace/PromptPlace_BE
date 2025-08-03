@@ -9,7 +9,7 @@ import { CreateHistoryDto } from "../dtos/create-history.dto";
 import { UpdateHistoryDto } from "../dtos/update-history.dto";
 import { CreateSnsDto } from "../dtos/create-sns.dto";
 import { UpdateSnsDto } from "../dtos/update-sns.dto";
-
+import eventBus from '../../config/eventBus';
 @Service()
 export class MemberService {
   constructor(private memberRepository: MemberRepository) {}
@@ -361,7 +361,12 @@ export class MemberService {
     }
 
     // 팔로우 생성
-    return this.memberRepository.createFollow(followerId, followingId);
+    const follow = await this.memberRepository.createFollow(followerId, followingId);
+
+    // 팔로우 알림 이벤트 발생
+    eventBus.emit("follow.created", followerId, followingId);
+
+    return follow;
   }
 
   async unfollowMember(followerId: number, followingId: number) {
