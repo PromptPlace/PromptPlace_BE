@@ -62,7 +62,7 @@ jobs:
         run: |
           ssh promptplace 'sudo systemctl daemon-reload'
           ssh promptplace 'sudo systemctl enable app'
-          
+
       - name: Enable systemd service
         run: |
           ssh promptplace 'sudo systemctl daemon-reload'
@@ -70,6 +70,12 @@ jobs:
       - name: Restart systemd service
         run: |
           ssh promptplace 'sudo systemctl restart app'
+      - name: Build TypeScript
+        run: |
+          ssh promptplace '
+            cd /opt/app &&
+            pnpm run build
+          '
       - name: Run Prisma Migrate on EC2
         run: |
           ssh promptplace '
