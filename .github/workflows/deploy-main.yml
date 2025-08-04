@@ -2,108 +2,72 @@ name: deploy-main
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      # 1) 코드 체크아웃
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2) Node & pnpm 세팅 + 캐시 (빌드 가속)
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-
-      - name: Install dependencies (CI)
-        run: pnpm install --frozen-lockfile
-
-      - name: Build TypeScript
-        run: pnpm run build
-
-      # 3) (선택) prisma 변경시만 migrate 하도록 path filter
-      - name: Detect prisma changes
-        id: changes
+      - name: Check prisma has changes
         uses: dorny/paths-filter@v3
+        id: paths-filter
         with:
           filters: |
-            prisma: ['prisma/**']
+            prisma: ["prisma/**"]
 
-      # 4) SSH 설정 (KeepAlive 포함)
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
           echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-
-          cat >> ~/.ssh/config <<'END'
+          cat >>~/.ssh/config <<END
           Host promptplace
-            HostName ${EC2_HOST}
-            User ${EC2_USER}
+            HostName $EC2_HOST
+            User $EC2_USER
             IdentityFile ~/.ssh/id_rsa
             StrictHostKeyChecking no
-            ServerAliveInterval 30
-            ServerAliveCountMax 10
           END
         env:
-          EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USER: ubuntu
+          EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
 
-      # 5) 산출물/필요 파일만 전송
-      - name: Deploy artifacts to EC2
+      - name: Copy Workspace
         run: |
-          ssh promptplace 'sudo mkdir -p /opt/app && sudo chown ubuntu:ubuntu /opt/app'
-          scp -r \
-            dist \
-            prisma \
-            package.json \
-            pnpm-lock.yaml \
-            promptplace:/opt/app/
+          ssh promptplace 'sudo mkdir -p /opt/app'
+          ssh promptplace 'sudo chown ubuntu:ubuntu /opt/app'
+          scp -r ./[!.]* promptplace:/opt/app
 
-          # (선택) swagger/seed 등 별도 스크립트가 필요하면 scripts 디렉터리도 보내세요:
-          # scp -r scripts promptplace:/opt/app/
-
-      # 6) .env 작성 → prod 의존성 설치 → Prisma generate/migrate
-      - name: Provision app on EC2
+      - name: Write .env on EC2
         run: |
           ssh promptplace '
-            set -e
-            cd /opt/app
-
-            # .env 덮어쓰기
-            cat > .env <<EOF
+            cat > /opt/app/.env <<EOF
           ${{ secrets.ENV_CONTENT }}
           EOF
-
-            # prod 의존성 설치
-            pnpm install --prod --frozen-lockfile
-
-            # prisma client 생성
-            npx prisma generate
-
-            # prisma 변경이 있을 때만 migrate
-            if [ "${{ steps.changes.outputs.prisma }}" = "true" ]; then
-              npx prisma migrate deploy
-            fi
           '
 
-      # 7) systemd 서비스 파일 설치/갱신
-      - name: Install/Update systemd service
+      - name: Install dependencies
+        run: |
+          ssh promptplace 'cd /opt/app && pnpm install'
+
+      - name: Generate Prisma client
+        run: |
+          ssh promptplace 'cd /opt/app && pnpm exec prisma generate'
+
+      - name: Apply Prisma migrations
+        if: steps.paths-filter.outputs.prisma == 'true'
+        run: |
+          ssh promptplace 'cd /opt/app && pnpm exec prisma migrate deploy'
+
+      - name: Copy systemd service file
         run: |
           ssh promptplace '
-            sudo bash -c "cat > /etc/systemd/system/app.service" <<'UNIT'
-            [Unit]
+            echo "[Unit]
             Description=PromptPlace Backend
             After=network.target
 
@@ -111,17 +75,18 @@ jobs:
             User=ubuntu
             WorkingDirectory=/opt/app
             EnvironmentFile=/opt/app/.env
-            ExecStart=/usr/bin/node dist/index.js
+            ExecStart=/usr/bin/pnpm start
             Restart=always
-            RestartSec=3
-            StandardOutput=journal
-            StandardError=journal
 
             [Install]
-            WantedBy=multi-user.target
-          UNIT
-            sudo systemctl daemon-reload
-            sudo systemctl enable app || true
-            sudo systemctl restart app
-            sudo systemctl status app --no-pager -l
+            WantedBy=multi-user.target" | sudo tee /etc/systemd/system/app.service
           '
+
+      - name: Enable systemd service
+        run: |
+          ssh promptplace 'sudo systemctl daemon-reload'
+          ssh promptplace 'sudo systemctl enable app'
+
+      - name: Restart systemd service
+        run: |
+          ssh promptplace 'sudo systemctl restart app'
