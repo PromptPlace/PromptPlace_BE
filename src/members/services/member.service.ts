@@ -17,15 +17,15 @@ export class MemberService {
   async followUser(followerId: number, followingId: number) {
     if (followerId === followingId) {
       throw new AppError(
-        "BadRequest",
         "자기 자신을 팔로우할 수 없습니다.",
-        400
+        400,
+        "BadRequest"
       );
     }
 
     const followingUser = await this.memberRepository.findUserById(followingId);
     if (!followingUser) {
-      throw new AppError("NotFound", "해당 사용자를 찾을 수 없습니다.", 404);
+      throw new AppError("해당 사용자를 찾을 수 없습니다.", 404, "NotFound");
     }
 
     const existingFollow = await this.memberRepository.findFollowing(
@@ -33,7 +33,7 @@ export class MemberService {
       followingId
     );
     if (existingFollow) {
-      throw new AppError("Conflict", "이미 팔로우한 사용자입니다.", 409);
+      throw new AppError("이미 팔로우한 사용자입니다.", 409, "Conflict");
     }
 
     return this.memberRepository.followUser(followerId, followingId);
@@ -46,7 +46,7 @@ export class MemberService {
     );
 
     if (!following) {
-      throw new AppError("NotFound", "팔로우 관계를 찾을 수 없습니다.", 404);
+      throw new AppError("팔로우 관계를 찾을 수 없습니다.", 404, "NotFound");
     }
     await this.memberRepository.unfollowUser(followerId, followingId);
     return { message: "언팔로우 성공" };
@@ -55,7 +55,7 @@ export class MemberService {
   async getFollowers(memberId: number) {
     const user = await this.memberRepository.findUserById(memberId);
     if (!user) {
-      throw new AppError("NotFound", "해당 사용자를 찾을 수 없습니다.", 404);
+      throw new AppError("해당 사용자를 찾을 수 없습니다.", 404, "NotFound");
     }
 
     const followers = await this.memberRepository.findFollowersByMemberId(
@@ -75,7 +75,7 @@ export class MemberService {
   async getFollowings(memberId: number) {
     const user = await this.memberRepository.findUserById(memberId);
     if (!user) {
-      throw new AppError("NotFound", "해당 사용자를 찾을 수 없습니다.", 404);
+      throw new AppError("해당 사용자를 찾을 수 없습니다.", 404, "NotFound");
     }
 
     const followings = await this.memberRepository.findFollowingsByMemberId(
@@ -103,16 +103,16 @@ export class MemberService {
   async getMemberById(requesterId: number, memberId: number) {
     if (requesterId !== memberId) {
       throw new AppError(
-        "Forbidden",
         "해당 회원 정보에 접근할 권한이 없습니다.",
-        403
+        403,
+        "Forbidden"
       );
     }
 
     const member = await this.memberRepository.findUserWithIntroById(memberId);
 
     if (!member) {
-      throw new AppError("NotFound", "해당 회원을 찾을 수 없습니다.", 404);
+      throw new AppError("해당 회원을 찾을 수 없습니다.", 404, "NotFound");
     }
 
     return {
@@ -135,14 +135,14 @@ export class MemberService {
         nickname
       );
       if (existingUser && existingUser.user_id !== userId) {
-        throw new AppError("Conflict", "이미 사용 중인 닉네임입니다.", 409);
+        throw new AppError("이미 사용 중인 닉네임입니다.", 409, "Conflict");
       }
     }
 
     if (email) {
       const existingUser = await this.memberRepository.findUserByEmail(email);
       if (existingUser && existingUser.user_id !== userId) {
-        throw new AppError("Conflict", "이미 사용 중인 이메일입니다.", 409);
+        throw new AppError("이미 사용 중인 이메일입니다.", 409, "Conflict");
       }
     }
 
@@ -170,9 +170,9 @@ export class MemberService {
     const existingIntro = await this.memberRepository.findIntroByUserId(userId);
     if (!existingIntro) {
       throw new AppError(
-        "NotFound",
         "수정할 한줄 소개를 찾을 수 없습니다.",
-        404
+        404,
+        "NotFound"
       );
     }
 
@@ -191,14 +191,14 @@ export class MemberService {
     const history = await this.memberRepository.findHistoryById(historyId);
 
     if (!history) {
-      throw new AppError("NotFound", "해당 이력을 찾을 수 없습니다.", 404);
+      throw new AppError("해당 이력을 찾을 수 없습니다.", 404, "NotFound");
     }
 
     if (history.user_id !== userId) {
       throw new AppError(
-        "Forbidden",
         "해당 이력을 수정할 권한이 없습니다.",
-        403
+        403,
+        "Forbidden"
       );
     }
 
@@ -209,14 +209,14 @@ export class MemberService {
     const history = await this.memberRepository.findHistoryById(historyId);
 
     if (!history) {
-      throw new AppError("NotFound", "해당 이력을 찾을 수 없습니다.", 404);
+      throw new AppError("해당 이력을 찾을 수 없습니다.", 404, "NotFound");
     }
 
     if (history.user_id !== userId) {
       throw new AppError(
-        "Forbidden",
         "해당 이력을 삭제할 권한이 없습니다.",
-        403
+        403,
+        "Forbidden",
       );
     }
 
@@ -226,15 +226,15 @@ export class MemberService {
   async getHistories(requesterId: number, memberId: number) {
     if (requesterId !== memberId) {
       throw new AppError(
-        "Forbidden",
         "해당 회원의 이력을 조회할 권한이 없습니다.",
-        403
+        403,
+        "Forbidden"
       );
     }
 
     const user = await this.memberRepository.findUserById(memberId);
     if (!user) {
-      throw new AppError("NotFound", "해당 회원을 찾을 수 없습니다.", 404);
+      throw new AppError("해당 회원을 찾을 수 없습니다.", 404, "NotFound");
     }
 
     const purchases = await this.memberRepository.findPurchasesByUserId(
@@ -290,14 +290,14 @@ export class MemberService {
     const sns = await this.memberRepository.findSnsById(snsId);
 
     if (!sns) {
-      throw new AppError("NotFound", "해당 SNS를 찾을 수 없습니다.", 404);
+      throw new AppError("해당 SNS를 찾을 수 없습니다.", 404, "NotFound");
     }
 
     if (sns.user_id !== userId) {
       throw new AppError(
-        "Forbidden",
         "해당 SNS를 수정할 권한이 없습니다.",
-        403
+        403,
+        "Forbidden"
       );
     }
 
@@ -308,14 +308,14 @@ export class MemberService {
     const sns = await this.memberRepository.findSnsById(snsId);
 
     if (!sns) {
-      throw new AppError("NotFound", "해당 SNS 정보를 찾을 수 없습니다.", 404);
+      throw new AppError("해당 SNS 정보를 찾을 수 없습니다.", 404, "NotFound");
     }
 
     if (sns.user_id !== userId) {
       throw new AppError(
-        "Forbidden",
         "해당 SNS 정보를 삭제할 권한이 없습니다.",
-        403
+        403,
+        "Forbidden"
       );
     }
 
@@ -325,7 +325,7 @@ export class MemberService {
   async getSnsList(memberId: number) {
     const user = await this.memberRepository.findUserById(memberId);
     if (!user) {
-      throw new AppError("NotFound", "해당 회원을 찾을 수 없습니다.", 404);
+      throw new AppError("해당 회원을 찾을 수 없습니다.", 404, "NotFound");
     }
 
     return this.memberRepository.findSnsByUserId(memberId);
@@ -339,16 +339,16 @@ export class MemberService {
     // 1. 자기 자신 팔로우 불가
     if (followerId === followingId) {
       throw new AppError(
-        "BadRequest",
         "자기 자신을 팔로우할 수 없습니다.",
-        400
+        400,
+        "BadRequest"
       );
     }
 
     // 2. 팔로우할 사용자가 존재하는지 확인
     const followingUser = await this.memberRepository.findUserById(followingId);
     if (!followingUser) {
-      throw new AppError("NotFound", "해당 사용자를 찾을 수 없습니다.", 404);
+      throw new AppError("해당 사용자를 찾을 수 없습니다.", 404, "NotFound");
     }
 
     // 3. 이미 팔로우하고 있는지 확인
@@ -357,7 +357,7 @@ export class MemberService {
       followingId
     );
     if (existingFollow) {
-      throw new AppError("Conflict", "이미 팔로우한 사용자입니다.", 409);
+      throw new AppError("이미 팔로우한 사용자입니다.", 409, "Conflict");
     }
 
     // 팔로우 생성
@@ -373,7 +373,7 @@ export class MemberService {
     // 1. 언팔로우할 사용자가 존재하는지 확인
     const followingUser = await this.memberRepository.findUserById(followingId);
     if (!followingUser) {
-      throw new AppError("NotFound", "해당 사용자를 찾을 수 없습니다.", 404);
+      throw new AppError("해당 사용자를 찾을 수 없습니다.", 404, "NotFound");
     }
 
     // 2. 팔로우 관계가 존재하는지 확인
@@ -382,7 +382,7 @@ export class MemberService {
       followingId
     );
     if (!existingFollow) {
-      throw new AppError("NotFound", "팔로우 관계를 찾을 수 없습니다.", 404);
+      throw new AppError("팔로우 관계를 찾을 수 없습니다.", 404, "NotFound");
     }
 
     // 팔로우 관계 삭제
@@ -394,12 +394,12 @@ export class MemberService {
     // findUserById가 null을 반환할 수 없다고 가정 (authenticateJwt 미들웨어에서 거르므로)
     // 하지만 안전을 위해 체크
     if (!user) {
-      throw new AppError("NotFound", "해당 사용자를 찾을 수 없습니다.", 404);
+      throw new AppError("해당 사용자를 찾을 수 없습니다.", 404, "NotFound");
     }
 
     // 이미 탈퇴한 회원인지 확인
     if (!user.status) {
-      throw new AppError("BadRequest", "이미 탈퇴한 회원입니다.", 400);
+      throw new AppError("이미 탈퇴한 회원입니다.", 400, "BadRequest");
     }
 
     // 회원 비활성화

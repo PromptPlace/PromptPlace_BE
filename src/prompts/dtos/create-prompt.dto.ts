@@ -9,4 +9,5 @@ export interface CreatePromptDto {
   is_free: boolean;
   tags: string[];
   model: string;
+  download_url: string;
 }

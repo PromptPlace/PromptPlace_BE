@@ -180,6 +180,7 @@ export const createPromptWriteRepo = async (
     is_free: boolean;
     tags: string[];
     model: string;
+    download_url: string;
   }
 ) => {
   // 1. 태그 처리: 각 태그마다 Tag 테이블에 존재하면 매핑, 없으면 생성 후 매핑
@@ -215,6 +216,7 @@ export const createPromptWriteRepo = async (
       likes: 0,
       review_counts: 0,
       rating_avg: 0,
+      download_url: data.download_url, 
     },
   });
 
