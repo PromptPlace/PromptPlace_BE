@@ -3,6 +3,7 @@ import {
   createReportNotification,
   createAnnouncementNotification,
   createFollowNotification,
+  createInquiryNotification,
 } from "../services/notification.service";
 
 
@@ -31,5 +32,14 @@ eventBus.on('follow.created', async (followerId: number, followingId: number) =>
     await createFollowNotification(followerId, followingId);
   } catch (err) {
     console.error("[알림 리스너 오류]: 새로운 팔로워 알림 생성 실패", err);
+  }
+});
+
+// 새로운 문의 등록 알림 리스너
+eventBus.on('inquiry.created', async (receiverId: number, senderId: number) => {
+  try {
+    await createInquiryNotification(receiverId, senderId);
+  } catch (err) {
+    console.error("[알림 리스너 오류]: 새로운 문의 알림 생성 실패", err);
   }
 });

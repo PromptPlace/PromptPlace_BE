@@ -3,7 +3,7 @@ import { InquiryRepository } from "../repositories/inquiry.repository";
 import { MemberRepository } from "../../members/repositories/member.repository";
 import { CreateInquiryDto } from "../dtos/create-inquiry.dto";
 import { AppError } from "../../errors/AppError";
-
+import eventBus from '../../config/eventBus';
 @Service()
 export class InquiryService {
   constructor(
@@ -18,8 +18,13 @@ export class InquiryService {
     if (!receiver) {
       throw new AppError("해당 수신자를 찾을 수 없습니다.", 404, "NotFound");
     }
+ 
+    const inquiry = await this.inquiryRepository.createInquiry(senderId, createInquiryDto);
 
-    return this.inquiryRepository.createInquiry(senderId, createInquiryDto);
+    // 새 문의 알림 이벤트 발생
+    eventBus.emit("inquiry.created", senderId, receiver.user_id);
+
+    return inquiry;
   }
 
   async getInquiryById(userId: number, inquiryId: number) {
