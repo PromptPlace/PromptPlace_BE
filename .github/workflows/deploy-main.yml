@@ -46,13 +46,23 @@ jobs:
             echo "[Unit]
             Description=PromptPlace Backend
             After=network.target
+
             [Service]
-            User=${USER}
-            ExecStart=/usr/bin/pnpm run dev --prefix /opt/app/
+            User=ubuntu
+            WorkingDirectory=/opt/app
+            ExecStart=/usr/bin/pnpm start
             Restart=always
+            Environment=NODE_ENV=production
+
             [Install]
             WantedBy=multi-user.target" | sudo tee /etc/systemd/system/app.service
           '
+
+      - name: Enable systemd service
+        run: |
+          ssh promptplace 'sudo systemctl daemon-reload'
+          ssh promptplace 'sudo systemctl enable app'
+          
       - name: Enable systemd service
         run: |
           ssh promptplace 'sudo systemctl daemon-reload'
