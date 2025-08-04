@@ -1,45 +1,58 @@
 name: deploy-main
+
 on:
   push:
     branches:
       - main
   workflow_dispatch:
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node & PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Build TypeScript
+        run: pnpm run build
+
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
           echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          cat >>~/.ssh/config <<END
+          cat >> ~/.ssh/config <<END
           Host promptplace
             HostName $EC2_HOST
             User $EC2_USER
             IdentityFile ~/.ssh/id_rsa
             StrictHostKeyChecking no
+            ServerAliveInterval 30
+            ServerAliveCountMax 10
           END
         env:
-          EC2_USER: ubuntu
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-      - name: Copy Workspace
+
+      - name: Deploy to EC2
         run: |
-          ssh promptplace 'sudo mkdir -p /opt/app'
-          ssh promptplace 'sudo chown ubuntu:ubuntu /opt/app'
+          ssh promptplace 'sudo mkdir -p /opt/app && sudo chown ubuntu:ubuntu /opt/app'
           scp -r \
+            ./dist \
             ./package.json \
             ./pnpm-lock.yaml \
-            ./tsconfig.json \
-            ./src \
-            ./prisma \
-            promptplace:/opt/app
-      - name: Install dependencies
-        run: |
-          ssh promptplace 'pnpm install --prefix /opt/app/'
+            ./node_modules \
+            promptplace:/opt/app/
+
       - name: Copy systemd service file
         run: |
           ssh promptplace '
@@ -50,7 +63,7 @@ jobs:
             [Service]
             User=ubuntu
             WorkingDirectory=/opt/app
-            ExecStart=/usr/bin/pnpm start
+            ExecStart=/usr/bin/node dist/index.js
             Restart=always
             Environment=NODE_ENV=production
 
@@ -58,31 +71,18 @@ jobs:
             WantedBy=multi-user.target" | sudo tee /etc/systemd/system/app.service
           '
 
-      - name: Enable systemd service
-        run: |
-          ssh promptplace 'sudo systemctl daemon-reload'
-          ssh promptplace 'sudo systemctl enable app'
-
-      - name: Enable systemd service
-        run: |
-          ssh promptplace 'sudo systemctl daemon-reload'
-          ssh promptplace 'sudo systemctl enable app'
-      - name: Restart systemd service
-        run: |
-          ssh promptplace 'sudo systemctl restart app'
-      - name: Build TypeScript
+      - name: Reload & Restart service
         run: |
           ssh promptplace '
-            cd /opt/app &&
-            pnpm run build
+            sudo systemctl daemon-reload &&
+            sudo systemctl enable app &&
+            sudo systemctl restart app
           '
+
       - name: Run Prisma Migrate on EC2
         run: |
           ssh promptplace '
             cd /opt/app &&
-          cat <<EOF > .env
-          ${{ secrets.ENV_CONTENT }}
-          EOF
-            pnpm install &&
+            echo "${{ secrets.ENV_CONTENT }}" > .env &&
             npx prisma migrate deploy
           '
