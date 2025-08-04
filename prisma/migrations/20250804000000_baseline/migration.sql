@@ -107,14 +107,30 @@ CREATE TABLE `Tip` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `NotificationSubscription` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `user_id` INTEGER NOT NULL,
+    `prompter_id` INTEGER NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `NotificationSubscription_user_id_prompter_id_key`(`user_id`, `prompter_id`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `Notification` (
     `notification_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `user_id` INTEGER NOT NULL,
+    `user_id` INTEGER NULL,
+    `type` ENUM('FOLLOW', 'NEW_PROMPT', 'INQUIRY_REPLY', 'ANNOUNCEMENT', 'REPORT') NOT NULL,
+    `actor_id` INTEGER NULL,
     `content` TEXT NOT NULL,
+    `link_url` VARCHAR(191) NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
     INDEX `Notification_user_id_fkey`(`user_id`),
+    INDEX `Notification_type_idx`(`type`),
     PRIMARY KEY (`notification_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -285,35 +301,14 @@ CREATE TABLE `PromptImage` (
 -- CreateTable
 CREATE TABLE `PromptReport` (
     `report_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `user_id` INTEGER NOT NULL,
+    `report_type` ENUM('FALSE_OR_EXAGGERATED', 'COPYRIGHT_INFRINGEMENT', 'INAPPROPRIATE_OR_HARMFUL', 'ETC') NOT NULL,
+    `description` VARCHAR(191) NOT NULL,
     `prompt_id` INTEGER NOT NULL,
-    `category_id` INTEGER NOT NULL,
-    `content` TEXT NOT NULL,
+    `reporter_id` INTEGER NOT NULL,
+    `is_read` BOOLEAN NOT NULL DEFAULT false,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updated_at` DATETIME(3) NOT NULL,
 
-    INDEX `PromptReport_category_id_fkey`(`category_id`),
-    INDEX `PromptReport_prompt_id_fkey`(`prompt_id`),
-    INDEX `PromptReport_user_id_fkey`(`user_id`),
     PRIMARY KEY (`report_id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `ReportCategory` (
-    `category_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `name` VARCHAR(191) NOT NULL,
-
-    PRIMARY KEY (`category_id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `ReportCategoryDetail` (
-    `detail_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `content` VARCHAR(191) NOT NULL,
-    `category_id` INTEGER NOT NULL,
-
-    INDEX `ReportCategoryDetail_category_id_fkey`(`category_id`),
-    PRIMARY KEY (`detail_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -400,7 +395,16 @@ ALTER TABLE `Announcement` ADD CONSTRAINT `Announcement_writer_id_fkey` FOREIGN 
 ALTER TABLE `Tip` ADD CONSTRAINT `Tip_writer_id_fkey` FOREIGN KEY (`writer_id`) REFERENCES `User`(`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Notification` ADD CONSTRAINT `Notification_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `NotificationSubscription` ADD CONSTRAINT `NotificationSubscription_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `NotificationSubscription` ADD CONSTRAINT `NotificationSubscription_prompter_id_fkey` FOREIGN KEY (`prompter_id`) REFERENCES `User`(`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Notification` ADD CONSTRAINT `Notification_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Notification` ADD CONSTRAINT `Notification_actor_id_fkey` FOREIGN KEY (`actor_id`) REFERENCES `User`(`user_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Message` ADD CONSTRAINT `Message_receiver_id_fkey` FOREIGN KEY (`receiver_id`) REFERENCES `User`(`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -448,16 +452,10 @@ ALTER TABLE `UserImage` ADD CONSTRAINT `UserImage_userId_fkey` FOREIGN KEY (`use
 ALTER TABLE `PromptImage` ADD CONSTRAINT `PromptImage_prompt_id_fkey` FOREIGN KEY (`prompt_id`) REFERENCES `Prompt`(`prompt_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `PromptReport` ADD CONSTRAINT `PromptReport_category_id_fkey` FOREIGN KEY (`category_id`) REFERENCES `ReportCategory`(`category_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE `PromptReport` ADD CONSTRAINT `PromptReport_prompt_id_fkey` FOREIGN KEY (`prompt_id`) REFERENCES `Prompt`(`prompt_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `PromptReport` ADD CONSTRAINT `PromptReport_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `ReportCategoryDetail` ADD CONSTRAINT `ReportCategoryDetail_category_id_fkey` FOREIGN KEY (`category_id`) REFERENCES `ReportCategory`(`category_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `PromptReport` ADD CONSTRAINT `PromptReport_reporter_id_fkey` FOREIGN KEY (`reporter_id`) REFERENCES `User`(`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Purchase` ADD CONSTRAINT `Purchase_prompt_id_fkey` FOREIGN KEY (`prompt_id`) REFERENCES `Prompt`(`prompt_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
