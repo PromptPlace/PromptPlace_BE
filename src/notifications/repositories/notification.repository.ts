@@ -67,6 +67,20 @@ export const findUserByUserId = async (userId: number):Promise<User | null> => {
   return user;
 };
 
+// 특정 프롬프터를 구독 중인 사용자 목록 조회
+export const findUsersSubscribedToPrompter = async (prompterId: number) => {
+  const subscriptions = await prisma.notificationSubscription.findMany({
+    where: {
+      prompter_id: prompterId,
+    },
+    select: {
+      user_id: true, // 알림 받을 사용자 ID만 추출
+    },
+  });
+
+  return subscriptions.map((sub) => sub.user_id); // user_id로 이루어진 배열로 반환
+};
+
 // 알림 등록 (공통)
 export const createNotification = async ({
   userId = null,

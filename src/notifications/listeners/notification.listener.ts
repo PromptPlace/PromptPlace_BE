@@ -4,6 +4,7 @@ import {
   createAnnouncementNotification,
   createFollowNotification,
   createInquiryNotification,
+  createPromptNotification,
 } from "../services/notification.service";
 
 
@@ -41,5 +42,14 @@ eventBus.on('inquiry.created', async (receiverId: number, senderId: number) => {
     await createInquiryNotification(receiverId, senderId);
   } catch (err) {
     console.error("[알림 리스너 오류]: 새로운 문의 알림 생성 실패", err);
+  }
+});
+
+// 새로운 프롬프트 업로드 알림 리스너
+eventBus.on('prompt.created', async (prompterId: number) => {
+  try {
+    await createPromptNotification(prompterId);
+  } catch (err) {
+    console.error("[알림 리스너 오류]: 새로운 프롬프트 업로드 알림 생성 실패", err);
   }
 });

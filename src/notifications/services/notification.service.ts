@@ -10,6 +10,7 @@ import {
     deleteSubscription,
     createNotification,
     findUserByUserId,
+    findUsersSubscribedToPrompter,
 } from '../repositories/notification.repository';
 
 import { NotificationType } from '@prisma/client';
@@ -107,7 +108,7 @@ export const createFollowNotification = async (
   await createNotificationService({
     userId: followingId,
     type: NotificationType.FOLLOW,
-    content: `'${followerNickname}'님이 회원님을 팔로우합니다.`,
+    content: `‘${followerNickname}’님이 회원님을 팔로우합니다.`,
     linkUrl: `/profile/${followerId}`,
     actorId: followerId,
   });
@@ -126,3 +127,31 @@ export const createInquiryNotification = async (
     actorId: senderId,
   });
 };
+
+// 새로운 프롬프트 업로드 알림
+export const createPromptNotification = async (
+  prompterId: number,
+) => {
+  // 프롬프터를 알림설정한 사용자 아이디 목록 추출
+  const subscribedUserIds: number[] = await findUsersSubscribedToPrompter(prompterId);
+
+  // 프롬프터 Id로 프롬프터 닉네임 조회
+  const prompter = await findUserByUserId(prompterId);
+  if (!prompter) {
+    throw new Error('프롬프터 정보를 찾을 수 없습니다.');
+  } 
+  const prompterNickname = prompter.nickname; 
+
+  await Promise.all(
+    subscribedUserIds.map((userId) => 
+      createNotificationService({
+        userId,
+        type: NotificationType.NEW_PROMPT,
+        content: `‘${prompterNickname}’님이 새 프롬프트를 업로드하셨습니다.`,
+        linkUrl: `/profile/${prompterId}`,
+        actorId: prompterId,
+      })
+    )
+  );
+};
+
