@@ -3,7 +3,7 @@ import { Review, Prompt } from '@prisma/client';
 import e from 'express';
 
 
-export interface ReviewResponse {
+export interface ReviewResponse { 
   review_id: number;
   writer_id: number;
   prompt_id: number;
