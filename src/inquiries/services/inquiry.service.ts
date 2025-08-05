@@ -3,7 +3,7 @@ import { InquiryRepository } from "../repositories/inquiry.repository";
 import { MemberRepository } from "../../members/repositories/member.repository";
 import { CreateInquiryDto } from "../dtos/create-inquiry.dto";
 import { AppError } from "../../errors/AppError";
-
+import eventBus from '../../config/eventBus';
 @Service()
 export class InquiryService {
   constructor(
@@ -16,24 +16,29 @@ export class InquiryService {
       createInquiryDto.receiver_id
     );
     if (!receiver) {
-      throw new AppError("NotFound", "해당 수신자를 찾을 수 없습니다.", 404);
+      throw new AppError("해당 수신자를 찾을 수 없습니다.", 404, "NotFound");
     }
+ 
+    const inquiry = await this.inquiryRepository.createInquiry(senderId, createInquiryDto);
 
-    return this.inquiryRepository.createInquiry(senderId, createInquiryDto);
+    // 새 문의 알림 이벤트 발생
+    eventBus.emit("inquiry.created", senderId, receiver.user_id);
+
+    return inquiry;
   }
 
   async getInquiryById(userId: number, inquiryId: number) {
     const inquiry = await this.inquiryRepository.findInquiryById(inquiryId);
 
     if (!inquiry) {
-      throw new AppError("NotFound", "해당 문의를 찾을 수 없습니다.", 404);
+      throw new AppError("해당 문의를 찾을 수 없습니다.", 404, "NotFound");
     }
 
     if (inquiry.sender_id !== userId && inquiry.receiver_id !== userId) {
       throw new AppError(
-        "Forbidden",
         "해당 문의를 조회할 권한이 없습니다.",
-        403
+        403,
+        "Forbidden"
       );
     }
 
@@ -56,15 +61,15 @@ export class InquiryService {
     // 1. 문의 존재 여부 확인
     const inquiry = await this.inquiryRepository.findInquiryById(inquiryId);
     if (!inquiry) {
-      throw new AppError("NotFound", "해당 문의를 찾을 수 없습니다.", 404);
+      throw new AppError("해당 문의를 찾을 수 없습니다.", 404, "NotFound");
     }
 
     // 2. 답변 권한 확인 (문의의 수신자인지)
     if (inquiry.receiver_id !== userId) {
       throw new AppError(
-        "Forbidden",
         "해당 문의에 답변할 권한이 없습니다.",
-        403
+        403,
+        "Forbidden"
       );
     }
 
@@ -80,15 +85,15 @@ export class InquiryService {
     // 1. 문의 존재 여부 확인
     const inquiry = await this.inquiryRepository.findInquiryById(inquiryId);
     if (!inquiry) {
-      throw new AppError("NotFound", "해당 문의를 찾을 수 없습니다.", 404);
+      throw new AppError("해당 문의를 찾을 수 없습니다.", 404, "NotFound");
     }
 
     // 2. 읽음 처리 권한 확인 (문의의 수신자인지)
     if (inquiry.receiver_id !== userId) {
       throw new AppError(
-        "Forbidden",
         "해당 문의를 읽음 처리할 권한이 없습니다.",
-        403
+        403,
+        "Forbidden"
       );
     }
 

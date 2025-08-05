@@ -5,7 +5,7 @@ import {
   mapToReviewUpdateResponse,
   mapToMyReviewListDTO,
   mapToMyReceivedReviewListDTO,
-} from '../dtos/review.dtos';
+} from '../dtos/review.dto';
 import {
   findAllByPromptId,
   findUserProfilesByUserIds,

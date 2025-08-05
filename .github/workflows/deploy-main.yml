@@ -13,12 +13,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check prisma has changes
+        uses: dorny/paths-filter@v3
+        id: paths-filter
+        with:
+          filters: |
+            prisma: ["prisma/**"]
+
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
           echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-
           cat >>~/.ssh/config <<END
           Host promptplace
             HostName $EC2_HOST
@@ -37,9 +43,26 @@ jobs:
           ssh promptplace 'sudo chown ubuntu:ubuntu /opt/app'
           scp -r ./[!.]* promptplace:/opt/app
 
+      - name: Write .env on EC2
+        run: |
+          ssh promptplace '
+            cat > /opt/app/.env <<EOF
+          ${{ secrets.ENV_CONTENT }}
+          EOF
+          '
+
       - name: Install dependencies
         run: |
-          ssh promptplace 'pnpm install --prefix /opt/app/'
+          ssh promptplace 'cd /opt/app && pnpm install'
+
+      - name: Generate Prisma client
+        run: |
+          ssh promptplace 'cd /opt/app && pnpm exec prisma generate'
+
+      - name: Apply Prisma migrations
+        if: steps.paths-filter.outputs.prisma == 'true'
+        run: |
+          ssh promptplace 'cd /opt/app && pnpm exec prisma migrate deploy'
 
       - name: Copy systemd service file
         run: |
@@ -49,8 +72,10 @@ jobs:
             After=network.target
 
             [Service]
-            User=${USER}
-            ExecStart=/usr/bin/pnpm run dev --prefix /opt/app/
+            User=ubuntu
+            WorkingDirectory=/opt/app
+            EnvironmentFile=/opt/app/.env
+            ExecStart=/usr/bin/pnpm start
             Restart=always
 
             [Install]
@@ -65,14 +90,3 @@ jobs:
       - name: Restart systemd service
         run: |
           ssh promptplace 'sudo systemctl restart app'
-
-      - name: Run Prisma Migrate on EC2
-        run: |
-          ssh promptplace '
-            cd /opt/app &&
-          cat <<EOF > .env
-          ${{ secrets.ENV_CONTENT }}
-          EOF
-            pnpm install &&
-            npx prisma migrate deploy
-          '

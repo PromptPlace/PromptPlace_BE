@@ -160,6 +160,7 @@ export class MemberRepository {
         prompt: {
           select: {
             title: true,
+            description: true,
           },
         },
       },

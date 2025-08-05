@@ -33,7 +33,7 @@ export class InquiryController {
         const message = errors
           .map((error) => Object.values(error.constraints || {}))
           .join(", ");
-        throw new AppError("BadRequest", message, 400);
+        throw new AppError(message, 400, "BadRequest");
       }
 
       const inquiry = await this.inquiryService.createInquiry(
@@ -89,7 +89,7 @@ export class InquiryController {
         const message = errors
           .map((error) => Object.values(error.constraints || {}))
           .join(", ");
-        throw new AppError("BadRequest", message, 400);
+        throw new AppError(message, 400, "BadRequest");
       }
 
       const inquiries = await this.inquiryService.getReceivedInquiries(
@@ -122,7 +122,7 @@ export class InquiryController {
         const message = errors
           .map((error) => Object.values(error.constraints!))
           .join(", ");
-        throw new AppError("BadRequest", message, 400);
+        throw new AppError(message, 400, "BadRequest");
       }
 
       const reply = await this.inquiryService.createInquiryReply(

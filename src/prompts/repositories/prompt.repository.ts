@@ -1,54 +1,64 @@
-import prisma from "../../config/prisma";
 import { SearchPromptDto } from "../dtos/search-prompt.dto";
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export const searchPromptRepo = async (data: SearchPromptDto) => {
   const { model, tag, keyword, page, size, sort, is_free } = data;
   const skip = (page - 1) * size;
 
-  // 정렬 기준
-  let orderBy: any = { rating_avg: "desc" };
-  if (sort === "recent") orderBy = { created_at: "desc" };
-  else if (sort === "views") orderBy = { views: "desc" };
-  else if (sort === "popular") orderBy = { likes: "desc" };
+  // ✅ 정렬 기준
+  let orderBy: Prisma.PromptOrderByWithRelationInput = { rating_avg: 'desc' };
+  if (sort === 'recent') orderBy = { created_at: 'desc' };
+  else if (sort === 'views') orderBy = { views: 'desc' };
+  else if (sort === 'popular') orderBy = { likes: 'desc' };
 
-  // where 조건
-  const where = {
-    AND: [
-      keyword && {
-        OR: [
-          { title: { contains: keyword, mode: "insensitive" } },
-          { description: { contains: keyword, mode: "insensitive" } },
-        ],
+  // ✅ 조건 분기로 where 필터 구성
+  const filters: Prisma.PromptWhereInput[] = [];
+
+  if (keyword?.trim()) {
+    filters.push({
+      OR: [
+        { title: { contains: keyword } },
+        { description: { contains: keyword } },
+      ],
+    });
+  }
+
+  if (model) {
+    filters.push({
+      models: {
+        some: {
+          model: {
+            name: model,
+          },
+        },
       },
+    });
+  }
 
-      // 모델명 검색: PromptModel → Model
-      model && {
-        prompt_models: {
-          some: {
-            model: {
-              name: model,
+  if (tag && tag.length > 0) {
+    filters.push({
+      tags: {
+        some: {
+          tag: {
+            name: {
+              in: tag,
             },
           },
         },
       },
+    });
+  }
 
-      // 태그 포함: PromptTag → Tag
-      tag?.length > 0 && {
-        prompt_tags: {
-          some: {
-            tag: {
-              name: { in: tag },
-            },
-          },
-        },
-      },
+  if (is_free === true) {
+    filters.push({ is_free: true });
+  }
 
-      is_free && { is_free: true },
-    ].filter(Boolean),
+  const where: Prisma.PromptWhereInput = {
+    AND: filters,
   };
-  // 검색 + 이미지 포함
+
+  // ✅ 쿼리 실행
   const results = await prisma.prompt.findMany({
     where,
     orderBy,
@@ -64,6 +74,99 @@ export const searchPromptRepo = async (data: SearchPromptDto) => {
   return results;
 };
 
+
+export const getPromptDetailRepo = async (promptId: number) => {
+  const prompt = await prisma.prompt.findUnique({
+    where: { prompt_id: promptId },
+    include: {
+      user: {
+        select: {
+          user_id: true,
+          nickname: true,
+          profileImage: {
+            select: { url: true },
+          },
+        },
+      },
+      models: {
+        include: {
+          model: {
+            select: { name: true },
+          },
+        },
+      },
+      tags: {
+        include: {
+          tag: {
+            select: {
+              tag_id: true,
+              name: true,
+            },
+          },
+        },
+      },
+      images: {
+        select: {
+          image_url: true,
+        },
+        orderBy: {
+          order_index: 'asc',
+        },
+      },
+    },
+  });
+
+  if (!prompt) return null;
+
+const {
+  title,
+  prompt: promptText,
+  prompt_result,
+  has_image,
+  description,
+  usage_guide,
+  price,
+  is_free,
+  models,
+  tags,
+  images,
+  user,
+} = prompt;
+
+
+return {
+  title,
+  prompt: promptText,
+  prompt_result,
+  has_image,
+  description,
+  usage_guide,
+  price,
+  is_free,
+
+  tags: tags.map(
+    ({ tag }: { tag: { tag_id: number; name: string } }) => ({
+      tag_id: tag.tag_id,
+      name: tag.name,
+    })
+  ),
+
+  models: models.map(
+    ({ model }: { model: { name: string } }) => model.name
+  ),
+
+  images: images.map(
+    ({ image_url }: { image_url: string }) => image_url
+  ),
+
+  writer: {
+    user_id: user.user_id,
+    nickname: user.nickname,
+    profile_image_url: user.profileImage?.url ?? null,
+  },
+};
+};
+
 export const createPromptWriteRepo = async (
   user_id: number,
   data: {
@@ -77,6 +180,7 @@ export const createPromptWriteRepo = async (
     is_free: boolean;
     tags: string[];
     model: string;
+    download_url: string;
   }
 ) => {
   // 1. 태그 처리: 각 태그마다 Tag 테이블에 존재하면 매핑, 없으면 생성 후 매핑
@@ -112,6 +216,7 @@ export const createPromptWriteRepo = async (
       likes: 0,
       review_counts: 0,
       rating_avg: 0,
+      download_url: data.download_url, 
     },
   });
 
@@ -154,5 +259,133 @@ export const createPromptImageRepo = async (
       image_url: data.image_url,
       order_index: data.order_index ?? 0,
     },
+  });
+};
+
+export const getPromptByIdRepo = async (promptId: number) => {
+  return await prisma.prompt.findUnique({
+    where: { prompt_id: promptId },
+    include: {
+      user: {
+        select: { user_id: true, nickname: true }
+      },
+      tags: {
+        include: { tag: true }
+      },
+      models: {
+        include: { model: true }
+      }
+    }
+  });
+};
+
+export const updatePromptRepo = async (
+  promptId: number,
+  data: {
+    title?: string;
+    prompt?: string;
+    prompt_result?: string;
+    has_image?: boolean;
+    description?: string;
+    usage_guide?: string;
+    price?: number;
+    is_free?: boolean;
+    tags?: string[];
+    model?: string;
+  }
+) => {
+  // 기존 태그, 모델 매핑 삭제
+  if (data.tags || data.model) {
+    if (data.tags) {
+      await prisma.promptTag.deleteMany({
+        where: { prompt_id: promptId }
+      });
+    }
+    
+    if (data.model) {
+      await prisma.promptModel.deleteMany({
+        where: { prompt_id: promptId }
+      });
+    }
+  }
+
+  // 프롬프트 기본 정보 업데이트
+  const updatedPrompt = await prisma.prompt.update({
+    where: { prompt_id: promptId },
+    data: {
+      title: data.title,
+      prompt: data.prompt,
+      prompt_result: data.prompt_result,
+      has_image: data.has_image,
+      description: data.description,
+      usage_guide: data.usage_guide,
+      price: data.price,
+      is_free: data.is_free,
+    }
+  });
+
+  // 새로운 태그 매핑
+  if (data.tags) {
+    const tagIds: number[] = [];
+    for (const tagName of data.tags) {
+      let tag = await prisma.tag.findFirst({ where: { name: tagName } });
+      if (!tag) {
+        tag = await prisma.tag.create({ data: { name: tagName } });
+      }
+      tagIds.push(tag.tag_id);
+    }
+
+    for (const tag_id of tagIds) {
+      await prisma.promptTag.create({
+        data: {
+          prompt_id: promptId,
+          tag_id,
+        },
+      });
+    }
+  }
+
+  // 새로운 모델 매핑
+  if (data.model) {
+    const model = await prisma.model.findFirst({ where: { name: data.model } });
+    if (!model) {
+      throw new Error('해당 모델이 존재하지 않습니다.');
+    }
+
+    await prisma.promptModel.create({
+      data: {
+        prompt_id: promptId,
+        model_id: model.model_id,
+      },
+    });
+  }
+
+  // 업데이트된 프롬프트 반환
+  return await prisma.prompt.findUnique({
+    where: { prompt_id: promptId },
+    include: {
+      tags: { include: { tag: true } },
+      models: { include: { model: true } },
+    },
+  });
+};
+
+export const deletePromptRepo = async (promptId: number) => {
+  // 관련 데이터 삭제 (Cascade가 설정되어 있지 않은 경우 수동 삭제)
+  await prisma.promptTag.deleteMany({
+    where: { prompt_id: promptId }
+  });
+  
+  await prisma.promptModel.deleteMany({
+    where: { prompt_id: promptId }
+  });
+  
+  await prisma.promptImage.deleteMany({
+    where: { prompt_id: promptId }
+  });
+
+  // 프롬프트 삭제
+  return await prisma.prompt.delete({
+    where: { prompt_id: promptId }
   });
 };
