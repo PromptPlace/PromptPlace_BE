@@ -244,7 +244,6 @@ export const getReviewsWrittenByMe = async (
       ...reviews
     });
   } catch (err: any) {
-    console.error(err);
     res.fail({
       error: err.name || 'InternalServerError',
       message: err.message || '내가 작성한 리뷰 목록을 불러오는 중 오류가 발생했습니다.',

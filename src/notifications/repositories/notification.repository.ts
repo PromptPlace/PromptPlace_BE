@@ -100,3 +100,26 @@ export const createNotification = async ({
   });
 };
 
+// 알림 목록 조회
+export const findNotificationsByUserId = async (
+  userId: number,
+  cursor?: number,
+  limit?: number
+) => {
+  return await prisma.notification.findMany({
+    where: {
+      user_id: userId
+    },
+    orderBy: {
+      notification_id: 'desc', // 최신순
+    },
+    take: limit,
+    ...(cursor && {
+      cursor: {
+        notification_id: cursor,
+      },
+      skip: 1,
+    }),
+  });
+};
+ 

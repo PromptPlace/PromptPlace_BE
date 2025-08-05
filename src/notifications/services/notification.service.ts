@@ -1,6 +1,7 @@
 import {
     mapToSubscribeResponse,
     CreateNotificationParams,
+    UserNotificationListDTO,
 } from '../dtos/notification.dto';
 
 import {
@@ -11,6 +12,7 @@ import {
     createNotification,
     findUserByUserId,
     findUsersSubscribedToPrompter,
+    findNotificationsByUserId,
 } from '../repositories/notification.repository';
 
 import { NotificationType } from '@prisma/client';
@@ -155,3 +157,18 @@ export const createPromptNotification = async (
   );
 };
 
+// 알림 목록 조회
+export const findUserNotificationsService = async (
+  userId: number,
+  rawCursor?: string,
+  rawLimit?: string
+) => {
+    const cursor = rawCursor ? parseInt(rawCursor, 10) : undefined;
+    const limit = rawLimit ? parseInt(rawLimit, 10) : 10;
+  
+    if (cursor !== undefined && isNaN(cursor)) throw new Error('cursor값이 적절하지 않습니다');
+    if (isNaN(limit)) throw new Error('limit값이 적절하지 않습니다');
+  
+    const rawNotifications = await findNotificationsByUserId(userId, cursor, limit);
+    return UserNotificationListDTO(rawNotifications, limit);
+}
