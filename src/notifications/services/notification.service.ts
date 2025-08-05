@@ -103,11 +103,26 @@ export const createFollowNotification = async (
   } 
   const followerNickname = user.nickname; 
 
+  // 팔로워 알림 정보를 알림db에 저장
   await createNotificationService({
     userId: followingId,
     type: NotificationType.FOLLOW,
     content: `'${followerNickname}'님이 회원님을 팔로우합니다.`,
     linkUrl: `/profile/${followerId}`,
     actorId: followerId,
+  });
+};
+
+// 새로운 문의 등록 알림
+export const createInquiryNotification = async (
+  receiverId: number,
+  senderId: number
+) => {
+  await createNotificationService({
+    userId: receiverId, 
+    type: NotificationType.INQUIRY_REPLY,
+    content: '프롬프트에 새로운 문의가 도착했습니다.',
+    linkUrl: `/inquiries/${receiverId}`,
+    actorId: senderId,
   });
 };
