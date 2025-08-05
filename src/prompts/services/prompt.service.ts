@@ -6,7 +6,7 @@ import { CreatePromptImageDto } from "../dtos/prompt-image.dto";
 import { v4 as uuidv4 } from "uuid";
 import { CreatePromptDto } from "../dtos/create-prompt.dto";
 import { UpdatePromptDto } from '../dtos/update-prompt.dto';
-
+import eventBus from '../../config/eventBus';
 /**
  * 프롬프트 검색 서비스
  */
@@ -68,7 +68,12 @@ export const createPromptWrite = async (
   user_id: number,
   dto: CreatePromptDto
 ) => {
-  return await promptRepository.createPromptWriteRepo(user_id, dto);
+  const prompt = await promptRepository.createPromptWriteRepo(user_id, dto);
+  
+  // 새 프롬프트 업로드 알림 이벤트 발생
+  eventBus.emit("prompt.created", user_id);
+  
+  return prompt;
 };
 
 export const getPromptById = async (promptId: number) => {
