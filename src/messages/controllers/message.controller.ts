@@ -35,4 +35,17 @@ export class MessageController {
     next(error);
   }
 };
+
+deleteMessage = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const message_id = parseInt(req.params.message_id, 10);
+    const user_id = (req.user as any).user_id;
+
+    const result = await this.messageService.deleteMessage(message_id, user_id);
+
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+};
 }

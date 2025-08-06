@@ -65,4 +65,23 @@ export class MessageService {
     statusCode: 200,
   };
 }
+
+async deleteMessage(message_id: number, currentUserId: number) {
+  const message = await this.messageRepository.findById(message_id);
+
+  if (!message) {
+    throw new AppError("존재하지 않는 메시지입니다.", 404, "NotFound");
+  }
+
+  if (message.receiver_id !== currentUserId) {
+    throw new AppError("해당 메시지를 삭제할 권한이 없습니다.", 403, "Forbidden");
+  }
+
+  await this.messageRepository.softDelete(message_id);
+
+  return {
+    message: "메시지가 성공적으로 삭제되었습니다.",
+    statusCode: 200,
+  };
+}
 }
