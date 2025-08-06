@@ -21,6 +21,7 @@
     "@aws-sdk/s3-request-presigner": "^3.848.0",
     "@types/express-session": "^1.18.2",
     "@types/passport-google-oauth20": "^2.0.16",
+    "@types/passport-kakao": "^1.0.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "cors": "^2.8.5",
@@ -32,6 +33,7 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
+    "passport-kakao": "^1.0.1",
     "passport-naver-v2": "^2.0.8",
     "reflect-metadata": "^0.2.2",
     "save-dev": "0.0.1-security",
@@ -39,7 +41,8 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-dist": "^5.27.1",
     "swagger-ui-express": "^5.0.1",
-    "typedi": "^0.10.0"
+    "typedi": "^0.10.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@prisma/client": "^6.11.1",
@@ -52,6 +55,7 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "@types/uuid": "^10.0.0",
     "nodemon": "^3.1.10",
     "prisma": "^6.11.1",
     "ts-node": "^10.9.2",

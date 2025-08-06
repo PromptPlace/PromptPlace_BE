@@ -8,5 +8,6 @@ export interface UpdatePromptDto {
   price?: number;
   is_free?: boolean;
   tags?: string[];
-  model?: string;
+  models?: string[];
+  download_url?: string;
 } 
