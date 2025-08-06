@@ -6,6 +6,6 @@ import { authenticateJwt } from "../../config/passport";
 const router = Router();
 const messageController = Container.get(MessageController);
 
-router.get("/messages/:message_id", authenticateJwt, messageController.getMessageById);
+router.get("/:message_id", authenticateJwt, messageController.getMessageById);
 
 export default router;
