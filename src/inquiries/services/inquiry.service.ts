@@ -1,6 +1,7 @@
 import { Service } from "typedi";
 import { InquiryRepository } from "../repositories/inquiry.repository";
 import { MemberRepository } from "../../members/repositories/member.repository";
+import { MessageRepository } from "../../messages/repositories/message.repository";
 import { CreateInquiryDto } from "../dtos/create-inquiry.dto";
 import { AppError } from "../../errors/AppError";
 import eventBus from '../../config/eventBus';
@@ -8,7 +9,8 @@ import eventBus from '../../config/eventBus';
 export class InquiryService {
   constructor(
     private inquiryRepository: InquiryRepository,
-    private memberRepository: MemberRepository
+    private memberRepository: MemberRepository,
+    private messageRepository: MessageRepository
   ) {}
 
   async createInquiry(senderId: number, createInquiryDto: CreateInquiryDto) {
@@ -58,28 +60,53 @@ export class InquiryService {
   }
 
   async createInquiryReply(userId: number, inquiryId: number, content: string) {
-    // 1. 문의 존재 여부 확인
-    const inquiry = await this.inquiryRepository.findInquiryById(inquiryId);
-    if (!inquiry) {
-      throw new AppError("해당 문의를 찾을 수 없습니다.", 404, "NotFound");
-    }
+  // 1. 문의 존재 여부 확인
+  const inquiry = await this.inquiryRepository.findInquiryById(inquiryId);
+  if (!inquiry) {
+    throw new AppError("해당 문의를 찾을 수 없습니다.", 404, "NotFound");
+  }
 
-    // 2. 답변 권한 확인 (문의의 수신자인지)
-    if (inquiry.receiver_id !== userId) {
-      throw new AppError(
-        "해당 문의에 답변할 권한이 없습니다.",
-        403,
-        "Forbidden"
-      );
-    }
-
-    // 3. 답변 생성
-    return this.inquiryRepository.createInquiryReply(
-      inquiryId,
-      userId,
-      content
+  // 2. 답변 권한 확인 (문의의 수신자인지)
+  if (inquiry.receiver_id !== userId) {
+    throw new AppError(
+      "해당 문의에 답변할 권한이 없습니다.",
+      403,
+      "Forbidden"
     );
   }
+
+  // 3. 답변 생성
+  const reply = await this.inquiryRepository.createInquiryReply(
+    inquiryId,
+    userId,
+    content
+  );
+
+  // 4. 메시지 자동 생성 (inquiry.sender_id -> 문의 보낸 사람)
+  try {
+    const [sender, receiver] = await Promise.all([
+      this.memberRepository.findUserById(userId), // 답변자
+      this.memberRepository.findUserById(inquiry.sender_id), // 문의 보낸 사람
+    ]);
+
+    if (sender && receiver) {
+      const title = `${sender.nickname}님이 ${receiver.nickname}님의 문의에 답변을 남기셨습니다.`;
+      const body = content;
+
+      await this.messageRepository.createMessage({
+        sender_id: sender.user_id,
+        receiver_id: receiver.user_id,
+        title,
+        body,
+      });
+    }
+  } catch (err) {
+    // 메시지 전송 실패는 답변 작성에는 영향 주지 않도록 무시
+    console.error("메시지 자동 생성 실패:", err);
+  }
+
+  return reply;
+}
 
   async markInquiryAsRead(userId: number, inquiryId: number) {
     // 1. 문의 존재 여부 확인
