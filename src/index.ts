@@ -91,7 +91,7 @@ app.use('/api/reports', reportRouter);
 app.use('/api/notifications', notificationRouter);
 
 // 메시지 라우터
-app.use('/api/messages', notificationRouter);
+app.use('/api/messages', messageRouter);
 
 // 예시 라우터
 app.get("/", (req, res) => {
