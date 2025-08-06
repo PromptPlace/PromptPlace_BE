@@ -8,6 +8,6 @@ export interface CreatePromptDto {
   price: number;
   is_free: boolean;
   tags: string[];
-  model: string;
+  models: string[];
   download_url: string;
 }

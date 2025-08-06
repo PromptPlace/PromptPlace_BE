@@ -133,8 +133,9 @@ export const createPrompt = async (req: Request, res: Response) => {
       'description',
       'price',
       'tags',
-      'model',
-      'is_free'
+      'models',
+      'is_free',
+      'download_url'
     ];
 
     const missingFields = requiredFields.filter(field => !dto[field] && dto[field] !== false);
@@ -157,7 +158,7 @@ export const createPrompt = async (req: Request, res: Response) => {
 
   } catch (error) {
     // 4. 서비스/레포지토리 레이어에서 발생한 특정 에러 처리
-    if (error instanceof Error && error.message === '해당 모델이 존재하지 않습니다.') {
+    if (error instanceof Error && error.message.includes('모델') && error.message.includes('존재하지 않습니다')) {
       return res.fail({
         statusCode: 404,
         error: 'NotFound',
@@ -218,7 +219,7 @@ export const updatePrompt = async (req: Request, res: Response) => {
     return res.success(result, '프롬프트 수정 성공');
   } catch (error) {
     // 서비스/레포지토리 레이어에서 발생한 특정 에러 처리
-    if (error instanceof Error && error.message === '해당 모델이 존재하지 않습니다.') {
+    if (error instanceof Error && error.message.includes('모델') && error.message.includes('존재하지 않습니다')) {
       return res.fail({
         statusCode: 404,
         error: 'NotFound',
