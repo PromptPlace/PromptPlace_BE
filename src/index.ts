@@ -95,7 +95,7 @@ app.use('/api/messages', messageRouter);
 
 // 예시 라우터
 app.get("/", (req, res) => {
-  res.success({ message: "Hello World" });
+  res.success({ message: "Hello World!!" });
 });
 
 // 예외 테스트
