@@ -32,4 +32,37 @@ export class MessageService {
       statusCode: 200,
     };
   }
+
+  async getReceivedMessages(currentUserId: number, query: {
+  limit?: number;
+  cursor?: number;
+  is_read?: boolean;
+}) {
+  const limit = query.limit ?? 10;
+  const cursor = query.cursor;
+  const is_read = query.is_read;
+
+  const { messages, hasNextPage } = await this.messageRepository.findReceivedMessagesWithCursor({
+    receiver_id: currentUserId,
+    limit,
+    cursor,
+    is_read,
+  });
+
+  return {
+    message: "메시지 목록 조회 성공",
+    messages: messages.map(msg => ({
+      message_id: msg.message_id,
+      title: msg.title,
+      sender: msg.sender.nickname,
+      created_at: msg.created_at.toISOString().split('T')[0], // 날짜만
+      is_read: msg.is_read,
+    })),
+    pagination: {
+      nextCursor: hasNextPage ? messages[messages.length - 1].message_id : null,
+      limit,
+    },
+    statusCode: 200,
+  };
+}
 }
