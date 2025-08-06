@@ -18,4 +18,21 @@ export class MessageController {
       next(error);
     }
   };
+
+  getReceivedMessages = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const currentUserId = (req.user as any).user_id;
+    const { limit, cursor, is_read } = req.query;
+
+    const result = await this.messageService.getReceivedMessages(currentUserId, {
+      limit: limit ? parseInt(limit as string, 10) : undefined,
+      cursor: cursor ? parseInt(cursor as string, 10) : undefined,
+      is_read: is_read === 'true' ? true : is_read === 'false' ? false : undefined,
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 }

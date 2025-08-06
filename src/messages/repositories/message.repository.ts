@@ -74,4 +74,51 @@ private prisma = new PrismaClient();
       },
     });
   }
+
+  /**
+ * 메시지 목록 조회 (커서 기반 페이지네이션)
+ */
+async findReceivedMessagesWithCursor(params: {
+  receiver_id: number;
+  limit: number;
+  cursor?: number;
+  is_read?: boolean;
+}): Promise<{ messages: (Message & { sender: { nickname: string } })[]; hasNextPage: boolean }> {
+  const { receiver_id, limit, cursor, is_read } = params;
+
+  const where: any = {
+    receiver_id,
+    is_deleted: false,
+  };
+
+  if (typeof is_read === "boolean") {
+    where.is_read = is_read;
+  }
+
+  const messages = await this.prisma.message.findMany({
+    where,
+    take: limit + 1, // 다음 페이지 존재 여부 확인용
+    ...(cursor && {
+      cursor: { message_id: cursor },
+      skip: 1,
+    }),
+    include: {
+      sender: {
+        select: {
+          nickname: true,
+        },
+      },
+    },
+    orderBy: {
+      message_id: 'desc', // 최신 메시지 순
+    },
+  });
+
+  const hasNextPage = messages.length > limit;
+
+  return {
+    messages: hasNextPage ? messages.slice(0, limit) : messages,
+    hasNextPage,
+  };
+}
 }
