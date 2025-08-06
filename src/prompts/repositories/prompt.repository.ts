@@ -179,28 +179,33 @@ export const createPromptWriteRepo = async (
     price: number;
     is_free: boolean;
     tags: string[];
-    model: string;
+    models: string[];
     download_url: string;
   }
 ) => {
-  // 1. 태그 처리: 각 태그마다 Tag 테이블에 존재하면 매핑, 없으면 생성 후 매핑
-  const tagIds: number[] = [];
-  for (const tagName of data.tags) {
-    let tag = await prisma.tag.findFirst({ where: { name: tagName } });
-    if (!tag) {
-      tag = await prisma.tag.create({ data: { name: tagName } });
+  return await prisma.$transaction(async (tx) => {
+    // 1. 태그 처리: 각 태그마다 Tag 테이블에 존재하면 매핑, 없으면 생성 후 매핑
+    const tagIds: number[] = [];
+    for (const tagName of data.tags) {
+      let tag = await tx.tag.findFirst({ where: { name: tagName } });
+      if (!tag) {
+        tag = await tx.tag.create({ data: { name: tagName } });
+      }
+      tagIds.push(tag.tag_id);
     }
-    tagIds.push(tag.tag_id);
-  }
 
-  // 2. 모델 처리: 반드시 존재해야 하며, PromptModel에 매핑만 (없으면 에러)
-  const model = await prisma.model.findFirst({ where: { name: data.model } });
-  if (!model) {
-    throw new Error("해당 모델이 존재하지 않습니다.");
-  }
+    // 2. 모델 처리: 각 모델이 존재하는지 확인하고 ID 수집
+    const modelIds: number[] = [];
+    for (const modelName of data.models) {
+      const model = await tx.model.findFirst({ where: { name: modelName } });
+      if (!model) {
+        throw new Error(`모델 '${modelName}'이(가) 존재하지 않습니다.`);
+      }
+      modelIds.push(model.model_id);
+    }
 
-  // 3. 프롬프트 생성
-  const prompt = await prisma.prompt.create({
+    // 3. 프롬프트 생성
+    const prompt = await tx.prompt.create({
     data: {
       user_id,
       title: data.title,
@@ -222,7 +227,7 @@ export const createPromptWriteRepo = async (
 
   // 4. PromptTag 매핑
   for (const tag_id of tagIds) {
-    await prisma.promptTag.create({
+    await tx.promptTag.create({
       data: {
         prompt_id: prompt.prompt_id,
         tag_id,
@@ -230,16 +235,18 @@ export const createPromptWriteRepo = async (
     });
   }
 
-  // 5. PromptModel 매핑
-  await prisma.promptModel.create({
-    data: {
-      prompt_id: prompt.prompt_id,
-      model_id: model.model_id,
-    },
-  });
+  // 5. PromptModel 매핑 (여러 모델)
+  for (const model_id of modelIds) {
+    await tx.promptModel.create({
+      data: {
+        prompt_id: prompt.prompt_id,
+        model_id,
+      },
+    });
+  }
 
   // 6. 결과 반환 (프롬프트 + 태그 + 모델 정보)
-  const result = await prisma.prompt.findUnique({
+  const result = await tx.prompt.findUnique({
     where: { prompt_id: prompt.prompt_id },
     include: {
       tags: { include: { tag: true } },
@@ -247,6 +254,7 @@ export const createPromptWriteRepo = async (
     },
   });
   return result;
+  });
 };
 
 export const createPromptImageRepo = async (
@@ -291,26 +299,28 @@ export const updatePromptRepo = async (
     price?: number;
     is_free?: boolean;
     tags?: string[];
-    model?: string;
+    models?: string[];
+    download_url?: string;
   }
 ) => {
-  // 기존 태그, 모델 매핑 삭제
-  if (data.tags || data.model) {
-    if (data.tags) {
-      await prisma.promptTag.deleteMany({
-        where: { prompt_id: promptId }
-      });
+  return await prisma.$transaction(async (tx) => {
+    // 기존 태그, 모델 매핑 삭제
+    if (data.tags || data.models) {
+      if (data.tags) {
+        await tx.promptTag.deleteMany({
+          where: { prompt_id: promptId }
+        });
+      }
+      
+      if (data.models) {
+        await tx.promptModel.deleteMany({
+          where: { prompt_id: promptId }
+        });
+      }
     }
-    
-    if (data.model) {
-      await prisma.promptModel.deleteMany({
-        where: { prompt_id: promptId }
-      });
-    }
-  }
 
-  // 프롬프트 기본 정보 업데이트
-  const updatedPrompt = await prisma.prompt.update({
+    // 프롬프트 기본 정보 업데이트
+    const updatedPrompt = await tx.prompt.update({
     where: { prompt_id: promptId },
     data: {
       title: data.title,
@@ -321,6 +331,7 @@ export const updatePromptRepo = async (
       usage_guide: data.usage_guide,
       price: data.price,
       is_free: data.is_free,
+      download_url: data.download_url,
     }
   });
 
@@ -328,15 +339,15 @@ export const updatePromptRepo = async (
   if (data.tags) {
     const tagIds: number[] = [];
     for (const tagName of data.tags) {
-      let tag = await prisma.tag.findFirst({ where: { name: tagName } });
+      let tag = await tx.tag.findFirst({ where: { name: tagName } });
       if (!tag) {
-        tag = await prisma.tag.create({ data: { name: tagName } });
+        tag = await tx.tag.create({ data: { name: tagName } });
       }
       tagIds.push(tag.tag_id);
     }
 
     for (const tag_id of tagIds) {
-      await prisma.promptTag.create({
+      await tx.promptTag.create({
         data: {
           prompt_id: promptId,
           tag_id,
@@ -345,47 +356,56 @@ export const updatePromptRepo = async (
     }
   }
 
-  // 새로운 모델 매핑
-  if (data.model) {
-    const model = await prisma.model.findFirst({ where: { name: data.model } });
-    if (!model) {
-      throw new Error('해당 모델이 존재하지 않습니다.');
+  // 새로운 모델 매핑 (여러 모델)
+  if (data.models) {
+    const modelIds: number[] = [];
+    for (const modelName of data.models) {
+      const model = await tx.model.findFirst({ where: { name: modelName } });
+      if (!model) {
+        throw new Error(`모델 '${modelName}'이(가) 존재하지 않습니다.`);
+      }
+      modelIds.push(model.model_id);
     }
 
-    await prisma.promptModel.create({
-      data: {
-        prompt_id: promptId,
-        model_id: model.model_id,
-      },
-    });
+    for (const model_id of modelIds) {
+      await tx.promptModel.create({
+        data: {
+          prompt_id: promptId,
+          model_id,
+        },
+      });
+    }
   }
 
   // 업데이트된 프롬프트 반환
-  return await prisma.prompt.findUnique({
+  return await tx.prompt.findUnique({
     where: { prompt_id: promptId },
     include: {
       tags: { include: { tag: true } },
       models: { include: { model: true } },
     },
   });
+  });
 };
 
 export const deletePromptRepo = async (promptId: number) => {
-  // 관련 데이터 삭제 (Cascade가 설정되어 있지 않은 경우 수동 삭제)
-  await prisma.promptTag.deleteMany({
-    where: { prompt_id: promptId }
-  });
-  
-  await prisma.promptModel.deleteMany({
-    where: { prompt_id: promptId }
-  });
-  
-  await prisma.promptImage.deleteMany({
-    where: { prompt_id: promptId }
-  });
+  return await prisma.$transaction(async (tx) => {
+    // 관련 데이터 삭제 (Cascade가 설정되어 있지 않은 경우 수동 삭제)
+    await tx.promptTag.deleteMany({
+      where: { prompt_id: promptId }
+    });
+    
+    await tx.promptModel.deleteMany({
+      where: { prompt_id: promptId }
+    });
+    
+    await tx.promptImage.deleteMany({
+      where: { prompt_id: promptId }
+    });
 
-  // 프롬프트 삭제
-  return await prisma.prompt.delete({
+    // 프롬프트 삭제
+    return await tx.prompt.delete({
     where: { prompt_id: promptId }
+  });
   });
 };
