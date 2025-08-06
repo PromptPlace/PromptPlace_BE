@@ -8,6 +8,7 @@ import { validate } from "class-validator";
 import { AppError } from "../../errors/AppError";
 import { GetInquiriesDto } from "../dtos/get-inquiries.dto";
 import { CreateReplyDto } from "../dtos/create-reply.dto";
+import { MessageRepository } from "../../messages/repositories/message.repository";
 
 export class InquiryController {
   private inquiryService: InquiryService;
@@ -15,7 +16,8 @@ export class InquiryController {
   constructor() {
     this.inquiryService = new InquiryService(
       new InquiryRepository(),
-      new MemberRepository()
+      new MemberRepository(),
+      new MessageRepository(),
     );
   }
 
