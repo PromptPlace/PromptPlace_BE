@@ -2,7 +2,7 @@ import "dotenv/config";
 import express, { ErrorRequestHandler } from "express";
 import { responseHandler } from "./middlewares/responseHandler";
 import { errorHandler } from "./middlewares/errorHandler";
-
+import 'reflect-metadata';
 import passport from './config/passport';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
