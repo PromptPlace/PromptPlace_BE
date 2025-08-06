@@ -22,11 +22,18 @@ private prisma = new PrismaClient();
   /**
    * 메시지 단건 조회
    */
-  async findById(message_id: number): Promise<Message | null> {
-    return this.prisma.message.findUnique({
-      where: { message_id },
-    });
-  }
+  async findById(message_id: number): Promise<(Message & { sender: { nickname: string } }) | null> {
+  return this.prisma.message.findUnique({
+    where: { message_id },
+    include: {
+      sender: {
+        select: {
+          nickname: true, 
+        },
+      },
+    },
+  });
+}
 
   /**
    * 유저의 받은 메시지 목록
