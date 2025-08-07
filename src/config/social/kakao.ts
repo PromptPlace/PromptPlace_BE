@@ -1,6 +1,8 @@
 import passport from "passport";
 import { Strategy as KakaoStrategy } from "passport-kakao";
 import prisma from "../prisma";
+import dotenv from 'dotenv';
+dotenv.config();
 
 export function configureKakaoStrategy() {
   // 환경 변수 값 로그 찍기
