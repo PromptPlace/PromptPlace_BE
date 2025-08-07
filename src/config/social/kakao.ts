@@ -3,6 +3,10 @@ import { Strategy as KakaoStrategy } from "passport-kakao";
 import prisma from "../prisma";
 
 export function configureKakaoStrategy() {
+  // 환경 변수 값 로그 찍기
+  console.log('KAKAO_CLIENT_ID:', process.env.KAKAO_CLIENT_ID);
+  console.log('KAKAO_CLIENT_SECRET:', process.env.KAKAO_CLIENT_SECRET);
+  console.log('KAKAO_CALLBACK_URL:', process.env.KAKAO_CALLBACK_URL);
   passport.use(
     new KakaoStrategy(
       {
