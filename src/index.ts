@@ -50,9 +50,6 @@ app.use(cors({
   credentials: true,
 }));
 
-// Preflight 요청에 대한 응답을 보장
-app.options('*', cors());
-
 // Session 설정 (OAuth용)
 app.use(
   session({
