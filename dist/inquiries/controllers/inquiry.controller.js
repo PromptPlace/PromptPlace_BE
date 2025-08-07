@@ -19,9 +19,10 @@ const class_validator_1 = require("class-validator");
 const AppError_1 = require("../../errors/AppError");
 const get_inquiries_dto_1 = require("../dtos/get-inquiries.dto");
 const create_reply_dto_1 = require("../dtos/create-reply.dto");
+const message_repository_1 = require("../../messages/repositories/message.repository");
 class InquiryController {
     constructor() {
-        this.inquiryService = new inquiry_service_1.InquiryService(new inquiry_repository_1.InquiryRepository(), new member_repository_1.MemberRepository());
+        this.inquiryService = new inquiry_service_1.InquiryService(new inquiry_repository_1.InquiryRepository(), new member_repository_1.MemberRepository(), new message_repository_1.MessageRepository());
     }
     createInquiry(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {

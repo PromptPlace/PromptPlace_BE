@@ -41,12 +41,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deletePrompt = exports.updatePrompt = exports.getPromptById = exports.createPromptWrite = exports.createPromptImage = exports.getPresignedUrl = exports.getPromptDetail = exports.searchPrompts = void 0;
 const promptRepository = __importStar(require("../repositories/prompt.repository"));
 const client_s3_1 = require("@aws-sdk/client-s3");
 const s3_request_presigner_1 = require("@aws-sdk/s3-request-presigner");
 const uuid_1 = require("uuid");
+const eventBus_1 = __importDefault(require("../../config/eventBus"));
 /**
  * 프롬프트 검색 서비스
  */
@@ -98,7 +102,10 @@ const createPromptImage = (prompt_id, dto) => __awaiter(void 0, void 0, void 0, 
 });
 exports.createPromptImage = createPromptImage;
 const createPromptWrite = (user_id, dto) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield promptRepository.createPromptWriteRepo(user_id, dto);
+    const prompt = yield promptRepository.createPromptWriteRepo(user_id, dto);
+    // 새 프롬프트 업로드 알림 이벤트 발생
+    eventBus_1.default.emit("prompt.created", user_id);
+    return prompt;
 });
 exports.createPromptWrite = createPromptWrite;
 const getPromptById = (promptId) => __awaiter(void 0, void 0, void 0, function* () {

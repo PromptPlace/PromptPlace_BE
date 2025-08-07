@@ -14,20 +14,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const auth_service_1 = __importDefault(require("../services/auth.service"));
 const AppError_1 = require("../../errors/AppError");
+const complete_signup_dto_1 = require("../dtos/complete-signup.dto");
+const class_validator_1 = require("class-validator");
 class AuthController {
     googleCallback(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const user = req.user;
                 if (!user) {
-                    throw new AppError_1.AppError('구글 인증에 실패했습니다.', 401, 'Unauthorized');
+                    throw new AppError_1.AppError("구글 인증에 실패했습니다.", 401, "Unauthorized");
                 }
                 if (user.status === false) {
-                    throw new AppError_1.AppError('비활성화된 계정입니다.', 403, 'Forbidden');
+                    throw new AppError_1.AppError("비활성화된 계정입니다.", 403, "Forbidden");
                 }
                 const { accessToken, refreshToken } = yield auth_service_1.default.generateTokens(user);
                 res.status(200).json({
-                    message: '구글 로그인이 완료되었습니다.',
+                    message: "구글 로그인이 완료되었습니다.",
                     data: {
                         access_token: accessToken,
                         refresh_token: refreshToken,
@@ -37,7 +39,7 @@ class AuthController {
                             nickname: user.nickname,
                             email: user.email,
                             social_type: user.social_type,
-                            status: user.status ? 'ACTIVE' : 'INACTIVE',
+                            status: user.status ? "ACTIVE" : "INACTIVE",
                             role: user.role,
                             created_at: user.created_at,
                             updated_at: user.updated_at,
@@ -56,8 +58,8 @@ class AuthController {
                 }
                 else {
                     res.status(500).json({
-                        error: 'InternalServerError',
-                        message: '알 수 없는 오류가 발생했습니다.',
+                        error: "InternalServerError",
+                        message: "알 수 없는 오류가 발생했습니다.",
                         statusCode: 500,
                     });
                 }
@@ -69,14 +71,14 @@ class AuthController {
             try {
                 const user = req.user;
                 if (!user) {
-                    throw new AppError_1.AppError('네이버 인증에 실패했습니다.', 401, 'Unauthorized');
+                    throw new AppError_1.AppError("네이버 인증에 실패했습니다.", 401, "Unauthorized");
                 }
                 if (user.status === false) {
-                    throw new AppError_1.AppError('비활성화된 계정입니다.', 403, 'Forbidden');
+                    throw new AppError_1.AppError("비활성화된 계정입니다.", 403, "Forbidden");
                 }
                 const { accessToken, refreshToken } = yield auth_service_1.default.generateTokens(user);
                 res.status(200).json({
-                    message: '네이버 로그인이 완료되었습니다.',
+                    message: "네이버 로그인이 완료되었습니다.",
                     data: {
                         access_token: accessToken,
                         refresh_token: refreshToken,
@@ -86,7 +88,7 @@ class AuthController {
                             nickname: user.nickname,
                             email: user.email,
                             social_type: user.social_type,
-                            status: user.status ? 'ACTIVE' : 'INACTIVE',
+                            status: user.status ? "ACTIVE" : "INACTIVE",
                             role: user.role,
                             created_at: user.created_at,
                             updated_at: user.updated_at,
@@ -105,8 +107,95 @@ class AuthController {
                 }
                 else {
                     res.status(500).json({
-                        error: 'InternalServerError',
-                        message: '알 수 없는 오류가 발생했습니다.',
+                        error: "InternalServerError",
+                        message: "알 수 없는 오류가 발생했습니다.",
+                        statusCode: 500,
+                    });
+                }
+            }
+        });
+    }
+    kakaoCallback(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const user = req.user;
+                if (!user) {
+                    throw new AppError_1.AppError("카카오 인증에 실패했습니다.", 401, "Unauthorized");
+                }
+                if (user.status === false) {
+                    throw new AppError_1.AppError("비활성화된 계정입니다.", 403, "Forbidden");
+                }
+                const { accessToken, refreshToken } = yield auth_service_1.default.generateTokens(user);
+                res.status(200).json({
+                    message: "카카오 로그인이 완료되었습니다.",
+                    data: {
+                        access_token: accessToken,
+                        refresh_token: refreshToken,
+                        user: {
+                            user_id: user.user_id,
+                            name: user.name,
+                            nickname: user.nickname,
+                            email: user.email,
+                            social_type: user.social_type,
+                            status: user.status ? "ACTIVE" : "INACTIVE",
+                            role: user.role,
+                            created_at: user.created_at,
+                            updated_at: user.updated_at,
+                        },
+                    },
+                    statusCode: 200,
+                });
+            }
+            catch (error) {
+                if (error instanceof AppError_1.AppError) {
+                    res.status(error.statusCode).json({
+                        error: error.error,
+                        message: error.message,
+                        statusCode: error.statusCode,
+                    });
+                }
+                else {
+                    res.status(500).json({
+                        error: "InternalServerError",
+                        message: "알 수 없는 오류가 발생했습니다.",
+                        statusCode: 500,
+                    });
+                }
+            }
+        });
+    }
+    completeSignup(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const completeSignupDto = new complete_signup_dto_1.CompleteSignupDto();
+                Object.assign(completeSignupDto, req.body);
+                const errors = yield (0, class_validator_1.validate)(completeSignupDto);
+                if (errors.length > 0) {
+                    throw new AppError_1.AppError("입력 데이터가 유효하지 않습니다.", 400, "BadRequest");
+                }
+                const result = yield auth_service_1.default.completeSignup(completeSignupDto);
+                res.status(200).json({
+                    message: "회원가입이 완료되었습니다.",
+                    data: {
+                        access_token: result.accessToken,
+                        refresh_token: result.refreshToken,
+                        user: result.user,
+                    },
+                    statusCode: 200,
+                });
+            }
+            catch (error) {
+                if (error instanceof AppError_1.AppError) {
+                    res.status(error.statusCode).json({
+                        error: error.error,
+                        message: error.message,
+                        statusCode: error.statusCode,
+                    });
+                }
+                else {
+                    res.status(500).json({
+                        error: "InternalServerError",
+                        message: "알 수 없는 오류가 발생했습니다.",
                         statusCode: 500,
                     });
                 }
@@ -120,15 +209,15 @@ class AuthController {
                 const user = req.user;
                 yield auth_service_1.default.logout(user.user_id);
                 res.status(200).json({
-                    message: '로그아웃이 완료되었습니다.',
-                    statusCode: 200
+                    message: "로그아웃이 완료되었습니다.",
+                    statusCode: 200,
                 });
             }
             catch (error) {
                 // 이 부분은 나중에 프로젝트 전역 에러 핸들러로 위임하는 것이 좋음
                 res.status(500).json({
-                    error: 'InternalServerError',
-                    message: '알 수 없는 오류가 발생했습니다.',
+                    error: "InternalServerError",
+                    message: "알 수 없는 오류가 발생했습니다.",
                     statusCode: 500,
                 });
             }
