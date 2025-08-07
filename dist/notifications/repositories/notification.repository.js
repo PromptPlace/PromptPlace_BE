@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createNotification = exports.findUserByUserId = exports.deleteSubscription = exports.createSubscription = exports.findSubscription = exports.findFollowing = void 0;
+exports.findNotificationsByUserId = exports.createNotification = exports.findUsersSubscribedToPrompter = exports.findUserByUserId = exports.deleteSubscription = exports.createSubscription = exports.findSubscription = exports.findFollowing = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 // user와 prompter의 팔로우 관계 조회
@@ -64,6 +64,19 @@ const findUserByUserId = (userId) => __awaiter(void 0, void 0, void 0, function*
     return user;
 });
 exports.findUserByUserId = findUserByUserId;
+// 특정 프롬프터를 구독 중인 사용자 목록 조회
+const findUsersSubscribedToPrompter = (prompterId) => __awaiter(void 0, void 0, void 0, function* () {
+    const subscriptions = yield prisma.notificationSubscription.findMany({
+        where: {
+            prompter_id: prompterId,
+        },
+        select: {
+            user_id: true, // 알림 받을 사용자 ID만 추출
+        },
+    });
+    return subscriptions.map((sub) => sub.user_id); // user_id로 이루어진 배열로 반환
+});
+exports.findUsersSubscribedToPrompter = findUsersSubscribedToPrompter;
 // 알림 등록 (공통)
 const createNotification = (_a) => __awaiter(void 0, [_a], void 0, function* ({ userId = null, actorId = null, type, content, linkUrl = null, }) {
     return prisma.notification.create({
@@ -77,3 +90,17 @@ const createNotification = (_a) => __awaiter(void 0, [_a], void 0, function* ({ 
     });
 });
 exports.createNotification = createNotification;
+// 알림 목록 조회
+const findNotificationsByUserId = (userId, cursor, limit) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield prisma.notification.findMany(Object.assign({ where: {
+            user_id: userId
+        }, orderBy: {
+            notification_id: 'desc', // 최신순
+        }, take: limit }, (cursor && {
+        cursor: {
+            notification_id: cursor,
+        },
+        skip: 1,
+    })));
+});
+exports.findNotificationsByUserId = findNotificationsByUserId;

@@ -7,6 +7,7 @@ require("dotenv/config");
 const express_1 = __importDefault(require("express"));
 const responseHandler_1 = require("./middlewares/responseHandler");
 const errorHandler_1 = require("./middlewares/errorHandler");
+require("reflect-metadata");
 const passport_1 = __importDefault(require("./config/passport"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const swagger_jsdoc_1 = __importDefault(require("swagger-jsdoc"));
@@ -25,6 +26,7 @@ const report_route_1 = __importDefault(require("./reports/routes/report.route"))
 const announcement_route_1 = __importDefault(require("./announcements/routes/announcement.route")); // 공지사항 라우터 import
 const notification_route_1 = __importDefault(require("./notifications/routes/notification.route")); // 알림 라우터 import
 require("./notifications/listeners/notification.listener"); // 알림 리스터 import
+const message_route_1 = __importDefault(require("./messages/routes/message.route"));
 const PORT = 3000;
 const app = (0, express_1.default)();
 // 1. 응답 핸들러(json 파서보다 위에)
@@ -73,6 +75,8 @@ app.use('/api/inquiries', inquiry_route_1.default);
 app.use('/api/reports', report_route_1.default);
 // 알림 라우터
 app.use('/api/notifications', notification_route_1.default);
+// 메시지 라우터
+app.use('/api/messages', message_route_1.default);
 // 예시 라우터
 app.get("/", (req, res) => {
     res.success({ message: "Hello World" });
