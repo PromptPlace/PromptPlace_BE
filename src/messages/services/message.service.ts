@@ -66,6 +66,27 @@ export class MessageService {
   };
 }
 
+async markMessageAsRead(message_id: number, currentUserId: number) {
+  const message = await this.messageRepository.findById(message_id);
+
+  if (!message) {
+    throw new AppError("존재하지 않는 메시지입니다.", 404, "NotFound");
+  }
+
+  if (message.receiver_id !== currentUserId) {
+    throw new AppError("해당 메시지에 접근할 수 없습니다.", 403, "Forbidden");
+  }
+
+  if (!message.is_read) {
+    await this.messageRepository.markAsRead(message_id);
+  }
+
+  return {
+    message: "메시지가 읽음 처리되었습니다.",
+    statusCode: 200,
+  };
+}
+
 async deleteMessage(message_id: number, currentUserId: number) {
   const message = await this.messageRepository.findById(message_id);
 

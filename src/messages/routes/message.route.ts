@@ -8,6 +8,7 @@ const messageController = Container.get(MessageController);
 
 router.get('/', authenticateJwt, messageController.getReceivedMessages); 
 router.get("/:message_id", authenticateJwt, messageController.getMessageById);
+router.patch('/:message_id/read', authenticateJwt, messageController.markAsRead);
 router.patch("/:message_id/delete", authenticateJwt, messageController.deleteMessage);
 
 export default router;
