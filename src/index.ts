@@ -32,13 +32,26 @@ app.use(responseHandler);
 app.use(express.json());
 
 // CORS 설정
-const allowedOrigins = ['https://promptplace-develop.vercel.app'];
+const allowedOrigins = [
+  'https://www.promptplace.kr', 
+  'http://localhost:5173',      
+  'https://promptplace-develop.vercel.app' 
+];
 
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true, // 세션 쿠키 등 인증 정보 주고받을 경우 true
+  origin: function (origin, callback) {
+    // origin이 undefined일 수 있으므로 체크 필요
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
 }));
 
+// Preflight 요청에 대한 응답을 보장
+app.options('*', cors());
 
 // Session 설정 (OAuth용)
 app.use(
