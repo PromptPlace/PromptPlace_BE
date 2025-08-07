@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createFollowNotification = exports.createAnnouncementNotification = exports.createReportNotification = exports.createNotificationService = exports.createSubscriptionService = void 0;
+exports.findUserNotificationsService = exports.createPromptNotification = exports.createInquiryNotification = exports.createFollowNotification = exports.createAnnouncementNotification = exports.createReportNotification = exports.createNotificationService = exports.createSubscriptionService = void 0;
 const notification_dto_1 = require("../dtos/notification.dto");
 const notification_repository_1 = require("../repositories/notification.repository");
 const client_1 = require("@prisma/client");
@@ -79,12 +79,55 @@ const createFollowNotification = (followerId, followingId) => __awaiter(void 0, 
         throw new Error('팔로워 정보를 찾을 수 없습니다.');
     }
     const followerNickname = user.nickname;
+    // 팔로워 알림 정보를 알림db에 저장
     yield (0, exports.createNotificationService)({
         userId: followingId,
         type: client_1.NotificationType.FOLLOW,
-        content: `'${followerNickname}'님이 회원님을 팔로우합니다.`,
+        content: `‘${followerNickname}’님이 회원님을 팔로우합니다.`,
         linkUrl: `/profile/${followerId}`,
         actorId: followerId,
     });
 });
 exports.createFollowNotification = createFollowNotification;
+// 새로운 문의 등록 알림
+const createInquiryNotification = (receiverId, senderId) => __awaiter(void 0, void 0, void 0, function* () {
+    yield (0, exports.createNotificationService)({
+        userId: receiverId,
+        type: client_1.NotificationType.INQUIRY_REPLY,
+        content: '프롬프트에 새로운 문의가 도착했습니다.',
+        linkUrl: `/inquiries/${receiverId}`,
+        actorId: senderId,
+    });
+});
+exports.createInquiryNotification = createInquiryNotification;
+// 새로운 프롬프트 업로드 알림
+const createPromptNotification = (prompterId) => __awaiter(void 0, void 0, void 0, function* () {
+    // 프롬프터를 알림설정한 사용자 아이디 목록 추출
+    const subscribedUserIds = yield (0, notification_repository_1.findUsersSubscribedToPrompter)(prompterId);
+    // 프롬프터 Id로 프롬프터 닉네임 조회
+    const prompter = yield (0, notification_repository_1.findUserByUserId)(prompterId);
+    if (!prompter) {
+        throw new Error('프롬프터 정보를 찾을 수 없습니다.');
+    }
+    const prompterNickname = prompter.nickname;
+    yield Promise.all(subscribedUserIds.map((userId) => (0, exports.createNotificationService)({
+        userId,
+        type: client_1.NotificationType.NEW_PROMPT,
+        content: `‘${prompterNickname}’님이 새 프롬프트를 업로드하셨습니다.`,
+        linkUrl: `/profile/${prompterId}`,
+        actorId: prompterId,
+    })));
+});
+exports.createPromptNotification = createPromptNotification;
+// 알림 목록 조회
+const findUserNotificationsService = (userId, rawCursor, rawLimit) => __awaiter(void 0, void 0, void 0, function* () {
+    const cursor = rawCursor ? parseInt(rawCursor, 10) : undefined;
+    const limit = rawLimit ? parseInt(rawLimit, 10) : 10;
+    if (cursor !== undefined && isNaN(cursor))
+        throw new Error('cursor값이 적절하지 않습니다');
+    if (isNaN(limit))
+        throw new Error('limit값이 적절하지 않습니다');
+    const rawNotifications = yield (0, notification_repository_1.findNotificationsByUserId)(userId, cursor, limit);
+    return (0, notification_dto_1.UserNotificationListDTO)(rawNotifications, limit);
+});
+exports.findUserNotificationsService = findUserNotificationsService;

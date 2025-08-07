@@ -8,17 +8,17 @@ import {
 
 export class CompleteSignupDto {
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsString()
   @MinLength(2)
   @MaxLength(50)
-  name: string;
+  name!: string;
 
   @IsString()
   @MinLength(2)
   @MaxLength(50)
-  nickname: string;
+  nickname!: string;
 
   @IsOptional()
   @IsString()

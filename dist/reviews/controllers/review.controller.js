@@ -181,7 +181,6 @@ const getReviewsWrittenByMe = (req, res) => __awaiter(void 0, void 0, void 0, fu
         res.success(Object.assign({ statusCode: 200, message: '내가 작성한 리뷰 목록을 성공적으로 불러왔습니다.' }, reviews));
     }
     catch (err) {
-        console.error(err);
         res.fail({
             error: err.name || 'InternalServerError',
             message: err.message || '내가 작성한 리뷰 목록을 불러오는 중 오류가 발생했습니다.',

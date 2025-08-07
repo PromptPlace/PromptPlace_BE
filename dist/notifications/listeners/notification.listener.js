@@ -41,3 +41,21 @@ eventBus_1.default.on('follow.created', (followerId, followingId) => __awaiter(v
         console.error("[알림 리스너 오류]: 새로운 팔로워 알림 생성 실패", err);
     }
 }));
+// 새로운 문의 등록 알림 리스너
+eventBus_1.default.on('inquiry.created', (receiverId, senderId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield (0, notification_service_1.createInquiryNotification)(receiverId, senderId);
+    }
+    catch (err) {
+        console.error("[알림 리스너 오류]: 새로운 문의 알림 생성 실패", err);
+    }
+}));
+// 새로운 프롬프트 업로드 알림 리스너
+eventBus_1.default.on('prompt.created', (prompterId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield (0, notification_service_1.createPromptNotification)(prompterId);
+    }
+    catch (err) {
+        console.error("[알림 리스너 오류]: 새로운 프롬프트 업로드 알림 생성 실패", err);
+    }
+}));
