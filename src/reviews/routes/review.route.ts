@@ -24,6 +24,19 @@ const router = express.Router();
  * /api/reviews/me:
  *   get:
  *     summary: 내가 작성한 리뷰 목록 조회
+ *     description: |
+ *       ### API 설명
+ *       
+ *       - 커서 기반 페이지네이션(cursor-based-pagination) 사용  
+ *       - `cursor`는 이전 요청에서 받은 마지막 리뷰의 ID를 의미하며, 이를 기준으로 이후 데이터를 조회  
+ *       - 첫 요청 시에는 `cursor`를 생략하여 최신 리뷰부터 조회  
+ *       - `has_more` 속성으로 더 불러올 데이터가 있는지 미리 확인 가능
+ *       
+ *       ### Query String
+ *       | 항목     | 설명                                      | 예시                         | 필수 여부                |
+ *       |----------|-------------------------------------------|------------------------------|--------------------------|
+ *       | cursor   | 마지막으로 조회된 리뷰 ID (처음 요청 시 생략 가능) | `cursor=70`<br>(예: id=80~70까지 받았으면 다음 요청에 cursor=70) | ❌ (첫 요청 시 생략 가능) |
+ *       | limit    | 가져올 리뷰 수                              | `limit=7`                    | ❌ (기본값: 10)           |
  *     tags: [Reviews]
  *     security:
  *       - jwt: []
@@ -32,15 +45,46 @@ const router = express.Router();
  *         name: cursor
  *         schema:
  *           type: integer
- *         description: 페이지네이션 커서
+ *         description: 마지막으로 조회된 리뷰 ID (커서 기반 페이지네이션)
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
- *         description: 조회할 개수
+ *           default: 10
+ *         description: 가져올 리뷰 수
  *     responses:
  *       200:
- *         description: 내가 작성한 리뷰 목록 조회 성공
+ *         description: 내가 작성한 리뷰 목록을 성공적으로 불러왔습니다.
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: 내가 작성한 리뷰 목록을 성공적으로 불러왔습니다.
+ *               data:
+ *                 statusCode: 200
+ *                 reviews:
+ *                   - review_id: 10
+ *                     prompt_id: 5
+ *                     prompt_title: 프롬프트 3
+ *                     rating: 4.5
+ *                     content: 너무 유용했어요!
+ *                     created_at: "2025-07-25T04:39:21.000Z"
+ *                     updated_at: "2025-07-25T07:32:34.821Z"
+ *                   - review_id: 7
+ *                     prompt_id: 5
+ *                     prompt_title: 프롬프트 3
+ *                     rating: 3.5
+ *                     content: 좋긴 한데 약간 아쉬운 부분도 있었어요.
+ *                     created_at: "2025-07-23T13:19:06.000Z"
+ *                     updated_at: "2025-07-23T13:19:06.000Z"
+ *                   - review_id: 6
+ *                     prompt_id: 5
+ *                     prompt_title: 프롬프트 3
+ *                     rating: 4.5
+ *                     content: 이 프롬프트는 정말 유용했어요!
+ *                     created_at: "2025-07-23T13:19:06.000Z"
+ *                     updated_at: "2025-07-23T13:19:06.000Z"
+ *                 has_more: false
+ *               statusCode: 200
  */
 router.get('/me', authenticateJwt, getReviewsWrittenByMe); // 내가 작성한 리뷰 목록 조회
 
@@ -63,7 +107,7 @@ router.get('/me', authenticateJwt, getReviewsWrittenByMe); // 내가 작성한 �
  *           type: integer
  *     responses:
  *       200:
- *         description: 내가 받은 리뷰 목록 조회 성공
+ *         description: 내가 받은 리뷰 목록을 성공적으로 불러왔습니다.
  */
 router.get('/received-reviews/me', authenticateJwt, getMyReceivedReviews); // 내가 받은 리뷰 목록 조회
 
@@ -94,7 +138,7 @@ router.get('/received-reviews/me', authenticateJwt, getMyReceivedReviews); // �
  *         description: 조회할 개수
  *     responses:
  *       200:
- *         description: 리뷰 목록 조회 성공
+ *         description: 특정 프롬프트 리뷰 목록을 성공적으로 불러왔습니다.
  */
 router.get('/:promptId', authenticateJwt, getReviewsByPromptId); // 특정 프롬프트 리뷰 목록 조회
 
@@ -131,7 +175,7 @@ router.get('/:promptId', authenticateJwt, getReviewsByPromptId); // 특정 프�
  *                 type: string
  *     responses:
  *       201:
- *         description: 리뷰 작성 성공
+ *         description: 리뷰가 성공적으로 등록되었습니다.
  */
 router.post('/:promptId', authenticateJwt, postReview); // 특정 프롬프트에 대한 리뷰 작성
 
@@ -142,7 +186,6 @@ router.post('/:promptId', authenticateJwt, postReview); // 특정 프롬프트�
  *     summary: 리뷰 삭제
  *     tags: [Reviews]
  *     security:
- *       - jwt: []
  *     parameters:
  *       - in: path
  *         name: reviewId
@@ -152,7 +195,7 @@ router.post('/:promptId', authenticateJwt, postReview); // 특정 프롬프트�
  *         description: 삭제할 리뷰 ID
  *     responses:
  *       200:
- *         description: 리뷰 삭제 성공
+ *         description: 리뷰가 성공적으로 삭제되었습니다.
  */
 router.delete('/:reviewId', authenticateJwt, deleteReview); // 리뷰 삭제
 
@@ -172,7 +215,7 @@ router.delete('/:reviewId', authenticateJwt, deleteReview); // 리뷰 삭제
  *           type: integer
  *     responses:
  *       200:
- *         description: 리뷰 수정 화면 데이터 조회 성공
+ *         description: 리뷰 수정 화면 데이터를 성공적으로 불러왔습니다.
  */
 router.get('/:reviewId/edit', authenticateJwt, getReviewEditData);
 
@@ -209,7 +252,7 @@ router.get('/:reviewId/edit', authenticateJwt, getReviewEditData);
  *                 type: string
  *     responses:
  *       200:
- *         description: 리뷰 수정 성공
+ *         description: 리뷰가 성공적으로 수정되었습니다.
  */
 router.patch('/:reviewId', authenticateJwt, editReview);
 
