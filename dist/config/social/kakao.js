@@ -17,6 +17,10 @@ const passport_1 = __importDefault(require("passport"));
 const passport_kakao_1 = require("passport-kakao");
 const prisma_1 = __importDefault(require("../prisma"));
 function configureKakaoStrategy() {
+    // 환경 변수 값 로그 찍기
+    console.log('KAKAO_CLIENT_ID:', process.env.KAKAO_CLIENT_ID);
+    console.log('KAKAO_CLIENT_SECRET:', process.env.KAKAO_CLIENT_SECRET);
+    console.log('KAKAO_CALLBACK_URL:', process.env.KAKAO_CALLBACK_URL);
     passport_1.default.use(new passport_kakao_1.Strategy({
         clientID: process.env.KAKAO_CLIENT_ID,
         clientSecret: process.env.KAKAO_CLIENT_SECRET,
