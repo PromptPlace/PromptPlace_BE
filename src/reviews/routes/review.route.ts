@@ -18,7 +18,6 @@ const router = express.Router();
  *   name: Reviews
  *   description: 프롬프트 리뷰 관련 API
  */
-
 /**
  * @swagger
  * /api/reviews/me:
@@ -33,10 +32,17 @@ const router = express.Router();
  *       - `has_more` 속성으로 더 불러올 데이터가 있는지 미리 확인 가능
  *       
  *       ### Query String
- *       | 항목     | 설명                                      | 예시                         | 필수 여부                |
- *       |----------|-------------------------------------------|------------------------------|--------------------------|
- *       | cursor   | 마지막으로 조회된 리뷰 ID (처음 요청 시 생략 가능) | `cursor=70`<br>(예: id=80~70까지 받았으면 다음 요청에 cursor=70) | ❌ (첫 요청 시 생략 가능) |
- *       | limit    | 가져올 리뷰 수                              | `limit=7`                    | ❌ (기본값: 10)           |
+ *       | 항목    | 설명                                         | 예시                             | 필수 여부                  |
+ *       |---------|----------------------------------------------|----------------------------------|----------------------------|
+ *       | cursor  | 마지막으로 조회된 리뷰 ID (처음 요청 시 생략 가능) | `cursor=70`<br>(예: id=80~70이면 cursor=70) | ❌ (처음 요청 시 생략 가능) |
+ *       | limit   | 가져올 리뷰 수                                 | `limit=7`                        | ❌ (기본값: 10)             |
+ *       
+ *       ### Header
+ *       ```json
+ *       {
+ *         "Authorization": "Bearer {access_token}"
+ *       }
+ *       ```
  *     tags: [Reviews]
  *     security:
  *       - jwt: []
@@ -86,8 +92,8 @@ const router = express.Router();
  *                 has_more: false
  *               statusCode: 200
  */
-router.get('/me', authenticateJwt, getReviewsWrittenByMe); // 내가 작성한 리뷰 목록 조회
 
+router.get('/me', authenticateJwt, getReviewsWrittenByMe); // 내가 작성한 리뷰 목록 조회
 /**
  * @swagger
  * /api/reviews/received-reviews/me:
@@ -102,10 +108,17 @@ router.get('/me', authenticateJwt, getReviewsWrittenByMe); // 내가 작성한 �
  *       - `has_more` 속성으로 더 불러올 데이터가 있는지 미리 확인 가능
  *       
  *       ### Query String
- *       | 항목     | 설명                                      | 예시                         | 필수 여부                |
- *       |----------|-------------------------------------------|------------------------------|--------------------------|
- *       | cursor   | 마지막으로 조회된 리뷰 ID (처음 요청 시 생략 가능) | `cursor=70`<br>(예: id=80~70까지 받았으면 다음 요청에 cursor=70) | ❌ (첫 요청 시 생략 가능) |
- *       | limit    | 가져올 리뷰 수                              | `limit=7`                    | ❌ (기본값: 10)           |
+ *       | 항목    | 설명                                         | 예시                             | 필수 여부                  |
+ *       |---------|----------------------------------------------|----------------------------------|----------------------------|
+ *       | cursor  | 마지막으로 조회된 리뷰 ID (처음 요청 시 생략 가능) | `cursor=70`<br>(예: id=80~70이면 cursor=70) | ❌ (처음 요청 시 생략 가능) |
+ *       | limit   | 가져올 리뷰 수                                 | `limit=7`                        | ❌ (기본값: 10)             |
+ *       
+ *       ### Header
+ *       ```json
+ *       {
+ *         "Authorization": "Bearer {access_token}"
+ *       }
+ *       ```
  *     tags: [Reviews]
  *     security:
  *       - jwt: []
@@ -202,44 +215,18 @@ router.get('/received-reviews/me', authenticateJwt, getMyReceivedReviews); // �
  *       ### Query String
  *       | 항목     | 설명                                      | 예시                         | 필수 여부                |
  *       |----------|-------------------------------------------|------------------------------|--------------------------|
- *       | cursor   | 마지막으로 조회된 아이디 (처음 요청 시 생략 가능) | `cursor=70`<br>(예: id=80~70까지 받았으면 다음 요청에 cursor=70) | ❌ (첫 요청 시 생략 가능) |
+ *       | cursor   | 마지막으로 조회된 리뷰 ID (처음 요청 시 생략 가능) | `cursor=70`<br>(예: id=80~70까지 받았으면 다음 요청에 cursor=70) | ❌ (첫 요청 시 생략 가능) |
  *       | limit    | 가져올 리뷰 수                              | `limit=7`                    | ❌ (기본값: 10)           |
+ *       
+ *       ### Path Variable
+ *       | 항목       | 설명             | 예시        | 필수 여부 |
+ *       |------------|------------------|-------------|-----------|
+ *       | promptId   | 프롬프트 ID       | `42`        | ✅        |
  *       
  *       ### Header
  *       ```json
  *       {
  *         "Authorization": "Bearer {access_token}"
- *       }
- *       ```
- *       
- *       ### Response
- *       ```json
- *       {
- *         "message": "프롬프트 리뷰 목록을 성공적으로 불러왔습니다.",
- *         "data": {
- *           "has_more": false,
- *           "reviews": [
- *             {
- *               "review_id": 60,
- *               "writer_id": 10,
- *               "writer_nickname": "남아린",
- *               "writer_image_url": "uploads/sample_user10.jpg",
- *               "rating": 4.5,
- *               "content": "너무 유용했어요!",
- *               "created_at": "2025-07-27T12:32:45.789Z"
- *             },
- *             {
- *               "review_id": 59,
- *               "writer_id": 10,
- *               "writer_nickname": "남아린",
- *               "writer_image_url": "uploads/sample_user10.jpg",
- *               "rating": 4.5,
- *               "content": "너무 유용했어요!",
- *               "created_at": "2025-07-27T12:31:05.849Z"
- *             }
- *           ]
- *         },
- *         "statusCode": 200
  *       }
  *       ```
  *     tags: [Reviews]
@@ -271,7 +258,6 @@ router.get('/received-reviews/me', authenticateJwt, getMyReceivedReviews); // �
  *             example:
  *               message: 프롬프트 리뷰 목록을 성공적으로 불러왔습니다.
  *               data:
- *                 has_more: false
  *                 reviews:
  *                   - review_id: 60
  *                     writer_id: 10
@@ -287,51 +273,38 @@ router.get('/received-reviews/me', authenticateJwt, getMyReceivedReviews); // �
  *                     rating: 4.5
  *                     content: 너무 유용했어요!
  *                     created_at: "2025-07-27T12:31:05.849Z"
+ *                 has_more: false
  *               statusCode: 200
  */
 
 router.get('/:promptId', authenticateJwt, getReviewsByPromptId); // 특정 프롬프트 리뷰 목록 조회
-
 /**
  * @swagger
  * /api/reviews/{promptId}:
  *   post:
  *     summary: 특정 프롬프트에 리뷰 작성
  *     description: |
- *       ### 리뷰 작성 API
+ *       ### API 설명
  *       
- *       특정 프롬프트에 리뷰를 작성합니다.  
- *       `Authorization` 헤더로 로그인된 사용자만 요청할 수 있으며,  
- *       요청 바디에 리뷰 내용(`content`)과 평점(`rating`)을 포함해야 합니다.
+ *       - 특정 프롬프트에 리뷰를 작성합니다.  
+ *       - 로그인한 사용자만 요청 가능하며, `Authorization` 헤더를 포함해야 합니다.  
+ *       - 요청 바디에는 리뷰 내용(`content`)과 평점(`rating`)이 포함되어야 합니다.
+ *       
+ *       ### Path Variable
+ *       | 항목       | 설명                 | 예시   | 필수 여부 |
+ *       |------------|----------------------|--------|-----------|
+ *       | promptId   | 리뷰 작성 대상 프롬프트 ID | `5`    | ✅        |
+ *       
+ *       ### Request Body
+ *       | 항목     | 설명       | 예시           | 필수 여부 |
+ *       |----------|------------|----------------|-----------|
+ *       | content  | 리뷰 내용   | 너무 유용했어요! | ✅        |
+ *       | rating   | 평점 (0~5) | 4.5            | ✅        |
  *       
  *       ### Header
  *       ```json
  *       {
  *         "Authorization": "Bearer {access_token}"
- *       }
- *       ```
- *       
- *       ### Request
- *       ```json
- *       {
- *         "content": "너무 유용했어요!",
- *         "rating": 4.5
- *       }
- *       ```
- *       
- *       ### Response
- *       ```json
- *       {
- *         "message": "리뷰가 성공적으로 등록되었습니다.",
- *         "data": {
- *           "review_id": 63,
- *           "writer_id": 10,
- *           "prompt_id": 5,
- *           "rating": 4.5,
- *           "content": "너무 유용했어요!",
- *           "createdAt": "2025-08-07T09:20:09.967Z"
- *         },
- *         "statusCode": 200
  *       }
  *       ```
  *     tags: [Reviews]
@@ -356,13 +329,13 @@ router.get('/:promptId', authenticateJwt, getReviewsByPromptId); // 특정 프�
  *             properties:
  *               content:
  *                 type: string
- *                 example: 너무 유용했어요!
  *                 description: 리뷰 내용
+ *                 example: 너무 유용했어요!
  *               rating:
  *                 type: number
  *                 format: float
- *                 example: 4.5
  *                 description: 평점 (0.0 ~ 5.0)
+ *                 example: 4.5
  *     responses:
  *       200:
  *         description: 리뷰가 성공적으로 등록되었습니다.
@@ -376,9 +349,10 @@ router.get('/:promptId', authenticateJwt, getReviewsByPromptId); // 특정 프�
  *                 prompt_id: 5
  *                 rating: 4.5
  *                 content: 너무 유용했어요!
- *                 createdAt: "2025-08-07T09:20:09.967Z"
+ *                 created_at: "2025-08-07T09:20:09.967Z"
  *               statusCode: 200
  */
+
 
 router.post('/:promptId', authenticateJwt, postReview); // 특정 프롬프트에 대한 리뷰 작성
 
@@ -388,33 +362,21 @@ router.post('/:promptId', authenticateJwt, postReview); // 특정 프롬프트�
  *   delete:
  *     summary: 특정 리뷰 삭제
  *     description: |
- *       ### 리뷰 삭제 API
+ *       ### API 설명
  *       
- *       본인이 작성한 리뷰를 삭제합니다.  
- *       리뷰 작성일로부터 **30일이 지난 경우 삭제할 수 없습니다.**
+ *       - 작성자가 본인의 리뷰를 삭제할 수 있는 API입니다.  
+ *       - 리뷰 작성일로부터 **30일 이내**인 경우에만 삭제가 가능합니다.  
+ *       - `Authorization` 헤더를 포함한 로그인된 사용자만 접근할 수 있습니다.
+ *       
+ *       ### Path Variable
+ *       | 항목      | 설명                | 예시   | 필수 여부 |
+ *       |-----------|---------------------|--------|-----------|
+ *       | reviewId  | 삭제할 리뷰 ID        | `63`   | ✅        |
  *       
  *       ### Header
  *       ```json
  *       {
  *         "Authorization": "Bearer {access_token}"
- *       }
- *       ```
- *       
- *       ### Response (성공)
- *       ```json
- *       {
- *         "message": "리뷰가 성공적으로 삭제되었습니다.",
- *         "data": {},
- *         "statusCode": 200
- *       }
- *       ```
- *       
- *       ### Response (30일 초과 시 삭제 불가)
- *       ```json
- *       {
- *         "error": "Forbidden",
- *         "message": "리뷰 작성일로부터 30일이 지나 삭제할 수 없습니다.",
- *         "statusCode": 403
  *       }
  *       ```
  *     tags: [Reviews]
@@ -426,7 +388,7 @@ router.post('/:promptId', authenticateJwt, postReview); // 특정 프롬프트�
  *         required: true
  *         schema:
  *           type: integer
- *         description: 삭제할 리뷰의 ID
+ *         description: 삭제할 리뷰 ID
  *     responses:
  *       200:
  *         description: 리뷰가 성공적으로 삭제되었습니다.
@@ -446,41 +408,30 @@ router.post('/:promptId', authenticateJwt, postReview); // 특정 프롬프트�
  *               statusCode: 403
  */
 
-router.delete('/:reviewId', authenticateJwt, deleteReview); // 리뷰 삭제
 
+
+router.delete('/:reviewId', authenticateJwt, deleteReview); // 리뷰 삭제
 /**
  * @swagger
  * /api/reviews/{reviewId}/edit:
  *   get:
  *     summary: 리뷰 수정 화면 데이터 조회
  *     description: |
- *       ### 리뷰 수정 화면용 데이터 조회 API
+ *       ### API 설명
  *       
- *       프롬프트, 모델, 작성자 정보와 기존 리뷰 내용을 불러옵니다.  
- *       수정 폼에 사전 채워 넣기 위한 데이터를 제공합니다.
+ *       - 해당 리뷰의 수정 화면에 필요한 정보를 조회하는 API입니다.  
+ *       - 프롬프트 정보, 모델 정보, 작성자 정보 및 기존 리뷰 내용을 포함합니다.  
+ *       - 로그인한 사용자만 접근할 수 있으며, `Authorization` 헤더가 필요합니다.
+ *       
+ *       ### Path Variable
+ *       | 항목      | 설명             | 예시   | 필수 여부 |
+ *       |-----------|------------------|--------|-----------|
+ *       | reviewId  | 수정할 리뷰 ID     | `63`   | ✅        |
  *       
  *       ### Header
  *       ```json
  *       {
  *         "Authorization": "Bearer {access_token}"
- *       }
- *       ```
- *       
- *       ### Response
- *       ```json
- *       {
- *         "message": "리뷰 수정 화면 데이터를 성공적으로 불러왔습니다.",
- *         "data": {
- *           "prompter_id": 3,
- *           "prompter_nickname": "닉네임3",
- *           "prompt_id": 5,
- *           "prompt_title": "프롬프트 3",
- *           "model_id": 3,
- *           "model_name": "모델 이름 3",
- *           "rating_avg": "4.0",
- *           "content": "너무 유용했어요!"
- *         },
- *         "statusCode": 200
  *       }
  *       ```
  *     tags: [Reviews]
@@ -513,47 +464,33 @@ router.delete('/:reviewId', authenticateJwt, deleteReview); // 리뷰 삭제
  */
 
 router.get('/:reviewId/edit', authenticateJwt, getReviewEditData);
-
 /**
  * @swagger
  * /api/reviews/{reviewId}:
  *   patch:
  *     summary: 특정 리뷰 수정
  *     description: |
- *       ### 리뷰 수정 API
+ *       ### API 설명
  *       
- *       작성한 리뷰의 내용을 수정합니다.  
- *       `rating`과 `content`를 함께 또는 각각 수정할 수 있으며,  
- *       **30일 이내의 리뷰만 수정이 가능합니다.**
+ *       - 사용자가 본인의 리뷰를 수정할 수 있는 API입니다.  
+ *       - 리뷰 내용(`content`)과 평점(`rating`)을 모두 전달해야 합니다.  
+ *       - `Authorization` 헤더를 포함한 로그인 사용자만 접근할 수 있습니다.
+ *       
+ *       ### Path Variable
+ *       | 항목      | 설명             | 예시   | 필수 여부 |
+ *       |-----------|------------------|--------|-----------|
+ *       | reviewId  | 수정할 리뷰 ID     | `59`   | ✅        |
+ *       
+ *       ### Request Body
+ *       | 항목     | 설명       | 예시                 | 필수 여부 |
+ *       |----------|------------|----------------------|-----------|
+ *       | rating   | 평점 (0~5) | `4.5`                | ✅        |
+ *       | content  | 리뷰 내용   | 수정된 전체 내용입니다. | ✅        |
  *       
  *       ### Header
  *       ```json
  *       {
  *         "Authorization": "Bearer {access_token}"
- *       }
- *       ```
- *       
- *       ### Request
- *       ```json
- *       {
- *         "rating": 4.5,
- *         "content": "수정된 전체 내용입니다."
- *       }
- *       ```
- *       
- *       ### Response
- *       ```json
- *       {
- *         "message": "리뷰가 성공적으로 수정되었습니다.",
- *         "data": {
- *           "review_id": 59,
- *           "prompt_id": 10,
- *           "writer_name": "남아린",
- *           "rating": 4.5,
- *           "content": "수정된 전체 내용입니다.",
- *           "updated_at": "2025-08-07T09:16:14.838Z"
- *         },
- *         "statusCode": 200
  *       }
  *       ```
  *     tags: [Reviews]
@@ -565,23 +502,26 @@ router.get('/:reviewId/edit', authenticateJwt, getReviewEditData);
  *         required: true
  *         schema:
  *           type: integer
- *         description: 수정할 리뷰의 ID
+ *         description: 수정할 리뷰 ID
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - rating
+ *               - content
  *             properties:
  *               rating:
  *                 type: number
  *                 format: float
  *                 example: 4.5
- *                 description: 수정할 평점
+ *                 description: 평점 (0.0 ~ 5.0)
  *               content:
  *                 type: string
  *                 example: 수정된 전체 내용입니다.
- *                 description: 수정할 리뷰 내용
+ *                 description: 리뷰 내용
  *     responses:
  *       200:
  *         description: 리뷰가 성공적으로 수정되었습니다.
