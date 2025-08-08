@@ -95,19 +95,17 @@ export const toReportedPromptResponse = (
     prompt: { title: string };
     reporter: { nickname: string; email: string };
   }
-): { report: ReportedPromptDetailDTO } => {
+): ReportedPromptDetailDTO => {
   return {
-    report: {
-      report_id: report.report_id,
-      prompt_id: report.prompt_id,
-      prompt_title: report.prompt.title,
-      reporter_id: report.reporter_id,
-      reporter_nickname: report.reporter.nickname,
-      reporter_email: report.reporter.email,
-      prompt_type: report.report_type,
-      description: report.description,
-      created_at: report.created_at.toISOString(),
-      isRead: report.is_read
-    }
+    report_id: report.report_id,
+    prompt_id: report.prompt_id,
+    prompt_title: report.prompt.title,
+    reporter_id: report.reporter_id,
+    reporter_nickname: report.reporter.nickname,
+    reporter_email: report.reporter.email,
+    prompt_type: report.report_type,
+    description: report.description,
+    created_at: report.created_at.toISOString(),
+    isRead: report.is_read
   };
 };

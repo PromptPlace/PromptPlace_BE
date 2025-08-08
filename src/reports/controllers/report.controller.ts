@@ -28,9 +28,10 @@ export const postReport = async (
       req.body.description
     );
 
-    res.success({
-      ...result,
-    });
+    res.success(
+      {...result},
+      "프롬프트 신고가 성공적으로 접수되었습니다."
+  );
   } catch (err: any) {
     console.error(err);
     res.fail({
@@ -68,9 +69,10 @@ export const getReportedPrompts = async (
       cursor,
       limit
     );
-    res.success({
-      ...reportedPrompts,
-    });
+    res.success(
+      {...reportedPrompts},
+      "신고된 프롬프트 목록을 성공적으로 불러왔습니다."
+    );
   } catch (err: any) {
     console.error(err);
     res.fail({
@@ -107,9 +109,11 @@ export const getReportedPromptById = async (
       reportId
     );
 
-    res.success({
-      ...reportedPrompt,
-    });
+    res.success(
+      {...reportedPrompt},
+      "프롬프트 신고 상세 정보를 성공적으로 불러왔습니다."
+
+    );
   } catch (err: any) {
     console.error(err);
     res.fail({
