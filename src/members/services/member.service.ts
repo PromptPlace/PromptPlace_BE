@@ -216,14 +216,6 @@ export class MemberService {
   }
 
   async getHistories(requesterId: number, memberId: number) {
-    if (requesterId !== memberId) {
-      throw new AppError(
-        "해당 회원의 이력을 조회할 권한이 없습니다.",
-        403,
-        "Forbidden"
-      );
-    }
-
     const user = await this.memberRepository.findUserById(memberId);
     if (!user) {
       throw new AppError("해당 회원을 찾을 수 없습니다.", 404, "NotFound");
