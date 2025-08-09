@@ -221,49 +221,7 @@ export class MemberService {
       throw new AppError("해당 회원을 찾을 수 없습니다.", 404, "NotFound");
     }
 
-    const purchases = await this.memberRepository.findPurchasesByUserId(
-      memberId
-    );
-    const uploads = await this.memberRepository.findPromptsByUserId(memberId);
-    const withdrawals = await this.memberRepository.findWithdrawalsByUserId(
-      memberId
-    );
-
-    const purchaseHistories = purchases.map((p) => ({
-      type: "PROMPT_PURCHASE",
-      title: `${p.prompt.title} 구매`,
-      description: p.prompt.description,
-      amount: p.amount,
-      created_at: p.created_at,
-    }));
-
-    const uploadHistories = uploads.map((p) => ({
-      type: "PROMPT_UPLOAD",
-      title: `${p.title} 업로드`,
-      description: p.description,
-      amount: 0,
-      created_at: p.created_at,
-    }));
-
-    const withdrawalHistories = withdrawals.map((w) => ({
-      type: "WITHDRAWAL",
-      title: "수익 출금 요청",
-      description: "프롬프트 판매 수익 출금",
-      amount: w.amount,
-      created_at: w.created_at,
-    }));
-
-    const allHistories = [
-      ...purchaseHistories,
-      ...uploadHistories,
-      ...withdrawalHistories,
-    ];
-
-    allHistories.sort(
-      (a, b) => b.created_at.getTime() - a.created_at.getTime()
-    );
-
-    return allHistories;
+    return await this.memberRepository.findHistoriesByUserId(memberId);
   }
 
   async createSns(userId: number, createSnsDto: CreateSnsDto) {
