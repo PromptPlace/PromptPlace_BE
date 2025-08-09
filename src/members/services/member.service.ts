@@ -9,7 +9,7 @@ import { CreateHistoryDto } from "../dtos/create-history.dto";
 import { UpdateHistoryDto } from "../dtos/update-history.dto";
 import { CreateSnsDto } from "../dtos/create-sns.dto";
 import { UpdateSnsDto } from "../dtos/update-sns.dto";
-import eventBus from '../../config/eventBus';
+import eventBus from "../../config/eventBus";
 @Service()
 export class MemberService {
   constructor(private memberRepository: MemberRepository) {}
@@ -101,14 +101,6 @@ export class MemberService {
   }
 
   async getMemberById(requesterId: number, memberId: number) {
-    if (requesterId !== memberId) {
-      throw new AppError(
-        "해당 회원 정보에 접근할 권한이 없습니다.",
-        403,
-        "Forbidden"
-      );
-    }
-
     const member = await this.memberRepository.findUserWithIntroById(memberId);
 
     if (!member) {
@@ -216,7 +208,7 @@ export class MemberService {
       throw new AppError(
         "해당 이력을 삭제할 권한이 없습니다.",
         403,
-        "Forbidden",
+        "Forbidden"
       );
     }
 
@@ -224,14 +216,6 @@ export class MemberService {
   }
 
   async getHistories(requesterId: number, memberId: number) {
-    if (requesterId !== memberId) {
-      throw new AppError(
-        "해당 회원의 이력을 조회할 권한이 없습니다.",
-        403,
-        "Forbidden"
-      );
-    }
-
     const user = await this.memberRepository.findUserById(memberId);
     if (!user) {
       throw new AppError("해당 회원을 찾을 수 없습니다.", 404, "NotFound");
@@ -361,7 +345,10 @@ export class MemberService {
     }
 
     // 팔로우 생성
-    const follow = await this.memberRepository.createFollow(followerId, followingId);
+    const follow = await this.memberRepository.createFollow(
+      followerId,
+      followingId
+    );
 
     // 팔로우 알림 이벤트 발생
     eventBus.emit("follow.created", followerId, followingId);
