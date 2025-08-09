@@ -31,14 +31,16 @@ import {
 
     if(result.subscribed === true){
         res.success({
-            message: '해당 프롬프터 알림을 등록했습니다.',
             ...result,
-        });
+        }, 
+        "프롬프터 알림이 성공적으로 등록되었습니다."
+      );
     } else {
         res.success({
-            message: '해당 프롬프터 알림을 취소했습니다.',
             ...result,
-        });
+        },
+        "해당 프롬프터 알림이 성공적으로 취소되었습니다."
+      );
     }
   } catch (err: any) {
     console.error(err);
@@ -72,7 +74,9 @@ export const getNotificationList = async (
     
     res.success({
       ...notifications
-    })
+    },
+     "내 알림 목록을 성공적으로 불러왔습니다."
+  )
   } catch (err: any){
     res.fail({
       error: err.name || 'InternalServerError',

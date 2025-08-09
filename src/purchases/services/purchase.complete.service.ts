@@ -26,23 +26,22 @@ export const PurchaseCompleteService = {
     const seller_id = prompt.user_id;
 
     // 3. 결제 정보 저장
-    const payment = await PurchaseRepository.createPayment({
-      merchant_uid,
-      pg: pg_provider,
-      status: 'Succeed',
-      paid_at: new Date(paid_at),
-      raw_data: paymentData,
-    });
+     const purchase = await PurchaseRepository.createPurchase({
+  user_id: userId,
+  prompt_id: prompt.prompt_id,
+  seller_id,
+  amount,
+  is_free: false,
+});
 
     // 4. 구매 기록 생성
-    const purchase = await PurchaseRepository.createPurchase({
-      user_id: userId,
-      prompt_id: prompt.prompt_id,
-      seller_id,
-      payment_id: payment.payment_id,
-      amount,
-    });
-
+    const payment = await PurchaseRepository.createPayment({
+  purchase_id: purchase.purchase_id,
+  merchant_uid,
+  pg: pg_provider,
+  status: 'Succeed',
+  iamport_uid: imp_uid,
+});
     // 5. 판매자 정산 금액 반영
     await PurchaseRepository.updateSellerSettlement(seller_id, amount);
 

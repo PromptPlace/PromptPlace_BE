@@ -18,22 +18,32 @@ export const PurchaseRepository = {
     });
   },
 
-  createPayment(data: {
-    merchant_uid: string;
-    pg: string;
-    status: 'Succeed' | 'Failed' | 'Pending';
-    paid_at: Date;
-    raw_data: any;
-  }) {
-    return prisma.payment.create({ data });
-  },
+  async createPayment(data: {
+  purchase_id: number;
+  merchant_uid: string;
+  pg: string;
+  status: 'Succeed' | 'Failed' | 'Pending';
+  iamport_uid: string;
+}) {
+  return prisma.payment.create({
+    data: {
+      purchase: {
+         connect: { purchase_id: data.purchase_id },
+       },
+      merchant_uid: data.merchant_uid,
+      provider: data.pg,
+      status: data.status,
+      iamport_uid: data.iamport_uid,
+    },
+  });
+},
 
   createPurchase(data: {
     user_id: number;
     prompt_id: number;
     seller_id: number;
-    payment_id: number;
     amount: number;
+    is_free: false;
   }) {
     return prisma.purchase.create({ data });
   },

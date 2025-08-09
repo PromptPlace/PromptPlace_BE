@@ -54,7 +54,7 @@ export const getPresignedUrl = async (key: string, contentType: string) => {
 
 /**
  * PromptImage 매핑 생성 서비스
- * @param prompt_id 프롬프트 ID
+ * @param prompt_id 프롬프트 ID 
  * @param dto { image_url, order_index }
  */
 export const createPromptImage = async (
@@ -71,7 +71,7 @@ export const createPromptWrite = async (
   const prompt = await promptRepository.createPromptWriteRepo(user_id, dto);
   
   // 새 프롬프트 업로드 알림 이벤트 발생
-  eventBus.emit("prompt.created", user_id);
+  eventBus.emit("prompt.created", user_id, prompt?.prompt_id);
   
   return prompt;
 };
