@@ -74,6 +74,15 @@ export const searchPromptRepo = async (data: SearchPromptDto) => {
   return results;
 };
 
+export const getAllPromptRepo = async () => {
+  return await prisma.prompt.findMany({
+    include: {
+      images: {
+        select: { image_url: true },
+      },
+    },
+  });
+};
 
 export const getPromptDetailRepo = async (promptId: number) => {
   const prompt = await prisma.prompt.findUnique({
