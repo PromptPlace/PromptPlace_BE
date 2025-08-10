@@ -43,7 +43,11 @@ export const PurchaseCompleteService = {
   imp_uid: imp_uid,
 });
     // 5. 판매자 정산 금액 반영
-    await PurchaseRepository.updateSellerSettlement(seller_id, amount);
+    await PurchaseRepository.upsertSettlementForPayment({sellerId: seller_id,
+    paymentId: payment.payment_id,
+    amount,
+    fee: 0,
+    status: 'Succeed'});
 
     return {
       message: '결제가 성공적으로 완료되었습니다.',
