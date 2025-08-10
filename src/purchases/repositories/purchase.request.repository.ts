@@ -66,16 +66,29 @@ export const PurchaseRepository = {
     return prisma.purchase.create({ data });
   },
 
-  updateSellerSettlement(seller_id: number, amount: number) {
-    return prisma.settlement.upsert({
-      where: { user_id: seller_id },
-      create: {
-        user_id: seller_id,
-      },
-      update: {
-        withdrawable_amount: { increment: amount },
-        total_earned: { increment: amount },
-      },
-    });
-  },
+  upsertSettlementForPayment(input: {
+  sellerId: number;
+  paymentId: number;  // Payment.payment_id (unique)
+  amount: number;     // 정산 대상 금액(원)
+  fee: number;        // 수수료(원)
+  status: 'Succeed' | 'Failed' | 'Pending';
+}) {
+  const { sellerId, paymentId, amount, fee, status } = input;
+
+  return prisma.settlement.upsert({
+    where: { payment_id: paymentId },           // Settlement.payment_id 가 unique
+    create: {
+      user_id: sellerId,                         // 다건 가능
+      payment_id: paymentId,
+      amount,
+      fee,
+      status,
+    },
+    update: {
+      amount,                                    // 필요 시 부분 업데이트만
+      fee,
+      status,
+    },
+  });
+},
 };
