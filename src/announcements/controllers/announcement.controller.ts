@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import {
   findAnnouncementList,
+  getAnnouncementService,
   createAnnouncementService,
   patchAnnouncementService,
   deleteAnnouncementService,
@@ -21,6 +22,22 @@ export const getAnnouncementList = async (
 ) => {
   try {
     const result = await findAnnouncementList(req.query.page, req.query.size);
+    return res.success({
+      data: result,
+    });
+  } catch (err: any) {
+    console.error(err);
+    return res.status(500).json({
+      error: err.name || "InternalServerError",
+      message: err.message || "공지사항 조회 중 오류가 발생했습니다.",
+      statusCode: err.statusCode || 500,
+    });
+  }
+};
+
+export const getAnnouncement = async (req: Request, res: Response) => {
+  try {
+    const result = await getAnnouncementService(req.params.announcementId);
     return res.success({
       data: result,
     });
