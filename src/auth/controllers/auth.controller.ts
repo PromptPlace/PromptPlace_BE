@@ -220,6 +220,114 @@ class AuthController {
       });
     }
   }
+
+  async kakakToken(req: Request, res: Response) {
+    try {
+      const { code } = req.body;
+
+      if (!code) {
+        return res.status(400).json({
+          error: "BadRequest",
+          message: "인증코드가 필요합니다.",
+          statusCode: 400,
+        });
+      }
+
+      const result = await AuthService.exchangeKakaoToken(code);
+
+      res.status(200).json({
+        message: "카카오 로그인이 완료되었습니다.",
+        data: result,
+        statusCode: 200,
+      });
+    } catch (error) {
+      if (error instanceof AppError) {
+        return res.status(error.statusCode).json({
+          error: error.name,
+          message: error.message,
+          statusCode: error.statusCode,
+        });
+      }
+
+      res.status(500).json({
+        error: "InternalServerError",
+        message: "알 수 없는 오류가 발생했습니다.",
+        statusCode: 500,
+      });
+    }
+  }
+
+  async googleToken(req: Request, res: Response) {
+    try {
+      const { code } = req.body;
+
+      if (!code) {
+        return res.status(400).json({
+          error: "BadRequest",
+          message: "인증코드가 필요합니다.",
+          statusCode: 400,
+        });
+      }
+
+      const result = await AuthService.exchangeGoogleToken(code);
+
+      res.status(200).json({
+        message: "구글 로그인이 완료되었습니다.",
+        data: result,
+        statusCode: 200,
+      });
+    } catch (error) {
+      if (error instanceof AppError) {
+        return res.status(error.statusCode).json({
+          error: error.name,
+          message: error.message,
+          statusCode: error.statusCode,
+        });
+      }
+
+      res.status(500).json({
+        error: "InternalServerError",
+        message: "알 수 없는 오류가 발생했습니다.",
+        statusCode: 500,
+      });
+    }
+  }
+
+  async naverToken(req: Request, res: Response) {
+    try {
+      const { code } = req.body;
+
+      if (!code) {
+        return res.status(400).json({
+          error: "BadRequest",
+          message: "인증코드가 필요합니다.",
+          statusCode: 400,
+        });
+      }
+
+      const result = await AuthService.exchangeNaverToken(code);
+
+      res.status(200).json({
+        message: "네이버 로그인이 완료되었습니다.",
+        data: result,
+        statusCode: 200,
+      });
+    } catch (error) {
+      if (error instanceof AppError) {
+        return res.status(error.statusCode).json({
+          error: error.name,
+          message: error.message,
+          statusCode: error.statusCode,
+        });
+      }
+
+      res.status(500).json({
+        error: "InternalServerError",
+        message: "알 수 없는 오류가 발생했습니다.",
+        statusCode: 500,
+      });
+    }
+  }
 }
 
 export default new AuthController();
