@@ -1,4 +1,7 @@
 import prisma from '../../config/prisma';
+import { Prisma } from '@prisma/client';
+
+type Tx = Prisma.TransactionClient;
 
 export const PurchaseRepository = {
   findPromptWithSeller(prompt_id: number) {
@@ -18,32 +21,23 @@ export const PurchaseRepository = {
     });
   },
 
-  async createPayment(data: {
-  purchase_id: number;
-  merchant_uid: string;
-  pg: 'kakaopay' | 'tosspayments';
-  status: 'Succeed' | 'Failed' | 'Pending';
-  imp_uid: string;
-}) {
-  return prisma.$transaction(async (tx) => {
-    const purchase = await tx.purchase.findUnique({
-      where: { purchase_id: data.purchase_id },
-      select: { is_free: true },
-    });
-    if (!purchase) throw new Error('Purchase not found');
-    if (purchase.is_free) throw new Error('무료 구매건에는 Payment를 생성할 수 없습니다.');
+   createPurchaseTx(tx: Tx, data: {
+    user_id: number;
+    prompt_id: number;
+    seller_id?: number;
+    amount: number;
+    is_free: false;
+  }) {
+    return tx.purchase.create({ data });
+  },
 
-    // 중복 Payment 방지(1:1 관계)
-    const existing = await tx.payment.findUnique({
-      where: { purchase_id: data.purchase_id },
-    });
-    if (existing) throw new Error('이미 Payment가 존재합니다.');
-
-    // provider(=pg) 유효성 보정
-    if (!['kakaopay', 'tosspayments'].includes(data.pg)) {
-      throw new Error('지원하지 않는 결제사입니다.');
-    }
-
+  createPaymentTx(tx: Tx, data: {
+    purchase_id: number;
+    merchant_uid: string;
+    pg: 'kakaopay' | 'tosspayments';
+    status: 'Succeed' | 'Failed' | 'Pending';
+    imp_uid: string;
+  }) {
     return tx.payment.create({
       data: {
         purchase: { connect: { purchase_id: data.purchase_id } },
@@ -53,42 +47,29 @@ export const PurchaseRepository = {
         imp_uid: data.imp_uid,
       },
     });
-  });
-},
-
-  createPurchase(data: {
-    user_id: number;
-    prompt_id: number;
-    seller_id: number;
-    amount: number;
-    is_free: false;
-  }) {
-    return prisma.purchase.create({ data });
   },
 
-  upsertSettlementForPayment(input: {
-  sellerId: number;
-  paymentId: number;  // Payment.payment_id (unique)
-  amount: number;     // 정산 대상 금액(원)
-  fee: number;        // 수수료(원)
-  status: 'Succeed' | 'Failed' | 'Pending';
-}) {
-  const { sellerId, paymentId, amount, fee, status } = input;
-
-  return prisma.settlement.upsert({
-    where: { payment_id: paymentId },           // Settlement.payment_id 가 unique
-    create: {
-      user_id: sellerId,                         // 다건 가능
-      payment_id: paymentId,
-      amount,
-      fee,
-      status,
-    },
-    update: {
-      amount,                                    // 필요 시 부분 업데이트만
-      fee,
-      status,
-    },
-  });
-},
+  upsertSettlementForPaymentTx(tx: Tx, input: {
+    sellerId: number;
+    paymentId: number;
+    amount: number;
+    fee: number;
+    status: 'Succeed' | 'Failed' | 'Pending';
+  }) {
+    return tx.settlement.upsert({
+      where: { payment_id: input.paymentId },
+      create: {
+        user_id: input.sellerId,
+        payment_id: input.paymentId,
+        amount: input.amount,
+        fee: input.fee,
+        status: input.status,
+      },
+      update: {
+        amount: input.amount,
+        fee: input.fee,
+        status: input.status,
+      },
+    });
+  },
 };
