@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getTipList,
+  getTip,
   createTip,
   patchTip,
   deleteTip,
@@ -90,6 +91,9 @@ router.get("/", getTipList);
  *         description: 관리자 권한 없음
  */
 // 관리자만 접근 가능
+router.get("/:tipId/details", authenticateJwt, isAdmin, getTip);
+
+
 router.post("/", authenticateJwt, isAdmin, createTip);
 
 /**

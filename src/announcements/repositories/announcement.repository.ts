@@ -14,6 +14,14 @@ export const findAnnouncements = async (page: number, size: number) => {
   });
 };
 
+export const getAnnouncementRepository = async (announcementId: string) => {
+  const parsedAnnouncementId = parseInt(announcementId, 10);
+
+  return await prisma.announcement.findUnique({
+    where: { announcement_id: parsedAnnouncementId },
+  });
+};
+
 export const createAnnouncementRepository = async (data: any) => {
   return await prisma.announcement.create({
     data: {
