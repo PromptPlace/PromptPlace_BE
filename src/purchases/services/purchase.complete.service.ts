@@ -40,7 +40,7 @@ export const PurchaseCompleteService = {
   merchant_uid,
   pg: pg_provider,
   status: 'Succeed',
-  iamport_uid: imp_uid,
+  imp_uid: imp_uid,
 });
     // 5. 판매자 정산 금액 반영
     await PurchaseRepository.updateSellerSettlement(seller_id, amount);

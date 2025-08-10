@@ -9,7 +9,7 @@ import { CreateHistoryDto } from "../dtos/create-history.dto";
 import { UpdateHistoryDto } from "../dtos/update-history.dto";
 import { CreateSnsDto } from "../dtos/create-sns.dto";
 import { UpdateSnsDto } from "../dtos/update-sns.dto";
-import eventBus from '../../config/eventBus';
+import eventBus from "../../config/eventBus";
 @Service()
 export class MemberService {
   constructor(private memberRepository: MemberRepository) {}
@@ -101,14 +101,6 @@ export class MemberService {
   }
 
   async getMemberById(requesterId: number, memberId: number) {
-    if (requesterId !== memberId) {
-      throw new AppError(
-        "해당 회원 정보에 접근할 권한이 없습니다.",
-        403,
-        "Forbidden"
-      );
-    }
-
     const member = await this.memberRepository.findUserWithIntroById(memberId);
 
     if (!member) {
@@ -216,7 +208,7 @@ export class MemberService {
       throw new AppError(
         "해당 이력을 삭제할 권한이 없습니다.",
         403,
-        "Forbidden",
+        "Forbidden"
       );
     }
 
@@ -224,62 +216,12 @@ export class MemberService {
   }
 
   async getHistories(requesterId: number, memberId: number) {
-    if (requesterId !== memberId) {
-      throw new AppError(
-        "해당 회원의 이력을 조회할 권한이 없습니다.",
-        403,
-        "Forbidden"
-      );
-    }
-
     const user = await this.memberRepository.findUserById(memberId);
     if (!user) {
       throw new AppError("해당 회원을 찾을 수 없습니다.", 404, "NotFound");
     }
 
-    const purchases = await this.memberRepository.findPurchasesByUserId(
-      memberId
-    );
-    const uploads = await this.memberRepository.findPromptsByUserId(memberId);
-    const withdrawals = await this.memberRepository.findWithdrawalsByUserId(
-      memberId
-    );
-
-    const purchaseHistories = purchases.map((p) => ({
-      type: "PROMPT_PURCHASE",
-      title: `${p.prompt.title} 구매`,
-      description: p.prompt.description,
-      amount: p.amount,
-      created_at: p.created_at,
-    }));
-
-    const uploadHistories = uploads.map((p) => ({
-      type: "PROMPT_UPLOAD",
-      title: `${p.title} 업로드`,
-      description: p.description,
-      amount: 0,
-      created_at: p.created_at,
-    }));
-
-    const withdrawalHistories = withdrawals.map((w) => ({
-      type: "WITHDRAWAL",
-      title: "수익 출금 요청",
-      description: "프롬프트 판매 수익 출금",
-      amount: w.amount,
-      created_at: w.created_at,
-    }));
-
-    const allHistories = [
-      ...purchaseHistories,
-      ...uploadHistories,
-      ...withdrawalHistories,
-    ];
-
-    allHistories.sort(
-      (a, b) => b.created_at.getTime() - a.created_at.getTime()
-    );
-
-    return allHistories;
+    return await this.memberRepository.findHistoriesByUserId(memberId);
   }
 
   async createSns(userId: number, createSnsDto: CreateSnsDto) {
@@ -361,7 +303,10 @@ export class MemberService {
     }
 
     // 팔로우 생성
-    const follow = await this.memberRepository.createFollow(followerId, followingId);
+    const follow = await this.memberRepository.createFollow(
+      followerId,
+      followingId
+    );
 
     // 팔로우 알림 이벤트 발생
     eventBus.emit("follow.created", followerId, followingId);
