@@ -83,7 +83,7 @@ app.use('/api/reviews', ReviewRouter);
 app.use("/api/prompts", promptRoutes);
 
 // 프롬프트 결제 라우터
-app.use("/api/purchases", purchaseRouter);
+app.use("/api/prompts/purchases", purchaseRouter);
 
 // 프롬프트 무료 다운로드 라우터
 app.use("/api/prompts", promptDownloadRouter);
