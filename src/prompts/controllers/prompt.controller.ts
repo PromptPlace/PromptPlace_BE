@@ -49,6 +49,22 @@ export const searchPrompts = async (req: Request, res: Response) => {
   }
 };
 
+export const getAllPrompts = async (req: Request, res: Response) => {
+  try {
+    const promptList = await promptService.getAllPrompts();
+    if (!promptList) {
+      return res.status(404).json({ message: "프롬프트가 존재하지 않습니다." });
+    }
+    return res.status(200).json({
+      statusCode: 200,
+      message: "프롬프트 전체 조회 성공",
+      data: promptList,
+    });
+  } catch (error) {
+    return errorHandler(error, req, res, () => {});
+  }
+}
+
 export const getPromptDetails = async (req: Request, res: Response) => {
   try {
     const { promptId } = req.params;

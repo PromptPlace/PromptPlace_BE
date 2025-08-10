@@ -67,6 +67,9 @@ const router = Router();
 // 프롬프트 검색 API
 router.get("/searches", promptController.searchPrompts);
 
+//프롬프트 전체 조회 API
+router.get("/", authenticateJwt, promptController.getAllPrompts);
+
 //프롬프트 상세 조회 API
 router.get("/:promptId/details", authenticateJwt, promptController.getPromptDetails);
 

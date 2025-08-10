@@ -14,6 +14,10 @@ export const searchPrompts = async (dto: SearchPromptDto) => {
   return await promptRepository.searchPromptRepo(dto);
 };
 
+export const getAllPrompts = async () => {
+  return await promptRepository.getAllPromptRepo();
+}
+
 export const getPromptDetail = async (promptId: number) => {
   return await promptRepository.getPromptDetailRepo(promptId);
 }
