@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getAnnouncementList,
+  getAnnouncement,
   createAnnouncement,
   patchAnnouncement,
   deleteAnnouncement,
@@ -14,6 +15,7 @@ const router = express.Router({ mergeParams: true });
 router.get("/", getAnnouncementList);
 
 // 관리자만 접근 가능
+router.get("/:announcementId/details", authenticateJwt, isAdmin, getAnnouncement);
 router.post("/", authenticateJwt, isAdmin, createAnnouncement);
 router.patch("/:announcementId", authenticateJwt, isAdmin, patchAnnouncement);
 router.patch("/:announcementId/delete", authenticateJwt, isAdmin, deleteAnnouncement);
