@@ -37,6 +37,7 @@
     "passport-naver-v2": "^2.0.8",
     "reflect-metadata": "^0.2.2",
     "save-dev": "0.0.1-security",
+    "swagger": "^0.7.5",
     "swagger-autogen": "^2.23.7",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-dist": "^5.27.1",

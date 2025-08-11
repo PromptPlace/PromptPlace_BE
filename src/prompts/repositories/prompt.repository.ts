@@ -77,8 +77,35 @@ export const searchPromptRepo = async (data: SearchPromptDto) => {
 export const getAllPromptRepo = async () => {
   return await prisma.prompt.findMany({
     include: {
+      user: {
+        select: {
+          user_id: true,
+          nickname: true,
+          profileImage: {
+            select: { url: true },
+          },
+        },
+      },
+      models: {
+        include: {
+          model: {
+            select: { name: true },
+          },
+        },
+      },
+      tags: {
+        include: {
+          tag: {
+            select: {
+              tag_id: true,
+              name: true,
+            },
+          },
+        },
+      },
       images: {
         select: { image_url: true },
+        orderBy: { order_index: 'asc' },
       },
     },
   });

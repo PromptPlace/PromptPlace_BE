@@ -67,9 +67,154 @@ const router = Router();
 // 프롬프트 검색 API
 router.get("/searches", promptController.searchPrompts);
 
+/**
+ * @swagger
+ * /api/prompts:
+ *   get:
+ *     summary: 프롬프트 전체 조회
+ *     description: 모든 프롬프트 목록을 조회합니다. JWT 인증이 필요합니다.
+ *     tags: [Prompts]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 프롬프트 전체 조회 성공
+ *         content:
+ *           application/json:
+ *             example:
+ *               statusCode: 200
+ *               message: "프롬프트 전체 조회 성공"
+ *               data:
+ *                 - prompt_id: 3
+ *                   user_id: 1
+ *                   title: "프롬프트 1"
+ *                   prompt: "프롬프트 입력 1"
+ *                   prompt_result: "프롬프트 결과 1"
+ *                   has_image: true
+ *                   description: "설명 1"
+ *                   usage_guide: "사용 가이드 1"
+ *                   price: 0
+ *                   is_free: true
+ *                   downloads: 0
+ *                   views: 0
+ *                   likes: 0
+ *                   review_counts: 0
+ *                   rating_avg: 0
+ *                   created_at: "2025-07-20T16:51:42.632Z"
+ *                   updated_at: "2025-07-20T16:51:42.632Z"
+ *                   inactive_date: null
+ *                   download_url: "https://example.com/download/prompt-1"
+ *                   user:
+ *                     user_id: 1
+ *                     nickname: "류민주"
+ *                     profileImage: null
+ *                   models:
+ *                     - promptmodel_id: 1
+ *                       prompt_id: 3
+ *                       model_id: 1
+ *                       model:
+ *                         name: "모델 이름 1"
+ *                   tags:
+ *                     - prompttag_id: 1
+ *                       prompt_id: 3
+ *                       tag_id: 1
+ *                       tag:
+ *                         tag_id: 1
+ *                         name: "태그 1"
+ *                   images:
+ *                     - image_url: "https://example.com/image1.jpg"
+ *                     - image_url: "https://promptplace-s3.s3.ap-northeast-2.amazonaws.com/promptimages/7d53a160-db18-4deb-8437-744f2fc1005e_promptplace.png"
+ *                 - prompt_id: 4
+ *                   user_id: 2
+ *                   title: "프롬프트 2"
+ *                   prompt: "프롬프트 입력 2"
+ *                   prompt_result: "프롬프트 결과 2"
+ *                   has_image: false
+ *                   description: "설명 2"
+ *                   usage_guide: "사용 가이드 2"
+ *                   price: 1000
+ *                   is_free: false
+ *                   downloads: 10
+ *                   views: 100
+ *                   likes: 5
+ *                   review_counts: 0
+ *                   rating_avg: 0
+ *                   created_at: "2025-07-20T16:51:42.723Z"
+ *                   updated_at: "2025-07-20T16:51:42.723Z"
+ *                   inactive_date: null
+ *                   download_url: "https://example.com/download/prompt-2"
+ *                   user:
+ *                     user_id: 2
+ *                     nickname: "원종호"
+ *                     profileImage: null
+ *                   models:
+ *                     - promptmodel_id: 2
+ *                       prompt_id: 4
+ *                       model_id: 2
+ *                       model:
+ *                         name: "모델 이름 2"
+ *                   tags:
+ *                     - prompttag_id: 2
+ *                       prompt_id: 4
+ *                       tag_id: 2
+ *                       tag:
+ *                         tag_id: 2
+ *                         name: "태그 2"
+ *                   images:
+ *                     - image_url: "https://example.com/image2.jpg"
+ *       400:
+ *         description: 잘못된 요청
+ */
 //프롬프트 전체 조회 API
 router.get("/", authenticateJwt, promptController.getAllPrompts);
 
+/**
+ * @swagger
+ * /api/prompts/{promptId}/details:
+ *   get:
+ *     summary: 프롬프트 상세 조회
+ *     description: 특정 프롬프트의 상세 정보를 조회합니다. JWT 인증이 필요합니다.
+ *     tags: [Prompts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: promptId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 조회할 프롬프트 ID
+ *     responses:
+ *       200:
+ *         description: 프롬프트 상세 조회 성공
+ *         content:
+ *           application/json:
+ *             example:
+ *               statusCode: 200
+ *               message: "프롬프트 상세 조회 성공"
+ *               data:
+ *                 title: "프롬프트 2"
+ *                 prompt: "프롬프트 입력 2"
+ *                 prompt_result: "프롬프트 결과 2"
+ *                 has_image: false
+ *                 description: "설명 2"
+ *                 usage_guide: "사용 가이드 2"
+ *                 price: 1000
+ *                 is_free: false
+ *                 tags:
+ *                   - tag_id: 2
+ *                     name: "태그 2"
+ *                 models:
+ *                   - "모델 이름 2"
+ *                 images:
+ *                   - "https://example.com/image2.jpg"
+ *                 writer:
+ *                   user_id: 2
+ *                   nickname: "원종호"
+ *                   profile_image_url: null
+ *       400:
+ *         description: 잘못된 요청
+ */
 //프롬프트 상세 조회 API
 router.get("/:promptId/details", authenticateJwt, promptController.getPromptDetails);
 
