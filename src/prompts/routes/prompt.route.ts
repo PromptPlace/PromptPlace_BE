@@ -284,7 +284,7 @@ router.post(
  *               - description
  *               - price
  *               - tags
- *               - model
+ *               - models
  *               - is_free
  *             properties:
  *               title:
@@ -303,12 +303,16 @@ router.post(
  *                 type: array
  *                 items:
  *                   type: string
- *               model:
- *                 type: string
+ *               models:
+ *                 type: array
+ *                 items:
+ *                   type: string
  *               is_free:
  *                 type: boolean
  *               has_image:
  *                 type: boolean
+ *               download_url:
+ *                 type: string
  *     responses:
  *       201:
  *         description: 업로드 성공
@@ -357,12 +361,16 @@ router.post("/", authenticateJwt, promptController.createPrompt);
  *                 type: array
  *                 items:
  *                   type: string
- *               model:
- *                 type: string
+ *               models:
+ *                 type: array
+ *                 items:
+ *                   type: string
  *               is_free:
  *                 type: boolean
  *               has_image:
  *                 type: boolean
+ *               download_url:
+ *                 type: string
  *     responses:
  *       200:
  *         description: 수정 성공
