@@ -166,7 +166,7 @@ router.get("/searches", promptController.searchPrompts);
  *         description: 잘못된 요청
  */
 //프롬프트 전체 조회 API
-router.get("/", authenticateJwt, promptController.getAllPrompts);
+router.get("/", promptController.getAllPrompts);
 
 /**
  * @swagger
@@ -216,7 +216,11 @@ router.get("/", authenticateJwt, promptController.getAllPrompts);
  *         description: 잘못된 요청
  */
 //프롬프트 상세 조회 API
-router.get("/:promptId/details", authenticateJwt, promptController.getPromptDetails);
+router.get(
+  "/:promptId/details",
+  authenticateJwt,
+  promptController.getPromptDetails
+);
 
 // S3 presign url 발급 API
 router.post("/presign-url", authenticateJwt, promptController.presignUrl);
@@ -382,7 +386,7 @@ router.post("/", authenticateJwt, promptController.createPrompt);
  *         description: 프롬프트 없음
  */
 // 프롬프트 수정 API
-router.patch('/:promptId', authenticateJwt, promptController.updatePrompt);
+router.patch("/:promptId", authenticateJwt, promptController.updatePrompt);
 
 /**
  * @swagger
@@ -409,6 +413,6 @@ router.patch('/:promptId', authenticateJwt, promptController.updatePrompt);
  *         description: 프롬프트 없음
  */
 // 프롬프트 삭제 API
-router.delete('/:promptId', authenticateJwt, promptController.deletePrompt);
+router.delete("/:promptId", authenticateJwt, promptController.deletePrompt);
 
 export default router;
