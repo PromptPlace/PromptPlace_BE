@@ -111,96 +111,104 @@ export const getAllPromptRepo = async () => {
   });
 };
 
-export const getPromptDetailRepo = async (promptId: number) => {
-  const prompt = await prisma.prompt.findUnique({
-    where: { prompt_id: promptId },
-    include: {
-      user: {
-        select: {
-          user_id: true,
-          nickname: true,
-          profileImage: {
-            select: { url: true },
-          },
-        },
-      },
-      models: {
-        include: {
-          model: {
-            select: { name: true },
-          },
-        },
-      },
-      tags: {
-        include: {
-          tag: {
-            select: {
-              tag_id: true,
-              name: true,
-            },
-          },
-        },
-      },
-      images: {
-        select: {
-          image_url: true,
-        },
-        orderBy: {
-          order_index: 'asc',
-        },
-      },
+export type PromptDetail = {
+  title: string;
+  prompt: string;
+  prompt_result: string | null;
+  has_image: boolean;
+  description: string | null;
+  usage_guide: string | null;
+  price: number | null;
+  is_free: boolean;
+  views: number; // 👈 추가
+  tags: { tag_id: number; name: string }[];
+  models: string[];
+  images: string[];
+  writer: {
+    user_id: number;
+    nickname: string;
+    profile_image_url: string | null;
+  };
+};
+
+const promptSelect = Prisma.validator<Prisma.PromptSelect>()({
+  title: true,
+  prompt: true,
+  prompt_result: true,
+  has_image: true,
+  description: true,
+  usage_guide: true,
+  price: true,
+  is_free: true,
+  views: true, // 👈 추가
+  user: {
+    select: {
+      user_id: true,
+      nickname: true,
+      profileImage: { select: { url: true } },
     },
+  },
+  models: {
+    select: {
+      model: { select: { name: true } },
+    },
+  },
+  tags: {
+    select: {
+      tag: { select: { tag_id: true, name: true } },
+    },
+  },
+  images: {
+    select: { image_url: true, order_index: true },
+    orderBy: { order_index: "asc" },
+  },
+});
+
+export const getPromptDetailRepo = async (
+  promptId: number
+): Promise<PromptDetail | null> => {
+  const data = await prisma.prompt.findUnique({
+    where: { prompt_id: promptId },
+    select: promptSelect,
   });
 
-  if (!prompt) return null;
+  if (!data) return null;
 
-const {
-  title,
-  prompt: promptText,
-  prompt_result,
-  has_image,
-  description,
-  usage_guide,
-  price,
-  is_free,
-  models,
-  tags,
-  images,
-  user,
-} = prompt;
+  const {
+    title,
+    prompt: promptText,
+    prompt_result,
+    has_image,
+    description,
+    usage_guide,
+    price,
+    is_free,
+    views, 
+    tags,
+    models,
+    images,
+    user,
+  } = data;
 
-
-return {
-  title,
-  prompt: promptText,
-  prompt_result,
-  has_image,
-  description,
-  usage_guide,
-  price,
-  is_free,
-
-  tags: tags.map(
-    ({ tag }: { tag: { tag_id: number; name: string } }) => ({
-      tag_id: tag.tag_id,
-      name: tag.name,
-    })
-  ),
-
-  models: models.map(
-    ({ model }: { model: { name: string } }) => model.name
-  ),
-
-  images: images.map(
-    ({ image_url }: { image_url: string }) => image_url
-  ),
-
-  writer: {
-    user_id: user.user_id,
-    nickname: user.nickname,
-    profile_image_url: user.profileImage?.url ?? null,
-  },
-};
+  return {
+    title,
+    prompt: promptText,
+    prompt_result,
+    has_image,
+    description,
+    usage_guide,
+    price,
+    is_free,
+    views, 
+    tags: tags.map(({ tag }) => ({ tag_id: tag.tag_id, name: tag.name })),
+    models: models.map(({ model }) => model.name),
+    images: images.map(({ image_url }) => image_url),
+    writer: {
+      user_id: user.user_id,
+      nickname: user.nickname,
+      profile_image_url: user.profileImage?.url ?? null,
+    },
+  };
 };
 
 export const createPromptWriteRepo = async (
