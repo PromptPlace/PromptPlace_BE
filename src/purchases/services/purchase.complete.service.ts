@@ -4,12 +4,11 @@ import { AppError } from '../../errors/AppError';
 import prisma from '../../config/prisma';
 import { fetchAndVerifyPortonePayment } from '../utils/portone';
 
-function mapPgProvider(pg: string | undefined): 'kakaopay' | 'tosspayments' {
+function mapPgProvider(pg: string | undefined): 'kakaopay' | 'tosspay' {
   const src = (pg || '').toLowerCase();
   if (src.includes('kakaopay')) return 'kakaopay';
-  if (src.includes('toss')) return 'tosspayments';
-  
-  return 'tosspayments';
+  if (src.includes('tosspay')) return 'tosspay';
+  return 'tosspay';
 }
 
 export const PurchaseCompleteService = {

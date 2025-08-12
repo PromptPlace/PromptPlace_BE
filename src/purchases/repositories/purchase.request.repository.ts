@@ -34,7 +34,7 @@ export const PurchaseRepository = {
   createPaymentTx(tx: Tx, data: {
     purchase_id: number;
     merchant_uid: string;
-    pg: 'kakaopay' | 'tosspayments';
+    pg: 'kakaopay' | 'tosspay';
     status: 'Succeed' | 'Failed' | 'Pending';
     imp_uid: string;
   }) {

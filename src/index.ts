@@ -31,6 +31,7 @@ app.use(responseHandler);
 
 // 2. express 기본 설정들
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // CORS 설정
 const allowedOrigins = [
