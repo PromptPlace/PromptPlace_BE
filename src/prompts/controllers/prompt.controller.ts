@@ -140,28 +140,32 @@ export const createPrompt = async (req: Request, res: Response) => {
     }
     const userId = (req.user as { user_id: number }).user_id;
 
-    // 2. DTO 유효성 검사
-    const dto = req.body;
-    const requiredFields = [
-      'title',
-      'prompt',
-      'prompt_result',
-      'description',
-      'price',
-      'tags',
-      'models',
-      'is_free',
-      'download_url'
-    ];
+    // 2. DTO 유효성 검사 (값 유형별 정밀 검증: 0, false 허용)
+    const dto = req.body as any;
+    const invalidFields: string[] = [];
 
-    const missingFields = requiredFields.filter(field => !dto[field] && dto[field] !== false);
-    
-    if (missingFields.length > 0) {
-      console.log('Missing fields:', missingFields); // 디버깅용 로그
+    // 문자열 필수 필드: 빈 문자열 불가
+    const stringRequired = ['title', 'prompt', 'prompt_result', 'description', 'download_url'];
+    for (const key of stringRequired) {
+      if (typeof dto[key] !== 'string' || !dto[key].trim()) invalidFields.push(key);
+    }
+
+    // 숫자 필수 필드: 0 허용, 숫자형이어야 함
+    if (typeof dto.price !== 'number' || Number.isNaN(dto.price)) {
+      invalidFields.push('price');
+    }
+
+    // 불리언 필수 필드: true/false 모두 허용, 타입 체크
+    if (typeof dto.is_free !== 'boolean') {
+      invalidFields.push('is_free');
+    }
+
+    if (invalidFields.length > 0) {
+      console.log('Invalid or missing fields:', invalidFields);
       return res.fail({
         statusCode: 400,
         error: 'BadRequest',
-        message: `필수 필드(${missingFields.join(', ')})가 누락되었습니다.`,
+        message: `필수 필드(${invalidFields.join(', ')})가 누락되었거나 형식이 올바르지 않습니다.`,
       });
     }
 

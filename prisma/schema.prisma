@@ -110,7 +110,7 @@ model Tip {
   title      String
   content    String   @db.Text
   is_visible Boolean
-  file_url        String?  @db.VarChar(255)
+  file_url   String?  @db.VarChar(255)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   writer     User     @relation(fields: [writer_id], references: [user_id])

@@ -221,7 +221,7 @@ class AuthController {
     }
   }
 
-  async kakakToken(req: Request, res: Response) {
+  async kakaoToken(req: Request, res: Response) {
     try {
       const { code } = req.body;
 
