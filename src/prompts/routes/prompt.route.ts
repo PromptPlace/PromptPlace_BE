@@ -65,7 +65,7 @@ const router = Router();
  *         description: 잘못된 요청
  */
 // 프롬프트 검색 API
-router.get("/searches", promptController.searchPrompts);
+router.post("/searches", promptController.searchPrompts);
 
 /**
  * @swagger
