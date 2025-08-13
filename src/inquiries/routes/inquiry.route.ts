@@ -165,4 +165,105 @@ router.patch(
   inquiryController.markInquiryAsRead.bind(inquiryController)
 );
 
+/**
+ * @swagger
+ * /api/inquiries/{inquiryId}:
+ *   delete:
+ *     summary: 문의 삭제
+ *     tags: [Inquiry]
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: path
+ *         name: inquiryId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 삭제할 문의 ID
+ *     responses:
+ *       200:
+ *         description: 문의 삭제 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 문의가 성공적으로 삭제되었습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *       401:
+ *         description: 인증 실패
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Unauthorized
+ *                 message:
+ *                   type: string
+ *                   example: 로그인이 필요합니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 401
+ *       403:
+ *         description: 권한 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Forbidden
+ *                 message:
+ *                   type: string
+ *                   example: 문의를 삭제할 권한이 없습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 403
+ *       404:
+ *         description: 문의 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: NotFound
+ *                 message:
+ *                   type: string
+ *                   example: 해당 문의를 찾을 수 없습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 404
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: InternalServerError
+ *                 message:
+ *                   type: string
+ *                   example: 알 수 없는 오류가 발생했습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 500
+ */
+// 문의 삭제 API
+router.delete(
+  "/:inquiryId",
+  authenticateJwt,
+  inquiryController.deleteInquiry.bind(inquiryController)
+);
+
 export default router;

@@ -17,7 +17,7 @@ export class InquiryController {
     this.inquiryService = new InquiryService(
       new InquiryRepository(),
       new MemberRepository(),
-      new MessageRepository(),
+      new MessageRepository()
     );
   }
 
@@ -160,6 +160,26 @@ export class InquiryController {
       res.status(200).json({
         message: "문의가 읽음 처리되었습니다.",
         data: updatedInquiry,
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async deleteInquiry(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = (req.user as any).user_id;
+      const inquiryId = parseInt(req.params.inquiryId, 10);
+
+      await this.inquiryService.deleteInquiry(userId, inquiryId);
+
+      res.status(200).json({
+        message: "문의가 성공적으로 삭제되었습니다.",
         statusCode: 200,
       });
     } catch (error) {
