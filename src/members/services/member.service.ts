@@ -62,14 +62,16 @@ export class MemberService {
       memberId
     );
 
-    return followers.map((f) => ({
-      follow_id: f.follow_id,
-      follower_id: f.follower_id,
-      nickname: f.follower.nickname,
-      email: f.follower.email,
-      created_at: f.created_at,
-      updated_at: f.updated_at,
-    }));
+    return followers
+      .filter((f) => f.follower) // null 체크
+      .map((f) => ({
+        follow_id: f.follow_id,
+        follower_id: f.follower_id,
+        nickname: f.follower!.nickname,
+        email: f.follower!.email,
+        created_at: f.created_at,
+        updated_at: f.updated_at,
+      }));
   }
 
   async getFollowings(memberId: number) {
@@ -82,14 +84,16 @@ export class MemberService {
       memberId
     );
 
-    return followings.map((f) => ({
-      follow_id: f.follow_id,
-      following_id: f.following_id,
-      nickname: f.following.nickname,
-      email: f.following.email,
-      created_at: f.created_at,
-      updated_at: f.updated_at,
-    }));
+    return followings
+      .filter((f) => f.following) // null 체크
+      .map((f) => ({
+        follow_id: f.follow_id,
+        following_id: f.following_id,
+        nickname: f.following!.nickname,
+        email: f.following!.email,
+        created_at: f.created_at,
+        updated_at: f.updated_at,
+      }));
   }
 
   async getMemberPrompts(memberId: number, cursor?: number, limit?: number) {
@@ -117,6 +121,7 @@ export class MemberService {
       created_at: member.created_at,
       updated_at: member.updated_at,
       status: member.status ? 1 : 0,
+      role: member.role,
     };
   }
 
