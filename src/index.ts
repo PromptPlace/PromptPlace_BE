@@ -13,6 +13,7 @@ import authRouter from './auth/routes/auth.route'; // auth 라우터 경로 수�
 import membersRouter from './members/routes/member.route'; // members 라우터 import
 import promptRoutes from './prompts/routes/prompt.route'; // 프롬프트 관련 라우터
 import ReviewRouter from './reviews/routes/review.route';
+import purchaseRouter from './purchases/routes/purchase.request.route';
 import promptDownloadRouter from './prompts/routes/prompt.downlaod.route';
 import promptLikeRouter from './prompts/routes/prompt.like.route';
 import tipRouter from "./tips/routes/tip.route"; // 팁 라우터 import
@@ -30,6 +31,7 @@ app.use(responseHandler);
 
 // 2. express 기본 설정들
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // CORS 설정
 const allowedOrigins = [
@@ -80,6 +82,18 @@ app.use('/api/reviews', ReviewRouter);
 // 프롬프트 관련 라우터
 // 프롬프트 검색 API
 app.use("/api/prompts", promptRoutes);
+
+// 프롬프트 결제 라우터
+app.use('/api/prompts/purchases',
+  express.text({ type: 'text/plain' }),
+  (req, _res, next) => {
+    if (typeof req.body === 'string') {
+      try { req.body = JSON.parse(req.body); } catch {}
+    }
+    next();
+  },
+  purchaseRouter
+);
 
 // 프롬프트 무료 다운로드 라우터
 app.use("/api/prompts", promptDownloadRouter);

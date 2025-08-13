@@ -8,39 +8,33 @@ datasource db {
 }
 
 model User {
-  user_id            Int               @id @default(autoincrement())
-  name               String            @db.VarChar(50)
-  nickname           String            @db.VarChar(50)
-  email              String            @unique @db.VarChar(255)
-  social_type        String            @db.VarChar(50)
-  status             Boolean
-  inactive_date      DateTime?
-  created_at         DateTime          @default(now())
-  updated_at         DateTime          @updatedAt
-  role               Role              @default(USER)
-  announcements      Announcement[]
-  followings         Following[]       @relation("Follower")
-  followers          Following[]       @relation("Following")
-  inquiries_received Inquiry[]         @relation("InquiryReceiver")
-  inquiries          Inquiry[]         @relation("InquirySender")
-  replies            InquiryReply[]
-  messagesReceived   Message[]         @relation("MessageReceiver")
-  messagesSent       Message[]         @relation("MessageSender")
-  notifications     Notification[]     @relation("UserNotifications") // 내가 받은 알림들
-  sentNotifications Notification[]     @relation("ActorNotifications") // 내가 유발한 알림들
-  prompts            Prompt[]
-  prompt_likes       PromptLike[]
-  prompt_reports     PromptReport[]    @relation("UserReport")
-  purchases          Purchase[]
-  refreshTokens      RefreshToken[]
-  reviews            Review[]
-  tips               Tip[]
-  profileImage       UserImage?
-  intro              UserIntro?
-  sns_list           UserSNS[]
-  withdraw_requests  WithdrawRequest[]
-  subscriptions      NotificationSubscription[] @relation("NotificationSubscriber")
-  subscribers        NotificationSubscription[] @relation("NotificationTargetPrompter")
+  user_id           Int                        @id @default(autoincrement())
+  name              String                     @db.VarChar(50)
+  nickname          String                     @db.VarChar(50)
+  email             String                     @unique @db.VarChar(255)
+  social_type       String                     @db.VarChar(50)
+  status            Boolean
+  inactive_date     DateTime?
+  created_at        DateTime                   @default(now())
+  updated_at        DateTime                   @updatedAt
+  role              Role                       @default(USER)
+  announcements     Announcement[]
+  sentNotifications Notification[]             @relation("ActorNotifications")
+  notifications     Notification[]             @relation("UserNotifications")
+  subscribers       NotificationSubscription[] @relation("NotificationTargetPrompter")
+  subscriptions     NotificationSubscription[] @relation("NotificationSubscriber")
+  prompts           Prompt[]
+  prompt_likes      PromptLike[]
+  prompt_reports    PromptReport[]             @relation("UserReport")
+  purchases         Purchase[]
+  refreshTokens     RefreshToken[]
+  reviews           Review[]
+  settlements       Settlement[]               @relation("UserSettlements")
+  tips              Tip[]
+  profileImage      UserImage?
+  intro             UserIntro?
+  sns_list          UserSNS[]
+  withdraw_requests WithdrawRequest[]
 }
 
 model UserIntro {
@@ -78,8 +72,6 @@ model Following {
   following_id Int
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
-  follower     User     @relation("Follower", fields: [follower_id], references: [user_id])
-  following    User     @relation("Following", fields: [following_id], references: [user_id])
 
   @@index([follower_id], map: "Following_follower_id_fkey")
   @@index([following_id], map: "Following_following_id_fkey")
@@ -118,7 +110,7 @@ model Tip {
   title      String
   content    String   @db.Text
   is_visible Boolean
-  file_url   String?  @db.VarChar(255)
+  file_url        String?  @db.VarChar(255)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   writer     User     @relation(fields: [writer_id], references: [user_id])
@@ -126,39 +118,35 @@ model Tip {
   @@index([writer_id], map: "Tip_writer_id_fkey")
 }
 
-
 model NotificationSubscription {
-  id           Int      @id @default(autoincrement())
-  user_id      Int      // 알림을 받을 사람
-  prompter_id  Int      // 프롬프트를 올리는 사람
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
-
-  user         User     @relation("NotificationSubscriber", fields: [user_id], references: [user_id])
-  prompter     User     @relation("NotificationTargetPrompter", fields: [prompter_id], references: [user_id])
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  prompter_id Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  prompter    User     @relation("NotificationTargetPrompter", fields: [prompter_id], references: [user_id])
+  user        User     @relation("NotificationSubscriber", fields: [user_id], references: [user_id])
 
   @@unique([user_id, prompter_id])
+  @@index([prompter_id], map: "NotificationSubscription_prompter_id_fkey")
 }
-
-
 
 model Notification {
-  notification_id Int      @id @default(autoincrement())
-  user_id         Int?                                 // 알림 받는 사용자
-  type            NotificationType                    // 알림 종류 (enum)
-  actor_id        Int?                               // 알림 유발 주체
-  content         String   @db.Text
-  link_url        String?                            // 클릭 시 이동할 경로
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-  
-  user            User?     @relation("UserNotifications", fields: [user_id], references: [user_id])
-  actor           User?    @relation("ActorNotifications", fields: [actor_id], references: [user_id])
-  
-  @@index([user_id], map: "Notification_user_id_fkey")
-  @@index([type], map: "Notification_type_idx")
-}
+  notification_id Int              @id @default(autoincrement())
+  user_id         Int?
+  content         String           @db.Text
+  created_at      DateTime         @default(now())
+  updated_at      DateTime         @updatedAt
+  actor_id        Int?
+  link_url        String?
+  type            NotificationType
+  actor           User?            @relation("ActorNotifications", fields: [actor_id], references: [user_id])
+  user            User?            @relation("UserNotifications", fields: [user_id], references: [user_id])
 
+  @@index([user_id], map: "Notification_user_id_fkey")
+  @@index([type])
+  @@index([actor_id], map: "Notification_actor_id_fkey")
+}
 
 model Message {
   message_id  Int       @id @default(autoincrement())
@@ -171,26 +159,21 @@ model Message {
   is_deleted  Boolean   @default(false)
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
-  receiver    User      @relation("MessageReceiver", fields: [receiver_id], references: [user_id])
-  sender      User      @relation("MessageSender", fields: [sender_id], references: [user_id])
 
   @@index([receiver_id], map: "Message_receiver_id_fkey")
   @@index([sender_id], map: "Message_sender_id_fkey")
 }
 
 model Inquiry {
-  inquiry_id  Int            @id @default(autoincrement())
+  inquiry_id  Int           @id @default(autoincrement())
   sender_id   Int
   receiver_id Int
   type        InquiryType
   status      InquiryStatus
   title       String
-  content     String         @db.Text
-  created_at  DateTime       @default(now())
-  updated_at  DateTime       @updatedAt
-  receiver    User           @relation("InquiryReceiver", fields: [receiver_id], references: [user_id])
-  sender      User           @relation("InquirySender", fields: [sender_id], references: [user_id])
-  replies     InquiryReply[]
+  content     String        @db.Text
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
 
   @@index([receiver_id], map: "Inquiry_receiver_id_fkey")
   @@index([sender_id], map: "Inquiry_sender_id_fkey")
@@ -203,8 +186,6 @@ model InquiryReply {
   content     String   @db.Text
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
-  inquiry     Inquiry  @relation(fields: [inquiry_id], references: [inquiry_id])
-  user        User     @relation(fields: [receiver_id], references: [user_id])
 
   @@index([inquiry_id], map: "InquiryReply_inquiry_id_fkey")
   @@index([receiver_id], map: "InquiryReply_receiver_id_fkey")
@@ -320,20 +301,20 @@ model PromptImage {
   @@index([prompt_id], map: "PromptImage_prompt_id_fkey")
 }
 
-
 model PromptReport {
-  report_id     Int      @id @default(autoincrement())
-  report_type   ReportType  // enum 타입 사용
-  description   String
-  prompt_id     Int
-  reporter_id   Int
-  is_read       Boolean  @default(false)
-  created_at    DateTime @default(now())
+  report_id   Int        @id @default(autoincrement())
+  prompt_id   Int
+  created_at  DateTime   @default(now())
+  description String
+  report_type ReportType
+  reporter_id Int
+  is_read     Boolean    @default(false)
+  prompt      Prompt     @relation("PromptReport", fields: [prompt_id], references: [prompt_id])
+  reporter    User       @relation("UserReport", fields: [reporter_id], references: [user_id])
 
-  prompt   Prompt @relation("PromptReport", fields: [prompt_id], references: [prompt_id])
-  reporter User @relation("UserReport", fields: [reporter_id], references: [user_id])
+  @@index([prompt_id], map: "PromptReport_prompt_id_fkey")
+  @@index([reporter_id], map: "PromptReport_reporter_id_fkey")
 }
-
 
 model Purchase {
   purchase_id Int      @id @default(autoincrement())
@@ -352,15 +333,15 @@ model Purchase {
 }
 
 model Payment {
-  payment_id   Int         @id @default(autoincrement())
-  purchase_id  Int         @unique
+  payment_id   Int              @id @default(autoincrement())
+  purchase_id  Int              @unique
   status       Status
-  provider     String      @db.VarChar(50)
-  iamport_uid  String
-  merchant_uid String
-  created_at   DateTime    @default(now())
-  updated_at   DateTime    @updatedAt
-  purchase     Purchase    @relation(fields: [purchase_id], references: [purchase_id])
+  provider     Payment_provider
+  merchant_uid String           @unique
+  created_at   DateTime         @default(now())
+  updated_at   DateTime         @updatedAt
+  imp_uid      String           @unique
+  purchase     Purchase         @relation(fields: [purchase_id], references: [purchase_id], onDelete: Cascade)
   settlement   Settlement?
 }
 
@@ -372,7 +353,11 @@ model Settlement {
   status        Status
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
+  user_id       Int
   payment       Payment  @relation(fields: [payment_id], references: [payment_id])
+  user          User     @relation("UserSettlements", fields: [user_id], references: [user_id])
+
+  @@index([user_id])
 }
 
 model Review {
@@ -412,16 +397,21 @@ enum InquiryStatus {
 }
 
 enum ReportType {
-  FALSE_OR_EXAGGERATED         // 허위 또는 과장된 콘텐츠
-  COPYRIGHT_INFRINGEMENT       // 저작권 및 지적재산권 침해
-  INAPPROPRIATE_OR_HARMFUL     // 불쾌하거나 부적절한 내용
-  ETC                          // 기타
+  FALSE_OR_EXAGGERATED
+  COPYRIGHT_INFRINGEMENT
+  INAPPROPRIATE_OR_HARMFUL
+  ETC
 }
 
 enum NotificationType {
-  FOLLOW           // 팔로우 알림
-  NEW_PROMPT       // 프롬프트 업로드 알림
-  INQUIRY_REPLY    // 문의 답변 알림
-  ANNOUNCEMENT     // 시스템 공지
-  REPORT           // 내가 등록한 신고가 처리됨
+  FOLLOW
+  NEW_PROMPT
+  INQUIRY_REPLY
+  ANNOUNCEMENT
+  REPORT
+}
+
+enum Payment_provider {
+  kakaopay
+  tosspay
 }
