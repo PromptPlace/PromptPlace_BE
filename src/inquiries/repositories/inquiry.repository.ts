@@ -87,4 +87,12 @@ export class InquiryRepository {
       },
     });
   }
+
+  async deleteInquiry(inquiryId: number) {
+    return prisma.inquiry.delete({
+      where: {
+        inquiry_id: inquiryId,
+      },
+    });
+  }
 }
