@@ -81,5 +81,6 @@ const router = Router();
  *         description: 서버 오류
  */
 router.get('/:promptId/downloads', authenticateJwt, PromptDownloadController.getPromptContent);
+router.get('/downloads', authenticateJwt, PromptDownloadController.getDownloadedPrompts);
 
 export default router;

@@ -95,7 +95,7 @@ app.use('/api/prompts/purchases',
   purchaseRouter
 );
 
-// 프롬프트 무료 다운로드 라우터
+// 프롬프트 다운로드 라우터
 app.use("/api/prompts", promptDownloadRouter);
 
 // 프롬프트 찜 라우터
