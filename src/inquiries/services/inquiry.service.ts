@@ -137,16 +137,23 @@ export class InquiryService {
       type
     );
 
-    return inquiries.map((inquiry) => ({
-      inquiry_id: inquiry.inquiry_id,
-      sender_id: inquiry.sender_id,
-      sender_nickname: inquiry.sender.nickname,
-      type: inquiry.type,
-      status: inquiry.status,
-      title: inquiry.title,
-      created_at: inquiry.created_at,
-      updated_at: inquiry.updated_at,
-    }));
+    return inquiries.map((inquiry) => {
+      // sender가 null일 수 있으므로 안전하게 처리
+      if (!inquiry.sender) {
+        throw new AppError("발신자 정보를 찾을 수 없습니다.", 500, "InternalServerError");
+      }
+
+      return {
+        inquiry_id: inquiry.inquiry_id,
+        sender_id: inquiry.sender_id,
+        sender_nickname: inquiry.sender.nickname,
+        type: inquiry.type,
+        status: inquiry.status,
+        title: inquiry.title,
+        created_at: inquiry.created_at,
+        updated_at: inquiry.updated_at,
+      };
+    });
   }
 
   async deleteInquiry(userId: number, inquiryId: number) {
