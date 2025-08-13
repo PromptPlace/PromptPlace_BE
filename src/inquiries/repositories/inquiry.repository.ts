@@ -24,6 +24,11 @@ export class InquiryRepository {
       }),
     ]);
 
+    // sender나 receiver가 null이면 에러 처리
+    if (!sender || !receiver) {
+      throw new Error(`사용자 정보를 찾을 수 없습니다. sender: ${sender ? 'found' : 'not found'}, receiver: ${receiver ? 'found' : 'not found'}`);
+    }
+
     return {
       ...inquiry,
       sender,
@@ -96,6 +101,12 @@ export class InquiryRepository {
           where: { user_id: inquiry.sender_id },
           select: { nickname: true },
         });
+        
+        // sender가 null이면 에러 처리
+        if (!sender) {
+          throw new Error(`발신자 정보를 찾을 수 없습니다. sender_id: ${inquiry.sender_id}`);
+        }
+        
         return {
           ...inquiry,
           sender,
