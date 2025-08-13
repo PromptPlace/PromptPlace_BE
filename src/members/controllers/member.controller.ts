@@ -591,7 +591,7 @@ export class MemberController {
       const result = await this.memberService.getAllMembers(page, limit);
 
       res.status(200).json({
-        message: "인기 유저 조회 완료",
+        message: "전체 회원 조회 완료",
         data: result,
         statusCode: 200,
       });

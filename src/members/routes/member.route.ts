@@ -593,8 +593,8 @@ router.delete(
  * @swagger
  * /api/members:
  *   get:
- *     summary: 인기 유저 조회 (공개)
- *     description: 홈페이지 인기 유저 표시용 공개 API
+ *     summary: 전체 회원 조회 (공개)
+ *     description: 홈페이지 인기 유저 표시용으로 전체 회원을 조회하는 공개 API
  *     tags: [Member]
  *     parameters:
  *       - in: query
@@ -665,7 +665,6 @@ router.delete(
  *                 statusCode:
  *                   type: integer
  *                   example: 200
-
  *       500:
  *         description: 서버 오류
  *         content:
@@ -683,7 +682,7 @@ router.delete(
  *                   type: integer
  *                   example: 500
  */
-// 인기 유저 조회 API (공개)
+// 전체 회원 조회 API (공개)
 router.get("/", memberController.getAllMembers.bind(memberController));
 
 export default router;
