@@ -1,0 +1,2437 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "PromptPlace API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/auth/login/google/callback": {
+      "get": {
+        "summary": "구글 로그인 콜백",
+        "description": "구글 OAuth 인증 후 콜백 URL입니다. 클라이언트에서 이 URL로 자동 리디렉션됩니다.",
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "구글 로그인 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "구글 로그인이 완료되었습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "access_token": {
+                          "type": "string"
+                        },
+                        "refresh_token": {
+                          "type": "string"
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "user_id": {
+                              "type": "integer"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "nickname": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "social_type": {
+                              "type": "string",
+                              "example": "google"
+                            },
+                            "status": {
+                              "type": "string",
+                              "example": "ACTIVE"
+                            },
+                            "role": {
+                              "type": "string"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "비활성화된 계정"
+          }
+        }
+      }
+    },
+    "/api/auth/login/naver/callback": {
+      "get": {
+        "summary": "네이버 로그인 콜백",
+        "description": "네이버 OAuth 인증 후 콜백 URL입니다.",
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "네이버 로그인 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "네이버 로그인이 완료되었습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "access_token": {
+                          "type": "string"
+                        },
+                        "refresh_token": {
+                          "type": "string"
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "user_id": {
+                              "type": "integer"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "nickname": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "social_type": {
+                              "type": "string",
+                              "example": "naver"
+                            },
+                            "status": {
+                              "type": "string",
+                              "example": "ACTIVE"
+                            },
+                            "role": {
+                              "type": "string"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "비활성화된 계정"
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "get": {
+        "summary": "로그아웃",
+        "description": "현재 로그인된 사용자의 리프레시 토큰을 삭제합니다.",
+        "tags": [
+          "Auth"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "로그아웃 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "로그아웃이 완료되었습니다."
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      }
+    },
+    "/api/inquiries": {
+      "post": {
+        "summary": "1:1 문의 등록",
+        "tags": [
+          "Inquiry"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "receiver_id",
+                  "type",
+                  "title",
+                  "content"
+                ],
+                "properties": {
+                  "receiver_id": {
+                    "type": "integer",
+                    "description": "수신자 회원 ID"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "buyer",
+                      "non_buyer"
+                    ]
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "문의 등록 성공"
+          }
+        }
+      }
+    },
+    "/api/inquiries/received": {
+      "get": {
+        "summary": "받은 문의 목록 조회",
+        "tags": [
+          "Inquiry"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "type",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "buyer",
+                "non_buyer"
+              ]
+            },
+            "description": "필터링할 문의 유형"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "받은 문의 목록 조회 성공"
+          }
+        }
+      }
+    },
+    "/api/inquiries/{inquiryId}": {
+      "get": {
+        "summary": "문의 상세 조회",
+        "tags": [
+          "Inquiry"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "inquiryId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "문의 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "문의 상세 조회 성공"
+          }
+        }
+      }
+    },
+    "/api/inquiries/{inquiryId}/replies": {
+      "post": {
+        "summary": "문의 답변 등록",
+        "tags": [
+          "Inquiry"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "inquiryId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "content"
+                ],
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "example": "답변 드립니다. 감사합니다."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "답변 등록 성공"
+          }
+        }
+      }
+    },
+    "/api/inquiries/{inquiryId}/read": {
+      "patch": {
+        "summary": "문의 읽음 처리",
+        "tags": [
+          "Inquiry"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "inquiryId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "읽음 처리 성공"
+          }
+        }
+      }
+    },
+    "/api/members/followers/{memberId}": {
+      "get": {
+        "summary": "회원의 팔로워 목록 조회",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "회원 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "팔로워 목록 조회 성공"
+          }
+        }
+      }
+    },
+    "/api/members/following/{memberId}": {
+      "get": {
+        "summary": "회원의 팔로잉 목록 조회",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "회원 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "팔로잉 목록 조회 성공"
+          }
+        }
+      }
+    },
+    "/api/members/{memberId}/prompts": {
+      "get": {
+        "summary": "회원이 작성한 프롬프트 목록 조회",
+        "tags": [
+          "Member"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "페이징 커서"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "한 페이지에 가져올 개수 (최대 50)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "프롬프트 목록 조회 성공"
+          }
+        }
+      }
+    },
+    "/api/members/{memberId}": {
+      "get": {
+        "summary": "회원 정보 조회",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "회원 정보 반환"
+          }
+        }
+      }
+    },
+    "/api/members": {
+      "patch": {
+        "summary": "회원 정보 수정",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nickname": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "회원 정보 수정 성공"
+          }
+        }
+      }
+    },
+    "/api/members/intros": {
+      "post": {
+        "summary": "회원 한 줄 소개 작성 또는 수정",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "example": "프롬프트 전문가입니다."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "소개 작성/수정 성공"
+          }
+        }
+      },
+      "patch": {
+        "summary": "회원 한줄 소개 수정",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "example": "GPT 전문가입니다."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "한줄 소개 수정 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "한줄 소개가 성공적으로 수정되었습니다."
+                    },
+                    "intro": {
+                      "type": "string",
+                      "example": "GPT 전문가입니다."
+                    },
+                    "updated_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청"
+          },
+          "401": {
+            "description": "인증 실패"
+          }
+        }
+      }
+    },
+    "/api/members/histories": {
+      "post": {
+        "summary": "회원 이력 작성",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "history": {
+                    "type": "string",
+                    "example": "2020~2023 GPT 연구소 재직"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "이력 작성 성공"
+          }
+        }
+      }
+    },
+    "/api/members/histories/{historyId}": {
+      "patch": {
+        "summary": "회원 이력 수정",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "historyId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "history": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "이력 수정 성공"
+          }
+        }
+      },
+      "delete": {
+        "summary": "회원 이력 삭제",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "historyId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "이력 삭제 성공"
+          }
+        }
+      }
+    },
+    "/api/members/{memberId}/histories": {
+      "get": {
+        "summary": "특정 회원의 이력 목록 조회",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "이력 목록 조회 성공"
+          }
+        }
+      }
+    },
+    "/api/members/sns": {
+      "post": {
+        "summary": "SNS 등록",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SNS 등록 성공"
+          }
+        }
+      }
+    },
+    "/api/members/sns/{snsId}": {
+      "patch": {
+        "summary": "SNS 수정",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "snsId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SNS 수정 성공"
+          }
+        }
+      },
+      "delete": {
+        "summary": "SNS 삭제",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "snsId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SNS 삭제 성공"
+          }
+        }
+      }
+    },
+    "/api/members/{memberId}/sns": {
+      "get": {
+        "summary": "회원 SNS 목록 조회",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SNS 목록 조회 성공"
+          }
+        }
+      }
+    },
+    "/api/members/images": {
+      "post": {
+        "summary": "프로필 이미지 업로드",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "profile_image": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "업로드 성공"
+          }
+        }
+      }
+    },
+    "/api/members/follows/{memberId}": {
+      "post": {
+        "summary": "회원 팔로우",
+        "description": "특정 사용자를 팔로우합니다.",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memberId",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true,
+            "description": "팔로우할 대상 회원의 ID"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "팔로우 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "팔로우 성공"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      },
+      "delete": {
+        "summary": "회원 언팔로우",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "description": "언팔로우할 회원의 ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "언팔로우 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "언팔로우 성공"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      }
+    },
+    "/api/members/withdrawl": {
+      "delete": {
+        "summary": "회원 탈퇴",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "탈퇴 완료"
+          }
+        }
+      }
+    },
+    "/api/prompts/{promptId}/downloads": {
+      "get": {
+        "summary": "프롬프트 상세 내용 또는 다운로드",
+        "description": "로그인한 사용자가 프롬프트 상세 내용을 확인하거나 다운로드합니다.",
+        "tags": [
+          "PromptDownload"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "description": "조회할 프롬프트 ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "프롬프트 내용 반환 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromptContent"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증이 필요합니다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "로그인이 필요합니다."
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "프롬프트를 찾을 수 없음"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      }
+    },
+    "/api/prompts/{promptId}/likes": {
+      "post": {
+        "summary": "프롬프트 찜하기",
+        "description": "현재 로그인한 사용자가 특정 프롬프트를 찜합니다.",
+        "tags": [
+          "PromptLike"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "찜할 프롬프트 ID"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "프롬프트 찜 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증이 필요합니다"
+          },
+          "404": {
+            "description": "프롬프트를 찾을 수 없음"
+          },
+          "409": {
+            "description": "이미 찜한 프롬프트"
+          }
+        }
+      },
+      "delete": {
+        "summary": "프롬프트 찜 취소",
+        "description": "로그인한 사용자가 특정 프롬프트에 대한 찜을 취소합니다.",
+        "tags": [
+          "PromptLike"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "찜을 취소할 프롬프트 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "프롬프트 찜 취소 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증이 필요합니다"
+          },
+          "404": {
+            "description": "찜 기록 없음"
+          }
+        }
+      }
+    },
+    "/api/prompts/likes": {
+      "get": {
+        "summary": "찜한 프롬프트 목록 조회",
+        "description": "로그인한 사용자가 찜한 프롬프트 목록을 조회합니다.",
+        "tags": [
+          "PromptLike"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "찜한 프롬프트 목록",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Prompt"
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증이 필요합니다"
+          }
+        }
+      }
+    },
+    "/api/prompts/searches": {
+      "get": {
+        "summary": "프롬프트 검색",
+        "description": "키워드, 태그, 모델 등을 기준으로 프롬프트를 검색합니다.",
+        "tags": [
+          "Prompts"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "keyword",
+            "required": true,
+            "description": "검색어",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "description": "태그 (여러 개 가능)",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "model",
+            "description": "모델 이름",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "recent",
+                "views",
+                "popular"
+              ],
+              "default": "recent"
+            }
+          },
+          {
+            "in": "query",
+            "name": "is_free",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "검색 성공"
+          },
+          "400": {
+            "description": "잘못된 요청"
+          }
+        }
+      }
+    },
+    "/api/prompts/{promptId}/images": {
+      "post": {
+        "summary": "프롬프트에 이미지 등록",
+        "tags": [
+          "Prompts"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image_url": {
+                    "type": "string"
+                  },
+                  "order_index": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "image_url"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "이미지 매핑 성공"
+          },
+          "400": {
+            "description": "필수 값 누락"
+          },
+          "401": {
+            "description": "인증 실패"
+          }
+        }
+      }
+    },
+    "/api/prompts": {
+      "post": {
+        "summary": "프롬프트 작성",
+        "tags": [
+          "Prompts"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title",
+                  "prompt",
+                  "prompt_result",
+                  "description",
+                  "price",
+                  "tags",
+                  "model",
+                  "is_free"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "prompt": {
+                    "type": "string"
+                  },
+                  "prompt_result": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "usage_guide": {
+                    "type": "string"
+                  },
+                  "price": {
+                    "type": "number"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "model": {
+                    "type": "string"
+                  },
+                  "is_free": {
+                    "type": "boolean"
+                  },
+                  "has_image": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "업로드 성공"
+          },
+          "400": {
+            "description": "필수 필드 누락"
+          },
+          "401": {
+            "description": "인증 실패"
+          }
+        }
+      }
+    },
+    "/api/prompts/{promptId}": {
+      "patch": {
+        "summary": "프롬프트 수정",
+        "tags": [
+          "Prompts"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "prompt": {
+                    "type": "string"
+                  },
+                  "prompt_result": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "usage_guide": {
+                    "type": "string"
+                  },
+                  "price": {
+                    "type": "number"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "model": {
+                    "type": "string"
+                  },
+                  "is_free": {
+                    "type": "boolean"
+                  },
+                  "has_image": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "수정 성공"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          },
+          "404": {
+            "description": "프롬프트 없음"
+          }
+        }
+      },
+      "delete": {
+        "summary": "프롬프트 삭제",
+        "tags": [
+          "Prompts"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "삭제 성공"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          },
+          "404": {
+            "description": "프롬프트 없음"
+          }
+        }
+      }
+    },
+    "/api/reports": {
+      "post": {
+        "summary": "프롬프트 신고 등록",
+        "tags": [
+          "Report"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "prompt_id",
+                  "report_type",
+                  "description"
+                ],
+                "properties": {
+                  "prompt_id": {
+                    "type": "integer",
+                    "description": "신고 대상 프롬프트 ID"
+                  },
+                  "report_type": {
+                    "type": "string",
+                    "enum": [
+                      "inappropriate",
+                      "spam",
+                      "etc"
+                    ],
+                    "description": "신고 유형"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "신고 상세 설명"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "신고 등록 성공"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      },
+      "get": {
+        "summary": "신고된 프롬프트 목록 조회 (관리자 전용)",
+        "tags": [
+          "Report"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "페이징 커서"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "가져올 개수"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "신고된 프롬프트 목록 조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "reports": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "report_id": {
+                            "type": "integer"
+                          },
+                          "report_type": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "is_read": {
+                            "type": "boolean"
+                          },
+                          "prompt": {
+                            "type": "object",
+                            "properties": {
+                              "prompt_id": {
+                                "type": "integer"
+                              },
+                              "title": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "reporter": {
+                            "type": "object",
+                            "properties": {
+                              "user_id": {
+                                "type": "integer"
+                              },
+                              "nickname": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          }
+        }
+      }
+    },
+    "/api/reports/{reportId}": {
+      "get": {
+        "summary": "특정 신고 상세 조회 (관리자 전용)",
+        "tags": [
+          "Report"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reportId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "신고 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "신고 상세 정보 조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "report_id": {
+                      "type": "integer"
+                    },
+                    "report_type": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "is_read": {
+                      "type": "boolean"
+                    },
+                    "prompt": {
+                      "type": "object",
+                      "properties": {
+                        "title": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "reporter": {
+                      "type": "object",
+                      "properties": {
+                        "nickname": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "404": {
+            "description": "신고 정보 없음"
+          }
+        }
+      }
+    },
+    "/api/reviews/me": {
+      "get": {
+        "summary": "내가 작성한 리뷰 목록 조회",
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "페이지네이션 커서"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "조회할 개수"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "내가 작성한 리뷰 목록 조회 성공"
+          }
+        }
+      }
+    },
+    "/api/reviews/received-reviews/me": {
+      "get": {
+        "summary": "내가 받은 리뷰 목록 조회",
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "내가 받은 리뷰 목록 조회 성공"
+          }
+        }
+      }
+    },
+    "/api/reviews/{promptId}": {
+      "get": {
+        "summary": "특정 프롬프트의 리뷰 목록 조회",
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "프롬프트 ID"
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "페이지네이션 커서"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "조회할 개수"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "리뷰 목록 조회 성공"
+          }
+        }
+      },
+      "post": {
+        "summary": "리뷰 작성",
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "리뷰를 작성할 프롬프트 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "rating",
+                  "content"
+                ],
+                "properties": {
+                  "rating": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 5
+                  },
+                  "content": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "리뷰 작성 성공"
+          }
+        }
+      }
+    },
+    "/api/reviews/{reviewId}": {
+      "delete": {
+        "summary": "리뷰 삭제",
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reviewId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "삭제할 리뷰 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "리뷰 삭제 성공"
+          }
+        }
+      },
+      "patch": {
+        "summary": "리뷰 수정",
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reviewId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "수정할 리뷰 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "rating",
+                  "content"
+                ],
+                "properties": {
+                  "rating": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 5
+                  },
+                  "content": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "리뷰 수정 성공"
+          }
+        }
+      }
+    },
+    "/api/reviews/{reviewId}/edit": {
+      "get": {
+        "summary": "리뷰 수정 화면 데이터 조회",
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reviewId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "리뷰 수정 화면 데이터 조회 성공"
+          }
+        }
+      }
+    },
+    "/api/tips": {
+      "get": {
+        "summary": "팁 목록 조회",
+        "tags": [
+          "Tip"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "페이지 번호"
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "한 페이지당 항목 수"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "팁 목록 조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tip_id": {
+                            "type": "integer"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "content": {
+                            "type": "string"
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "팁 생성",
+        "tags": [
+          "Tip"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "writer_id": {
+                    "type": "integer"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "팁 생성 성공"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "관리자 권한 없음"
+          }
+        }
+      }
+    },
+    "/api/tips/{tipId}": {
+      "patch": {
+        "summary": "팁 수정",
+        "tags": [
+          "Tip"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tipId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "수정할 팁 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "팁 수정 성공"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "관리자 권한 없음"
+          },
+          "404": {
+            "description": "팁을 찾을 수 없음"
+          }
+        }
+      }
+    },
+    "/api/tips/{tipId}/delete": {
+      "patch": {
+        "summary": "팁 삭제 (soft delete)",
+        "tags": [
+          "Tip"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tipId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "삭제할 팁 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "팁 삭제 성공"
+          },
+          "400": {
+            "description": "이미 삭제된 팁"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "관리자 권한 없음"
+          },
+          "404": {
+            "description": "팁을 찾을 수 없음"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PromptContent": {
+        "type": "object",
+        "properties": {
+          "prompt_id": {
+            "type": "integer",
+            "example": 123
+          },
+          "title": {
+            "type": "string",
+            "example": "챗GPT로 마케팅 자동화하기"
+          },
+          "content": {
+            "type": "string",
+            "example": "당신은 마케팅 전문가입니다. 이 프롬프트는..."
+          },
+          "download_count": {
+            "type": "integer",
+            "example": 42
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-07-29T10:00:00Z"
+          }
+        }
+      },
+      "PromptModel": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "PromptTag": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "Prompt": {
+        "type": "object",
+        "properties": {
+          "prompt_id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "model": {
+                  "$ref": "#/components/schemas/PromptModel"
+                }
+              }
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "tag": {
+                  "$ref": "#/components/schemas/PromptTag"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "인증 및 로그인 관련 API"
+    },
+    {
+      "name": "Inquiry",
+      "description": "1:1 문의 관련 API"
+    },
+    {
+      "name": "Member",
+      "description": "회원 관련 API"
+    },
+    {
+      "name": "PromptDownload",
+      "description": "프롬프트 다운로드 / 상세 내용 조회 API"
+    },
+    {
+      "name": "PromptLike",
+      "description": "프롬프트 찜 관련 API"
+    },
+    {
+      "name": "Prompts",
+      "description": "프롬프트 관련 API"
+    },
+    {
+      "name": "Report",
+      "description": "프롬프트 신고 관련 API"
+    },
+    {
+      "name": "Reviews",
+      "description": "프롬프트 리뷰 관련 API"
+    },
+    {
+      "name": "Tip",
+      "description": "팁 관련 API"
+    }
+  ]
+}

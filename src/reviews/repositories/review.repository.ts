@@ -1,3 +1,4 @@
+
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
@@ -36,14 +37,22 @@ export const findAllByPromptId = async (
   });
 };
 
-export const findNicknameByUserId = async (userIds: number[]) => {
+
+
+// 리뷰 작성자들의 닉네임 + 프로필 이미지 URL 조회
+export const findUserProfilesByUserIds = async (userIds: number[]) => {
   return await prisma.user.findMany({
     where: {
       user_id: { in: userIds }
     },
     select: {
       user_id: true,
-      nickname: true
+      nickname: true,
+      profileImage: {
+        select: {
+          url: true
+        }
+      }
     }
   });
 };
@@ -62,4 +71,149 @@ export const createReview = async ({
           content
         }
     });
+};
+
+
+export const findReviewById = async (reviewId: number) => {
+  return await prisma.review.findUnique({
+    where: {
+      review_id: reviewId
+    }
+  });
+};
+
+export const deleteReviewById = async (reviewId: number) => {
+  await prisma.review.delete({
+    where: {
+      review_id: reviewId
+    }
+  });
+};
+
+export const findPromptById = async (promptId: number) => {
+  return await prisma.prompt.findUnique({
+    where: {
+      prompt_id: promptId
+    }
+  });
+};
+
+// 사용자 ID로 닉네임만 조회
+export const findNicknameByUserId = async (userId: number): Promise<string | null> => {
+  const user = await prisma.user.findUnique({
+    where: {
+      user_id: userId
+    },
+    select: {
+      nickname: true
+    }
+  });
+
+  return user?.nickname || null;
+};
+
+
+// 프롬프트 ID로 모델 조회
+
+export const findModelByPromptId = async (promptId: number): Promise<{ model_id: number; model_name: string } | null> => {
+  const promptModel = await prisma.promptModel.findFirst({
+    where: { prompt_id: promptId },
+    include: {
+      model: {
+        select: {
+          model_id: true,
+          name: true
+        }
+      }
+    }
+  });
+  if(!promptModel?.model) return null;
+
+  return {
+    model_id: promptModel.model.model_id,
+    model_name: promptModel.model.name
+  };
+};
+
+// 리뷰 수정
+export const updateReviewById = async (
+  reviewId: number,
+  data: {
+    rating?: number;
+    content?: string;
+  }
+) => {
+  return await prisma.review.update({
+    where: {
+      review_id: reviewId
+    },
+    data: {
+      ...(data.rating !== undefined && { rating: data.rating }), // rating 필드가 undefined가 아닐 때만 업데이트
+      ...(data.content !== undefined && { content: data.content }) // content 필드가 undefined가 아닐 때만 업데이트
+    }
+  });
+};
+
+// 내가 작성한 리뷰 조회 
+export const findAllReviewsByUserId = async (
+  userId: number,
+  cursor?: number,
+  limit?: number
+) => {
+  return await prisma.review.findMany({
+    where: {
+      user_id: userId,
+      ...(cursor && { review_id: { lt: cursor } }),
+    },
+    orderBy: {
+      review_id: 'desc',
+    },
+    take: limit,
+    include: {
+      prompt: {
+        select: {
+          prompt_id: true,
+          title: true,
+        },
+      },
+    },
+  });
+};
+
+
+// 내가 받은 리뷰 조회
+export const findAllMyReviewsByUserId = async (
+  userId: number,
+  cursor?: number,
+  limit?: number
+) => {
+  return await prisma.review.findMany({
+    where: {
+      prompt: {
+        user_id: userId,
+      },
+      ...(cursor && { review_id: { lt: cursor } })
+    },
+    include: {
+      prompt: {
+        select: {
+          prompt_id: true,
+          title: true
+        }
+      }
+    },
+    take: limit,
+    orderBy: {
+      review_id: 'desc',
+    }
+  });
+};
+
+// 사용자 ID로 사용자 정보 조회
+export const findUserById = async (userId: number) => {
+  return await prisma.user.findUnique({
+    where: {
+      user_id: userId
+    }
+  });
 };

@@ -3,6 +3,7 @@ export interface PromptDownloadResponseDTO {
   title: string;
   prompt: string;
   is_free: boolean;
+  is_paid: boolean;
   statusCode: number;
 }
 

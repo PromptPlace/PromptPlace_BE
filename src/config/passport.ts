@@ -1,9 +1,17 @@
-import passport from 'passport';
-import { Strategy as JwtStrategy, ExtractJwt, StrategyOptionsWithRequest, VerifiedCallback } from 'passport-jwt';
-import { Request } from 'express';
-import { configureGoogleStrategy } from './social/google';
-import { configureNaverStrategy } from './social/naver';
-import prisma from './prisma';
+import passport from "passport";
+import dotenv from 'dotenv';
+dotenv.config(); 
+import {
+  Strategy as JwtStrategy,
+  ExtractJwt,
+  StrategyOptionsWithRequest,
+  VerifiedCallback,
+} from "passport-jwt";
+import { Request } from "express";
+import { configureGoogleStrategy } from "./social/google";
+import { configureNaverStrategy } from "./social/naver";
+import { configureKakaoStrategy } from "./social/kakao";
+import prisma from "./prisma";
 
 // JWT Strategy 설정
 const options: StrategyOptionsWithRequest = {
@@ -13,7 +21,7 @@ const options: StrategyOptionsWithRequest = {
 };
 
 passport.use(
-  'jwt',
+  "jwt",
   new JwtStrategy(
     options,
     async (req: Request, jwtPayload: any, done: VerifiedCallback) => {
@@ -36,7 +44,7 @@ passport.use(
 // 소셜 로그인 Strategy 설정
 configureGoogleStrategy();
 configureNaverStrategy();
-
+configureKakaoStrategy();
 
 // Passport serialize/deserialize 설정
 passport.serializeUser((user: any, done) => {
@@ -46,7 +54,7 @@ passport.serializeUser((user: any, done) => {
 passport.deserializeUser(async (id: number, done) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { user_id: id }
+      where: { user_id: id },
     });
     done(null, user);
   } catch (error) {
@@ -54,7 +62,12 @@ passport.deserializeUser(async (id: number, done) => {
   }
 });
 
-export const authenticateJwt = passport.authenticate('jwt', { session: false });
-export const authenticateGoogle = passport.authenticate('google', { scope: ['profile', 'email'] });
-export const authenticateNaver = passport.authenticate('naver', { authType: 'reprompt' });
+export const authenticateJwt = passport.authenticate("jwt", { session: false });
+export const authenticateGoogle = passport.authenticate("google", {
+  scope: ["profile", "email"],
+});
+export const authenticateNaver = passport.authenticate("naver", {
+  authType: "reprompt",
+});
+export const authenticateKakao = passport.authenticate("kakao");
 export default passport;
