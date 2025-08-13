@@ -260,6 +260,53 @@ export class MemberRepository {
       },
     });
   }
+
+  async findAllMembers(page: number = 1, limit: number = 20) {
+    const skip = (page - 1) * limit;
+
+    const [members, total] = await Promise.all([
+      prisma.user.findMany({
+        where: {
+          status: true, // 활성화된 회원만 조회
+        },
+        select: {
+          user_id: true,
+          nickname: true,
+          created_at: true,
+          updated_at: true,
+          _count: {
+            select: {
+              followers: true, // 팔로워 수
+            },
+          },
+        },
+        orderBy: {
+          created_at: "desc", // 최신 가입순
+        },
+        skip,
+        take: limit,
+      }),
+      prisma.user.count({
+        where: {
+          status: true,
+        },
+      }),
+    ]);
+
+    return {
+      members: members.map((member) => ({
+        user_id: member.user_id,
+        nickname: member.nickname,
+        created_at: member.created_at,
+        updated_at: member.updated_at,
+        follower_cnt: member._count.followers,
+      })),
+      total,
+      page,
+      limit,
+      total_pages: Math.ceil(total / limit),
+    };
+  }
 }
 
 export const getMemberPromptsRepo = async (

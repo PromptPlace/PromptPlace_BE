@@ -589,4 +589,138 @@ router.delete(
   memberController.withdrawMember.bind(memberController)
 );
 
+/**
+ * @swagger
+ * /api/members:
+ *   get:
+ *     summary: 전체 회원 조회
+ *     description: 관리자만 접근 가능한 전체 회원 목록 조회 API
+ *     tags: [Member]
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *           minimum: 1
+ *         description: 페이지 번호
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *           minimum: 1
+ *           maximum: 100
+ *         description: 페이지당 조회할 회원 수
+ *     responses:
+ *       200:
+ *         description: 전체 회원 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 전체 회원 조회 완료
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     members:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           user_id:
+ *                             type: integer
+ *                             example: 1
+ *                           nickname:
+ *                             type: string
+ *                             example: 프롬프트마스터
+ *                           created_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2024-01-15T09:30:00Z"
+ *                           updated_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2024-02-20T14:22:00Z"
+ *                           follower_cnt:
+ *                             type: integer
+ *                             example: 125
+ *                     total:
+ *                       type: integer
+ *                       example: 1500
+ *                     page:
+ *                       type: integer
+ *                       example: 1
+ *                     limit:
+ *                       type: integer
+ *                       example: 20
+ *                     total_pages:
+ *                       type: integer
+ *                       example: 75
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *       401:
+ *         description: 인증 실패
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Unauthorized
+ *                 message:
+ *                   type: string
+ *                   example: 로그인이 필요합니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 401
+ *       403:
+ *         description: 권한 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Forbidden
+ *                 message:
+ *                   type: string
+ *                   example: 관리자만 접근할 수 있습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 403
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: InternalServerError
+ *                 message:
+ *                   type: string
+ *                   example: 알 수 없는 오류가 발생했습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 500
+ */
+// 전체 회원 조회 API
+router.get(
+  "/",
+  authenticateJwt,
+  memberController.getAllMembers.bind(memberController)
+);
+
 export default router;

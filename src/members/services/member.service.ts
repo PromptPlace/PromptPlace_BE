@@ -350,4 +350,25 @@ export class MemberService {
     // 회원 비활성화
     return this.memberRepository.deactivateUser(userId);
   }
+
+  async getAllMembers(page: number = 1, limit: number = 20) {
+    // 관리자 권한 확인은 컨트롤러에서 처리
+    if (page < 1) {
+      throw new AppError(
+        "페이지 번호는 1 이상이어야 합니다.",
+        400,
+        "BadRequest"
+      );
+    }
+
+    if (limit < 1 || limit > 100) {
+      throw new AppError(
+        "페이지당 조회할 회원 수는 1-100 사이여야 합니다.",
+        400,
+        "BadRequest"
+      );
+    }
+
+    return await this.memberRepository.findAllMembers(page, limit);
+  }
 }
