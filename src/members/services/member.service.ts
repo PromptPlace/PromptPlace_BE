@@ -113,6 +113,7 @@ export class MemberService {
       name: member.name,
       nickname: member.nickname,
       intros: member.intro?.description || null,
+      profile_image: member.profileImage?.url || null, // 프로필 이미지 추가
       created_at: member.created_at,
       updated_at: member.updated_at,
       status: member.status ? 1 : 0,

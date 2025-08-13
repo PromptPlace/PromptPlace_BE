@@ -190,6 +190,7 @@ export class MemberRepository {
       where: { user_id: memberId },
       include: {
         intro: true,
+        profileImage: true, // 프로필 이미지 포함
       },
     });
   }
