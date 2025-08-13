@@ -585,14 +585,6 @@ export class MemberController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const userId = (req.user as any).user_id;
-
-      // 관리자 권한 확인
-      const user = await this.memberService.getMemberById(userId, userId);
-      if (user.role !== "ADMIN") {
-        throw new AppError("관리자만 접근할 수 있습니다.", 403, "Forbidden");
-      }
-
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
 

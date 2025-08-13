@@ -223,7 +223,7 @@ export class MemberRepository {
   }
 
   async findFollowersByMemberId(memberId: number) {
-    return prisma.following.findMany({
+    const followings = await prisma.following.findMany({
       where: {
         following_id: memberId,
       },
@@ -232,18 +232,28 @@ export class MemberRepository {
         follower_id: true,
         created_at: true,
         updated_at: true,
-        follower: {
-          select: {
-            nickname: true,
-            email: true,
-          },
-        },
       },
     });
+
+    // follower 정보를 별도로 가져오기
+    const followingsWithFollower = await Promise.all(
+      followings.map(async (following) => {
+        const follower = await prisma.user.findUnique({
+          where: { user_id: following.follower_id },
+          select: { nickname: true, email: true },
+        });
+        return {
+          ...following,
+          follower,
+        };
+      })
+    );
+
+    return followingsWithFollower;
   }
 
   async findFollowingsByMemberId(memberId: number) {
-    return prisma.following.findMany({
+    const followings = await prisma.following.findMany({
       where: {
         follower_id: memberId,
       },
@@ -252,14 +262,24 @@ export class MemberRepository {
         following_id: true,
         created_at: true,
         updated_at: true,
-        following: {
-          select: {
-            nickname: true,
-            email: true,
-          },
-        },
       },
     });
+
+    // following 정보를 별도로 가져오기
+    const followingsWithFollowing = await Promise.all(
+      followings.map(async (following) => {
+        const followingUser = await prisma.user.findUnique({
+          where: { user_id: following.following_id },
+          select: { nickname: true, email: true },
+        });
+        return {
+          ...following,
+          following: followingUser,
+        };
+      })
+    );
+
+    return followingsWithFollowing;
   }
 
   async findAllMembers(page: number = 1, limit: number = 20) {
@@ -275,11 +295,6 @@ export class MemberRepository {
           nickname: true,
           created_at: true,
           updated_at: true,
-          _count: {
-            select: {
-              followers: true, // 팔로워 수
-            },
-          },
         },
         orderBy: {
           created_at: "desc", // 최신 가입순
@@ -294,14 +309,24 @@ export class MemberRepository {
       }),
     ]);
 
+    // 각 멤버의 팔로워 수를 별도로 계산
+    const membersWithFollowerCount = await Promise.all(
+      members.map(async (member) => {
+        const followerCount = await prisma.following.count({
+          where: { following_id: member.user_id },
+        });
+        return {
+          user_id: member.user_id,
+          nickname: member.nickname,
+          created_at: member.created_at,
+          updated_at: member.updated_at,
+          follower_cnt: followerCount,
+        };
+      })
+    );
+
     return {
-      members: members.map((member) => ({
-        user_id: member.user_id,
-        nickname: member.nickname,
-        created_at: member.created_at,
-        updated_at: member.updated_at,
-        follower_cnt: member._count.followers,
-      })),
+      members: membersWithFollowerCount,
       total,
       page,
       limit,
