@@ -5,6 +5,9 @@ import { PurchaseCompleteService } from '../services/purchase.complete.service';
 export const PurchaseCompleteController = {
   async completePurchase(req: Request, res: Response, next: NextFunction) {
     try {
+       console.log('🔥 요청 바디 확인:', req.body); // ← 여기에 로그 찍기
+      console.log('🔥 Content-Type:', req.headers['content-type']); // ← 헤더도 확인
+      
       const userId = (req.user as any).user_id;
       const dto = req.body as Partial<PromptPurchaseCompleteRequestDTO>;
 

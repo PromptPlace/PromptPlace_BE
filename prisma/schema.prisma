@@ -27,9 +27,9 @@ model User {
   prompt_likes      PromptLike[]
   prompt_reports    PromptReport[]             @relation("UserReport")
   purchases         Purchase[]
-  settlements       Settlement[]               @relation("UserSettlements")
   refreshTokens     RefreshToken[]
   reviews           Review[]
+  settlements       Settlement[]               @relation("UserSettlements")
   tips              Tip[]
   profileImage      UserImage?
   intro             UserIntro?
@@ -110,7 +110,7 @@ model Tip {
   title      String
   content    String   @db.Text
   is_visible Boolean
-  file_url   String?  @db.VarChar(255)
+  file_url        String?  @db.VarChar(255)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   writer     User     @relation(fields: [writer_id], references: [user_id])
@@ -332,36 +332,30 @@ model Purchase {
   @@index([user_id], map: "Purchase_user_id_fkey")
 }
 
-enum PaymentProvider {
-  kakaopay
-  tosspay
-}
-
 model Payment {
-  payment_id   Int             @id @default(autoincrement())
-  purchase_id  Int             @unique
+  payment_id   Int              @id @default(autoincrement())
+  purchase_id  Int              @unique
   status       Status
-  provider     PaymentProvider
-  imp_uid      String          @unique
-  merchant_uid String          @unique
-  created_at   DateTime        @default(now())
-  updated_at   DateTime        @updatedAt
-
-  purchase     Purchase        @relation(fields: [purchase_id], references: [purchase_id], onDelete: Cascade)
+  provider     Payment_provider
+  merchant_uid String           @unique
+  created_at   DateTime         @default(now())
+  updated_at   DateTime         @updatedAt
+  imp_uid      String           @unique
+  purchase     Purchase         @relation(fields: [purchase_id], references: [purchase_id], onDelete: Cascade)
   settlement   Settlement?
 }
 
 model Settlement {
   settlement_id Int      @id @default(autoincrement())
-  user_id       Int     
   payment_id    Int      @unique
   amount        Int
   fee           Int
   status        Status
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
-  user     User    @relation("UserSettlements", fields: [user_id], references: [user_id])
+  user_id       Int
   payment       Payment  @relation(fields: [payment_id], references: [payment_id])
+  user          User     @relation("UserSettlements", fields: [user_id], references: [user_id])
 
   @@index([user_id])
 }
@@ -415,4 +409,9 @@ enum NotificationType {
   INQUIRY_REPLY
   ANNOUNCEMENT
   REPORT
+}
+
+enum Payment_provider {
+  kakaopay
+  tosspay
 }

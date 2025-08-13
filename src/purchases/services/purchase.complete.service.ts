@@ -26,10 +26,7 @@ export const PurchaseCompleteService = {
 
     // 1) PortOne에서 결제 조회 후 상태/주문번호/금액 검증
     //    기대 금액은 우선 0으로 넣고, 아래에서 prompt 로드 후 다시 크로스체크
-    const prelim = await fetchAndVerifyPortonePayment(imp_uid, {
-      merchant_uid,
-      amount: 0, // 일단 0(임시), 아래에서 실제 금액으로 재검증
-    });
+    const prelim = await fetchAndVerifyPortonePayment(imp_uid, { merchant_uid });
 
     // 2) 프롬프트 + 판매자 조회
     const safeCustom = prelim.custom_data || {};

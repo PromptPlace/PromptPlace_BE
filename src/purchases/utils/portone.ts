@@ -1,7 +1,6 @@
-import axios from 'axios';
+import axios, { AxiosError} from 'axios';
 import { AppError } from '../../errors/AppError';
 
-// Access Token 캐시(선택)
 let cachedToken: { token: string; exp: number } | null = null;
 
 async function getPortoneAccessToken(): Promise<string> {
@@ -10,7 +9,6 @@ async function getPortoneAccessToken(): Promise<string> {
     throw new AppError('포트원 API 키/시크릿이 설정되지 않았습니다.', 500, 'ServerConfig');
   }
 
-  // 캐시 유효하면 재사용
   if (cachedToken && cachedToken.exp > Date.now() + 20_000) {
     return cachedToken.token;
   }
@@ -25,7 +23,7 @@ async function getPortoneAccessToken(): Promise<string> {
   }
 
   const token = data.response.access_token as string;
-  const expiredAtSec = data.response.expired_at as number; // unix seconds
+  const expiredAtSec = data.response.expired_at as number;
   cachedToken = { token, exp: expiredAtSec * 1000 };
   return token;
 }
@@ -33,55 +31,95 @@ async function getPortoneAccessToken(): Promise<string> {
 export type PortonePaymentVerified = {
   amount: number;
   merchant_uid: string;
-  pg_provider?: string;
-  paid_at?: number;
-  name?: string;
+  pg_provider: string;
+  paid_at: number;
+  name: string;
   custom_data: any;
   raw: any;
 };
 
-// imp_uid로 포트원 결제 상세 조회 + 핵심 3요소 검증
-export async function fetchAndVerifyPortonePayment(imp_uid: string, expected: {
-  merchant_uid: string;
-  amount: number; // 서버가 기대하는 금액
-}): Promise<PortonePaymentVerified> {
-  const accessToken = await getPortoneAccessToken();
+export async function fetchAndVerifyPortonePayment(
+  imp_uid: string,
+  expected: { merchant_uid: string; amount?: number }
+): Promise<PortonePaymentVerified> {
+  try {
+    const accessToken = await getPortoneAccessToken();
 
-  // V1은 Authorization 헤더에 토큰만(환경에 따라 Bearer도 동작하나 기본은 토큰만)
-  const { data } = await axios.get(`https://api.iamport.kr/payments/${imp_uid}`, {
-    headers: { Authorization: `${accessToken}` },
+    const { data } = await axios.get(`https://api.iamport.kr/payments/${imp_uid}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`, // Bearer 필수
+        Accept: 'application/json',
+      },
+      timeout: 10_000,
+    });
+
+    if (data?.code !== 0 || !data?.response) {
+      throw new AppError('포트원 결제 조회 실패', 502, 'BadGateway');
+    }
+
+    const p = data.response;
+
+    if (p.status !== 'paid') {
+      throw new AppError('결제가 정상적으로 완료되지 않았습니다.', 400, 'BadRequest');
+    }
+
+    if (typeof expected?.amount === 'number') {
+      if (Number(p.amount) !== Number(expected.amount)) {
+        throw new AppError('결제 금액 검증 실패', 400, 'BadRequest');
+      }
+    }
+
+    if (p.merchant_uid !== expected.merchant_uid) {
+      throw new AppError('주문번호 검증 실패', 400, 'BadRequest');
+    }
+
+    let customData: any = p.custom_data;
+    if (typeof customData === 'string') {
+      try { customData = JSON.parse(customData); } catch {}
+    }
+
+    return {
+      amount: Number(p.amount),
+      merchant_uid: p.merchant_uid,
+      pg_provider: p.pg_provider,
+      paid_at: p.paid_at,
+      name: p.name,
+      custom_data: customData,
+      raw: p,
+    };
+  } catch (err: any) {
+     if (err instanceof AppError) {
+    console.error('[PortOne verify -> AppError]', {
+      statusCode: err.statusCode,
+      name: err.name,
+      message: err.message,
+    });
+    throw err;
+  }
+    
+     // Axios 에러 분기
+  if (axios.isAxiosError(err)) {
+    const status = err.response?.status ?? 500;
+    const data = err.response?.data;
+    console.error('[PortOne verify -> AxiosError]', {
+      status,
+      data,
+      url: err.config?.url,
+      reqHeaders: err.config?.headers,
+      msg: err.message,
+    });
+    const msg =
+      data?.message ||
+      data?.error?.message ||
+      err.message ||
+      'PortOne verify failed';
+    throw new AppError(msg, status, status === 401 ? 'Unauthorized' : 'BadGateway');
+  }
+
+  // 그 외 일반 에러도 메시지/스택을 남기고 그대로 던짐
+  console.error('[PortOne verify error - non axios]', {
+    name: err?.name, message: err?.message, stack: err?.stack,
   });
-
-  if (data?.code !== 0 || !data?.response) {
-    throw new AppError('포트원 결제 조회 실패', 502, 'BadGateway');
+  throw err; // 혹은 throw new AppError(err?.message || 'Unknown error', 500, 'Internal');
   }
-
-  const p = data.response;
-
-  if (p.status !== 'paid') {
-    throw new AppError('결제가 정상적으로 완료되지 않았습니다.', 400, 'BadRequest');
-  }
-
-  // 금액/주문번호 검증(위변조 방지)
-  if (Number(p.amount) !== Number(expected.amount)) {
-    throw new AppError('결제 금액 검증 실패', 400, 'BadRequest');
-  }
-  if (p.merchant_uid !== expected.merchant_uid) {
-    throw new AppError('주문번호 검증 실패', 400, 'BadRequest');
-  }
-
-  let customData: any = p.custom_data;
-  if (typeof customData === 'string') {
-    try { customData = JSON.parse(customData); } catch { /* ignore */ }
-  }
-
-  return {
-    amount: Number(p.amount),
-    merchant_uid: p.merchant_uid,
-    pg_provider: p.pg_provider,
-    paid_at: p.paid_at,
-    name: p.name,
-    custom_data: customData,
-    raw: p,
-  };
 }
