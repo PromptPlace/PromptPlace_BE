@@ -37,7 +37,9 @@ app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = [
   'https://www.promptplace.kr', 
   'http://localhost:5173',      
-  'https://promptplace-develop.vercel.app' 
+  'https://promptplace-develop.vercel.app',
+  'http://52.79.208.145:3000',
+  'http://52.79.208.145',
 ];
 
 app.use(cors({
