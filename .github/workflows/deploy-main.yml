@@ -55,10 +55,6 @@ jobs:
         run: |
           ssh promptplace 'cd /opt/app && pnpm install'
 
-      - name: Build TypeScript on server
-        run: |
-          ssh promptplace 'cd /opt/app && pnpm exec tsc'
-
       - name: Generate Prisma client
         run: |
           ssh promptplace 'cd /opt/app && pnpm exec prisma generate'
@@ -67,6 +63,10 @@ jobs:
         if: steps.paths-filter.outputs.prisma == 'true'
         run: |
           ssh promptplace 'cd /opt/app && pnpm exec prisma migrate deploy'
+
+      - name: Build TypeScript on server
+        run: |
+          ssh promptplace 'cd /opt/app && pnpm exec tsc && rm -rf dist&& pnpm build'
 
       - name: Copy systemd service file
         run: |
