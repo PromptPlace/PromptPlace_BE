@@ -145,7 +145,7 @@ export const createPrompt = async (req: Request, res: Response) => {
     const invalidFields: string[] = [];
 
     // 문자열 필수 필드: 빈 문자열 불가
-    const stringRequired = ['title', 'prompt', 'prompt_result', 'description', 'download_url'];
+    const stringRequired = ['title', 'prompt', 'prompt_result', 'description'];
     for (const key of stringRequired) {
       if (typeof dto[key] !== 'string' || !dto[key].trim()) invalidFields.push(key);
     }

@@ -208,7 +208,7 @@ export const createPromptWriteRepo = async (
     is_free: boolean;
     tags: string[];
     models: string[];
-    download_url: string;
+    
   }
 ) => {
   return await prisma.$transaction(async (tx) => {
@@ -249,7 +249,6 @@ export const createPromptWriteRepo = async (
       likes: 0,
       review_counts: 0,
       rating_avg: 0,
-      download_url: data.download_url, 
     },
   });
 
@@ -328,7 +327,7 @@ export const updatePromptRepo = async (
     is_free?: boolean;
     tags?: string[];
     models?: string[];
-    download_url?: string;
+    
   }
 ) => {
   return await prisma.$transaction(async (tx) => {
@@ -359,7 +358,6 @@ export const updatePromptRepo = async (
       usage_guide: data.usage_guide,
       price: data.price,
       is_free: data.is_free,
-      download_url: data.download_url,
     }
   });
 
