@@ -593,11 +593,9 @@ router.delete(
  * @swagger
  * /api/members:
  *   get:
- *     summary: 전체 회원 조회
- *     description: 관리자만 접근 가능한 전체 회원 목록 조회 API
+ *     summary: 전체 회원 조회 (공개)
+ *     description: 홈페이지 인기 유저 표시용으로 전체 회원을 조회하는 공개 API
  *     tags: [Member]
- *     security:
- *       - jwt: []
  *     parameters:
  *       - in: query
  *         name: page
@@ -667,38 +665,6 @@ router.delete(
  *                 statusCode:
  *                   type: integer
  *                   example: 200
- *       401:
- *         description: 인증 실패
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Unauthorized
- *                 message:
- *                   type: string
- *                   example: 로그인이 필요합니다.
- *                 statusCode:
- *                   type: integer
- *                   example: 401
- *       403:
- *         description: 권한 없음
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Forbidden
- *                 message:
- *                   type: string
- *                   example: 관리자만 접근할 수 있습니다.
- *                 statusCode:
- *                   type: integer
- *                   example: 403
  *       500:
  *         description: 서버 오류
  *         content:
@@ -716,11 +682,7 @@ router.delete(
  *                   type: integer
  *                   example: 500
  */
-// 전체 회원 조회 API
-router.get(
-  "/",
-  authenticateJwt,
-  memberController.getAllMembers.bind(memberController)
-);
+// 전체 회원 조회 API (공개)
+router.get("/", memberController.getAllMembers.bind(memberController));
 
 export default router;
