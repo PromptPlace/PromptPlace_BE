@@ -466,7 +466,7 @@ router.get(
  * @swagger
  * /api/members/images:
  *   post:
- *     summary: 프로필 이미지 업로드
+ *     summary: 프로필 이미지 업로드 (S3)
  *     tags: [Member]
  *     security:
  *       - jwt: []
@@ -479,15 +479,15 @@ router.get(
  *               profile_image:
  *                 type: string
  *                 format: binary
+ *                 description: 업로드할 프로필 이미지 파일
  *     responses:
  *       200:
- *         description: 업로드 성공
+ *         description: 프로필 이미지 업로드 성공
  */
-// 회원 프로필 이미지 등록 API
 router.post(
   "/images",
   authenticateJwt,
-  upload.single("profile_image"),
+  upload.single("profile_image"), // multer로 파일 받기
   memberController.uploadProfileImage.bind(memberController)
 );
 
@@ -650,6 +650,11 @@ router.delete(
  *                           follower_cnt:
  *                             type: integer
  *                             example: 125
+ *                           profile_image_url:
+ *                             type: string
+ *                             nullable: true
+ *                             example: "https://example.com/profile.jpg"
+ *                             description: 프로필 이미지 URL (없으면 null)
  *                     total:
  *                       type: integer
  *                       example: 1500

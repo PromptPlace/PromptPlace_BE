@@ -2,29 +2,29 @@ import "dotenv/config";
 import express, { ErrorRequestHandler } from "express";
 import { responseHandler } from "./middlewares/responseHandler";
 import { errorHandler } from "./middlewares/errorHandler";
-import 'reflect-metadata';
-import passport from './config/passport';
-import swaggerUi from 'swagger-ui-express';
-import swaggerJsdoc from 'swagger-jsdoc';
-import { swaggerOptions } from './docs/swagger/options';
-import session from 'express-session';
+import "reflect-metadata";
+import passport from "./config/passport";
+import swaggerUi from "swagger-ui-express";
+import swaggerJsdoc from "swagger-jsdoc";
+import { swaggerOptions } from "./docs/swagger/options";
+import session from "express-session";
 import cors from "cors";
-import authRouter from './auth/routes/auth.route'; // auth 라우터 경로 수정
-import membersRouter from './members/routes/member.route'; // members 라우터 import
-import promptRoutes from './prompts/routes/prompt.route'; // 프롬프트 관련 라우터
-import ReviewRouter from './reviews/routes/review.route';
-import purchaseRouter from './purchases/routes/purchase.request.route';
-import settlementRouter from './settlements/routes/settlement.route';
-import withdrawalRouter from './withdrawals/routes/withdrawal.route';
-import promptDownloadRouter from './prompts/routes/prompt.downlaod.route';
-import promptLikeRouter from './prompts/routes/prompt.like.route';
+import authRouter from "./auth/routes/auth.route"; // auth 라우터 경로 수정
+import membersRouter from "./members/routes/member.route"; // members 라우터 import
+import promptRoutes from "./prompts/routes/prompt.route"; // 프롬프트 관련 라우터
+import ReviewRouter from "./reviews/routes/review.route";
+import purchaseRouter from "./purchases/routes/purchase.request.route";
+import settlementRouter from "./settlements/routes/settlement.route";
+import withdrawalRouter from "./withdrawals/routes/withdrawal.route";
+import promptDownloadRouter from "./prompts/routes/prompt.downlaod.route";
+import promptLikeRouter from "./prompts/routes/prompt.like.route";
 import tipRouter from "./tips/routes/tip.route"; // 팁 라우터 import
-import inquiryRouter from './inquiries/routes/inquiry.route';
-import reportRouter from './reports/routes/report.route'; // 신고 라우터 import
-import announcementRouter from './announcements/routes/announcement.route'; // 공지사항 라우터 import
-import notificationRouter from './notifications/routes/notification.route'; // 알림 라우터 import
-import './notifications/listeners/notification.listener'; // 알림 리스터 import
-import messageRouter from './messages/routes/message.route';
+import inquiryRouter from "./inquiries/routes/inquiry.route";
+import reportRouter from "./reports/routes/report.route"; // 신고 라우터 import
+import announcementRouter from "./announcements/routes/announcement.route"; // 공지사항 라우터 import
+import notificationRouter from "./notifications/routes/notification.route"; // 알림 라우터 import
+import "./notifications/listeners/notification.listener"; // 알림 리스터 import
+import messageRouter from "./messages/routes/message.route";
 
 const PORT = 3000;
 const app = express();
@@ -35,26 +35,31 @@ app.use(responseHandler);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// 정적 파일 서빙 설정 추가 (uploads 폴더)
+app.use("/uploads", express.static("uploads"));
+
 // CORS 설정
 const allowedOrigins = [
-  'https://www.promptplace.kr', 
-  'http://localhost:5173',      
-  'https://promptplace-develop.vercel.app',
-  'http://52.79.208.145:3000',
-  'http://52.79.208.145',
+  "https://www.promptplace.kr",
+  "http://localhost:5173",
+  "https://promptplace-develop.vercel.app",
+  "http://52.79.208.145:3000",
+  "http://52.79.208.145",
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // origin이 undefined일 수 있으므로 체크 필요
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // origin이 undefined일 수 있으므로 체크 필요
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 
 // Session 설정 (OAuth용)
 app.use(
@@ -71,9 +76,13 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerJsdoc(swaggerOptions)));
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerJsdoc(swaggerOptions))
+);
 
-// 3. 모든 라우터들 
+// 3. 모든 라우터들
 // 인증 라우터
 app.use("/api/auth", authRouter); // /api 접두사 추가
 
@@ -81,18 +90,21 @@ app.use("/api/auth", authRouter); // /api 접두사 추가
 app.use("/api/members", membersRouter);
 
 // 리뷰 라우터
-app.use('/api/reviews', ReviewRouter);
+app.use("/api/reviews", ReviewRouter);
 
 // 프롬프트 관련 라우터
 // 프롬프트 검색 API
 app.use("/api/prompts", promptRoutes);
 
 // 프롬프트 결제 라우터
-app.use('/api/prompts/purchases',
-  express.text({ type: 'text/plain' }),
+app.use(
+  "/api/prompts/purchases",
+  express.text({ type: "text/plain" }),
   (req, _res, next) => {
-    if (typeof req.body === 'string') {
-      try { req.body = JSON.parse(req.body); } catch {}
+    if (typeof req.body === "string") {
+      try {
+        req.body = JSON.parse(req.body);
+      } catch {}
     }
     next();
   },
@@ -113,17 +125,17 @@ app.use("/api/settlements", settlementRouter);
 app.use("/api/settlements", withdrawalRouter);
 
 //공지사항 라우터
-app.use('/api/announcements', announcementRouter);
+app.use("/api/announcements", announcementRouter);
 
 // 문의 라우터
-app.use('/api/inquiries', inquiryRouter);
+app.use("/api/inquiries", inquiryRouter);
 
-app.use('/api/reports', reportRouter);
+app.use("/api/reports", reportRouter);
 // 알림 라우터
-app.use('/api/notifications', notificationRouter);
+app.use("/api/notifications", notificationRouter);
 
 // 메시지 라우터
-app.use('/api/messages', messageRouter);
+app.use("/api/messages", messageRouter);
 
 // 예시 라우터
 app.get("/", (req, res) => {
@@ -135,7 +147,7 @@ app.get("/error", () => {
   throw new Error("테스트 오류입니다.");
 });
 
-// 4. 마지막 에러 핸들러 
+// 4. 마지막 에러 핸들러
 app.use(errorHandler as ErrorRequestHandler);
 
 app.listen(PORT, "0.0.0.0", () => {

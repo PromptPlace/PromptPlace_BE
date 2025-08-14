@@ -10,6 +10,10 @@ import { UpdateHistoryDto } from "../dtos/update-history.dto";
 import { CreateSnsDto } from "../dtos/create-sns.dto";
 import { UpdateSnsDto } from "../dtos/update-sns.dto";
 import eventBus from "../../config/eventBus";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { v4 as uuidv4 } from "uuid";
+
 @Service()
 export class MemberService {
   constructor(private memberRepository: MemberRepository) {}
@@ -279,8 +283,40 @@ export class MemberService {
     return this.memberRepository.findSnsByUserId(memberId);
   }
 
-  async uploadProfileImage(userId: number, imageUrl: string) {
-    return this.memberRepository.upsertProfileImage(userId, imageUrl);
+  /**
+   * 프로필 이미지 업로드 (파일을 S3에 업로드)
+   */
+  async uploadProfileImage(userId: number, file: Express.Multer.File) {
+    // 파일 확장자 추출
+    const ext = file.originalname.split(".").pop();
+    const newKey = `profile-images/${uuidv4()}_${Date.now()}.${ext}`;
+
+    // S3 클라이언트 생성
+    const s3 = new S3Client({
+      region: process.env.S3_REGION,
+      credentials: {
+        accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+      },
+    });
+
+    // S3에 파일 업로드
+    const uploadCommand = new PutObjectCommand({
+      Bucket: process.env.S3_BUCKET,
+      Key: newKey,
+      Body: file.buffer, // multer.memoryStorage() 사용 시
+      ContentType: file.mimetype,
+    });
+
+    await s3.send(uploadCommand);
+
+    // S3 URL 생성
+    const imageUrl = `https://${process.env.S3_BUCKET}.s3.${process.env.S3_REGION}.amazonaws.com/${newKey}`;
+
+    // 데이터베이스에 저장
+    await this.memberRepository.upsertProfileImage(userId, imageUrl);
+
+    return { url: imageUrl, key: newKey };
   }
 
   async followMember(followerId: number, followingId: number) {

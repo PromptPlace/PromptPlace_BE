@@ -295,6 +295,11 @@ export class MemberRepository {
           nickname: true,
           created_at: true,
           updated_at: true,
+          profileImage: {
+            select: {
+              url: true,
+            },
+          },
         },
         orderBy: {
           created_at: "desc", // 최신 가입순
@@ -315,12 +320,14 @@ export class MemberRepository {
         const followerCount = await prisma.following.count({
           where: { following_id: member.user_id },
         });
+
         return {
           user_id: member.user_id,
           nickname: member.nickname,
           created_at: member.created_at,
           updated_at: member.updated_at,
           follower_cnt: followerCount,
+          profile_image_url: member.profileImage?.url || null, // 이미 S3 URL이 저장되어 있음
         };
       })
     );
