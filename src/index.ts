@@ -108,7 +108,7 @@ app.use("/api/prompts", promptLikeRouter);
 app.use("/api/tips", tipRouter);
 
 // 정산 라우터
-app.use("/api/settlemts", settlementRouter);
+app.use("/api/settlements", settlementRouter);
 
 //공지사항 라우터
 app.use('/api/announcements', announcementRouter);
