@@ -6,7 +6,7 @@ export const WithdrawalService = {
     const { amount } = dto;
 
     // 1. 최소 출금 금액 확인
-    if (amount < 1000) {
+    if (amount < 10000) {
       throw {
         statusCode: 400,
         error: 'InvalidWithdrawalAmount',
