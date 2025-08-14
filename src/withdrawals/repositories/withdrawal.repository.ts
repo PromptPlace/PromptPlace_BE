@@ -11,7 +11,7 @@ export const WithdrawalRepository = {
 
   async getUserTotalWithdrawn(userId: number): Promise<number> {
     const result = await prisma.withdrawRequest.aggregate({
-      where: { user_id: userId },
+      where: { user_id: userId, status: { in: ['Pending', 'Succeed'] } }, 
       _sum: { amount: true },
     });
     return result._sum.amount ?? 0;
