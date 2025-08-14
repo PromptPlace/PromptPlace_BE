@@ -227,7 +227,6 @@ model Prompt {
   created_at     DateTime       @default(now())
   updated_at     DateTime       @updatedAt
   inactive_date  DateTime?
-  download_url   String         @db.Text
   user           User           @relation(fields: [user_id], references: [user_id])
   images         PromptImage[]
   prompt_likes   PromptLike[]

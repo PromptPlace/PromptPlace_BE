@@ -9,5 +9,4 @@ export interface UpdatePromptDto {
   is_free?: boolean;
   tags?: string[];
   models?: string[];
-  download_url?: string;
 } 

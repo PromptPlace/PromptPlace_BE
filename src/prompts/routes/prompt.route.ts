@@ -103,7 +103,7 @@ router.post("/searches", promptController.searchPrompts);
  *                   created_at: "2025-07-20T16:51:42.632Z"
  *                   updated_at: "2025-07-20T16:51:42.632Z"
  *                   inactive_date: null
- *                   download_url: "https://example.com/download/prompt-1"
+ 
  *                   user:
  *                     user_id: 1
  *                     nickname: "류민주"
@@ -142,7 +142,7 @@ router.post("/searches", promptController.searchPrompts);
  *                   created_at: "2025-07-20T16:51:42.723Z"
  *                   updated_at: "2025-07-20T16:51:42.723Z"
  *                   inactive_date: null
- *                   download_url: "https://example.com/download/prompt-2"
+ 
  *                   user:
  *                     user_id: 2
  *                     nickname: "원종호"
@@ -315,8 +315,7 @@ router.post(
  *                 type: boolean
  *               has_image:
  *                 type: boolean
- *               download_url:
- *                 type: string
+ 
  *     responses:
  *       201:
  *         description: 업로드 성공
@@ -373,8 +372,7 @@ router.post("/", authenticateJwt, promptController.createPrompt);
  *                 type: boolean
  *               has_image:
  *                 type: boolean
- *               download_url:
- *                 type: string
+ 
  *     responses:
  *       200:
  *         description: 수정 성공

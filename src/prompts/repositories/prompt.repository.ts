@@ -235,7 +235,7 @@ export const createPromptWriteRepo = async (
     is_free: boolean;
     tags: string[];
     models: string[];
-    download_url: string;
+    
   }
 ) => {
   return await prisma.$transaction(async (tx) => {
@@ -261,24 +261,25 @@ export const createPromptWriteRepo = async (
 
     // 3. 프롬프트 생성
     const prompt = await tx.prompt.create({
-      data: {
-        user_id,
-        title: data.title,
-        prompt: data.prompt,
-        prompt_result: data.prompt_result,
-        has_image: data.has_image,
-        description: data.description,
-        usage_guide: data.usage_guide,
-        price: data.price,
-        is_free: data.is_free,
-        downloads: 0,
-        views: 0,
-        likes: 0,
-        review_counts: 0,
-        rating_avg: 0,
-        download_url: data.download_url,
-      },
-    });
+
+    data: {
+      user_id,
+      title: data.title,
+      prompt: data.prompt,
+      prompt_result: data.prompt_result,
+      has_image: data.has_image,
+      description: data.description,
+      usage_guide: data.usage_guide,
+      price: data.price,
+      is_free: data.is_free,
+      downloads: 0,
+      views: 0,
+      likes: 0,
+      review_counts: 0,
+      rating_avg: 0,
+    },
+  });
+
 
     // 4. PromptTag 매핑
     for (const tag_id of tagIds) {
@@ -355,7 +356,7 @@ export const updatePromptRepo = async (
     is_free?: boolean;
     tags?: string[];
     models?: string[];
-    download_url?: string;
+    
   }
 ) => {
   return await prisma.$transaction(async (tx) => {
@@ -376,19 +377,20 @@ export const updatePromptRepo = async (
 
     // 프롬프트 기본 정보 업데이트
     const updatedPrompt = await tx.prompt.update({
-      where: { prompt_id: promptId },
-      data: {
-        title: data.title,
-        prompt: data.prompt,
-        prompt_result: data.prompt_result,
-        has_image: data.has_image,
-        description: data.description,
-        usage_guide: data.usage_guide,
-        price: data.price,
-        is_free: data.is_free,
-        download_url: data.download_url,
-      },
-    });
+
+    where: { prompt_id: promptId },
+    data: {
+      title: data.title,
+      prompt: data.prompt,
+      prompt_result: data.prompt_result,
+      has_image: data.has_image,
+      description: data.description,
+      usage_guide: data.usage_guide,
+      price: data.price,
+      is_free: data.is_free,
+    }
+  });
+
 
     // 새로운 태그 매핑
     if (data.tags) {
