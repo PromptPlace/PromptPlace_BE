@@ -25,9 +25,9 @@ export class InquiryService {
       senderId,
       createInquiryDto
     );
-
+ 
     // 새 문의 알림 이벤트 발생
-    eventBus.emit("inquiry.created", senderId, receiver.user_id);
+    eventBus.emit("inquiry.created", receiver.user_id, senderId);
 
     return inquiry;
   }

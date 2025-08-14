@@ -40,7 +40,7 @@ eventBus.on('follow.created', async (followerId: number, followingId: number) =>
 eventBus.on('inquiry.created', async (receiverId: number, senderId: number) => {
   try {
     await createInquiryNotification(receiverId, senderId);
-  } catch (err) {
+  } catch (err) { 
     console.error("[알림 리스너 오류]: 새로운 문의 알림 생성 실패", err);
   }
 });
