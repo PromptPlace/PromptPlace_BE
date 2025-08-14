@@ -45,8 +45,11 @@ export const mapToTipListDTO = (
       tip_id: tip.tip_id,
       writer_id: tip.writer_id,
       title: tip.title,
+      content: tip.content,
+      is_visible: tip.is_visible,
+      file_url: tip.file_url,
       created_at: tip.created_at.toISOString(),
-      //   file_url: tip.file_url,
+      updated_at: tip.updated_at.toISOString(),
     })),
     pagination: {
       page,
