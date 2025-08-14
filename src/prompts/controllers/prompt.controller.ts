@@ -323,6 +323,16 @@ export const deletePrompt = async (req: Request, res: Response) => {
 
     return res.success(null, "프롬프트 삭제 성공");
   } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes("구매 이력이 있는 유료 프롬프트")
+    ) {
+      return res.fail({
+        statusCode: 400,
+        error: "BadRequest",
+        message: error.message,
+      });
+    }
     return res.fail({
       statusCode: 500,
       error: "InternalServerError",
