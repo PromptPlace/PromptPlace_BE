@@ -21,6 +21,8 @@ model User {
   announcements     Announcement[]
   sentNotifications Notification[]             @relation("ActorNotifications")
   notifications     Notification[]             @relation("UserNotifications")
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
   subscribers       NotificationSubscription[] @relation("NotificationTargetPrompter")
   subscriptions     NotificationSubscription[] @relation("NotificationSubscriber")
   prompts           Prompt[]
@@ -159,6 +161,9 @@ model Message {
   is_deleted  Boolean   @default(false)
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
+
+  sender   User @relation("SentMessages", fields: [sender_id], references: [user_id])
+  receiver User @relation("ReceivedMessages", fields: [receiver_id], references: [user_id])
 
   @@index([receiver_id], map: "Message_receiver_id_fkey")
   @@index([sender_id], map: "Message_sender_id_fkey")
