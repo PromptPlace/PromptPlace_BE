@@ -5,7 +5,7 @@ import { DEFAULT_PROMPT_SEARCH_SIZE } from "../../config/constants";
 import { errorHandler } from "../../middlewares/errorHandler";
 import { CreatePromptImageDto } from "../dtos/prompt-image.dto";
 import { CreatePromptDto } from "../dtos/create-prompt.dto";
-import { UpdatePromptDto } from '../dtos/update-prompt.dto';
+import { UpdatePromptDto } from "../dtos/update-prompt.dto";
 
 export const searchPrompts = async (req: Request, res: Response) => {
   try {
@@ -18,11 +18,6 @@ export const searchPrompts = async (req: Request, res: Response) => {
       sort = "recent",
       is_free = "false",
     } = req.body;
-
-    // 필수 값(키워드) 유효성 검증
-    if (typeof keyword !== "string" || !keyword.trim()) {
-      return res.status(400).json({ message: "검색 결과가 없습니다." });
-    }
 
     // tag가 문자열인 경우 배열로 변환
     const tagArray = typeof tag === "string" ? [tag] : (tag as string[]) || [];
@@ -38,6 +33,10 @@ export const searchPrompts = async (req: Request, res: Response) => {
     };
 
     const results = await promptService.searchPrompts(dto);
+
+    if (!results || results.length === 0) {
+      return res.status(404).json({ message: "검색 결과가 없습니다." });
+    }
 
     return res.status(200).json({
       statusCode: 200,
@@ -63,18 +62,22 @@ export const getAllPrompts = async (req: Request, res: Response) => {
   } catch (error) {
     return errorHandler(error, req, res, () => {});
   }
-}
+};
 
 export const getPromptDetails = async (req: Request, res: Response) => {
   try {
     const { promptId } = req.params;
     const promptIdNum = Number(promptId);
     if (isNaN(promptIdNum)) {
-      return res.status(400).json({ message: "유효하지 않은 프롬프트 ID입니다." });
-    } 
+      return res
+        .status(400)
+        .json({ message: "유효하지 않은 프롬프트 ID입니다." });
+    }
     const promptDetails = await promptService.getPromptDetail(promptIdNum);
     if (!promptDetails) {
-      return res.status(404).json({ message: "해당 프롬프트를 찾을 수 없습니다." });
+      return res
+        .status(404)
+        .json({ message: "해당 프롬프트를 찾을 수 없습니다." });
     }
     return res.status(200).json({
       statusCode: 200,
@@ -84,7 +87,7 @@ export const getPromptDetails = async (req: Request, res: Response) => {
   } catch (error) {
     return errorHandler(error, req, res, () => {});
   }
-}
+};
 
 export const presignUrl = async (req: Request, res: Response) => {
   try {
@@ -125,17 +128,16 @@ export const createPromptImage = async (req: Request, res: Response) => {
   }
 };
 
-
 export const createPrompt = async (req: Request, res: Response) => {
   try {
-    console.log('Received Body:', req.body); // 디버깅용 로그
+    console.log("Received Body:", req.body); // 디버깅용 로그
 
     // 1. 인증 확인
     if (!req.user) {
       return res.fail({
         statusCode: 401,
-        error: 'Unauthorized',
-        message: '인증이 필요합니다.',
+        error: "Unauthorized",
+        message: "인증이 필요합니다.",
       });
     }
     const userId = (req.user as { user_id: number }).user_id;
@@ -145,27 +147,32 @@ export const createPrompt = async (req: Request, res: Response) => {
     const invalidFields: string[] = [];
 
     // 문자열 필수 필드: 빈 문자열 불가
+
     const stringRequired = ['title', 'prompt', 'prompt_result', 'description'];
+
     for (const key of stringRequired) {
-      if (typeof dto[key] !== 'string' || !dto[key].trim()) invalidFields.push(key);
+      if (typeof dto[key] !== "string" || !dto[key].trim())
+        invalidFields.push(key);
     }
 
     // 숫자 필수 필드: 0 허용, 숫자형이어야 함
-    if (typeof dto.price !== 'number' || Number.isNaN(dto.price)) {
-      invalidFields.push('price');
+    if (typeof dto.price !== "number" || Number.isNaN(dto.price)) {
+      invalidFields.push("price");
     }
 
     // 불리언 필수 필드: true/false 모두 허용, 타입 체크
-    if (typeof dto.is_free !== 'boolean') {
-      invalidFields.push('is_free');
+    if (typeof dto.is_free !== "boolean") {
+      invalidFields.push("is_free");
     }
 
     if (invalidFields.length > 0) {
-      console.log('Invalid or missing fields:', invalidFields);
+      console.log("Invalid or missing fields:", invalidFields);
       return res.fail({
         statusCode: 400,
-        error: 'BadRequest',
-        message: `필수 필드(${invalidFields.join(', ')})가 누락되었거나 형식이 올바르지 않습니다.`,
+        error: "BadRequest",
+        message: `필수 필드(${invalidFields.join(
+          ", "
+        )})가 누락되었거나 형식이 올바르지 않습니다.`,
       });
     }
 
@@ -174,14 +181,17 @@ export const createPrompt = async (req: Request, res: Response) => {
 
     // 3. 서비스 호출
     const result = await promptService.createPromptWrite(userId, dto);
-    return res.status(201).success(result, '프롬프트 업로드 성공');
-
+    return res.status(201).success(result, "프롬프트 업로드 성공");
   } catch (error) {
     // 4. 서비스/레포지토리 레이어에서 발생한 특정 에러 처리
-    if (error instanceof Error && error.message.includes('모델') && error.message.includes('존재하지 않습니다')) {
+    if (
+      error instanceof Error &&
+      error.message.includes("모델") &&
+      error.message.includes("존재하지 않습니다")
+    ) {
       return res.fail({
         statusCode: 404,
-        error: 'NotFound',
+        error: "NotFound",
         message: error.message,
       });
     }
@@ -195,12 +205,12 @@ export const updatePrompt = async (req: Request, res: Response) => {
   try {
     const { promptId } = req.params;
     const promptIdNum = Number(promptId);
-    
+
     if (isNaN(promptIdNum)) {
       return res.fail({
         statusCode: 400,
-        error: 'BadRequest',
-        message: '유효하지 않은 프롬프트 ID입니다.',
+        error: "BadRequest",
+        message: "유효하지 않은 프롬프트 ID입니다.",
       });
     }
 
@@ -208,49 +218,56 @@ export const updatePrompt = async (req: Request, res: Response) => {
     if (!req.user) {
       return res.fail({
         statusCode: 401,
-        error: 'Unauthorized',
-        message: '인증이 필요합니다.',
+        error: "Unauthorized",
+        message: "인증이 필요합니다.",
       });
     }
     const userId = (req.user as { user_id: number }).user_id;
 
     // 프롬프트 존재 및 권한 확인
     const existingPrompt = await promptService.getPromptById(promptIdNum);
-    
+
     if (!existingPrompt) {
       return res.fail({
         statusCode: 404,
-        error: 'NotFound',
-        message: '프롬프트를 찾을 수 없습니다.',
+        error: "NotFound",
+        message: "프롬프트를 찾을 수 없습니다.",
       });
     }
 
     if (existingPrompt.user_id !== userId) {
       return res.fail({
         statusCode: 403,
-        error: 'Forbidden',
-        message: '프롬프트를 수정할 권한이 없습니다.',
+        error: "Forbidden",
+        message: "프롬프트를 수정할 권한이 없습니다.",
       });
     }
 
     const dto: UpdatePromptDto = req.body;
     const result = await promptService.updatePrompt(promptIdNum, dto);
-    
-    return res.success(result, '프롬프트 수정 성공');
+
+    return res.success(result, "프롬프트 수정 성공");
   } catch (error) {
     // 서비스/레포지토리 레이어에서 발생한 특정 에러 처리
-    if (error instanceof Error && error.message.includes('모델') && error.message.includes('존재하지 않습니다')) {
+    if (
+      error instanceof Error &&
+      error.message.includes("모델") &&
+      error.message.includes("존재하지 않습니다")
+    ) {
       return res.fail({
         statusCode: 404,
-        error: 'NotFound',
+        error: "NotFound",
         message: error.message,
       });
     }
 
     return res.fail({
       statusCode: 500,
-      error: 'InternalServerError',
-      message: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
+      error: "InternalServerError",
+      message:
+        error instanceof Error
+          ? error.message
+          : "알 수 없는 오류가 발생했습니다.",
     });
   }
 };
@@ -259,12 +276,12 @@ export const deletePrompt = async (req: Request, res: Response) => {
   try {
     const { promptId } = req.params;
     const promptIdNum = Number(promptId);
-    
+
     if (isNaN(promptIdNum)) {
       return res.fail({
         statusCode: 400,
-        error: 'BadRequest',
-        message: '유효하지 않은 프롬프트 ID입니다.',
+        error: "BadRequest",
+        message: "유효하지 않은 프롬프트 ID입니다.",
       });
     }
 
@@ -272,40 +289,53 @@ export const deletePrompt = async (req: Request, res: Response) => {
     if (!req.user) {
       return res.fail({
         statusCode: 401,
-        error: 'Unauthorized',
-        message: '인증이 필요합니다.',
+        error: "Unauthorized",
+        message: "인증이 필요합니다.",
       });
     }
-    
+
     const userId = (req.user as { user_id: number }).user_id;
 
     // 프롬프트 존재 및 권한 확인
     const existingPrompt = await promptService.getPromptById(promptIdNum);
-    
+
     if (!existingPrompt) {
       return res.fail({
         statusCode: 404,
-        error: 'NotFound',
-        message: '프롬프트를 찾을 수 없습니다.',
+        error: "NotFound",
+        message: "프롬프트를 찾을 수 없습니다.",
       });
     }
 
     if (existingPrompt.user_id !== userId) {
       return res.fail({
         statusCode: 403,
-        error: 'Forbidden',
-        message: '프롬프트를 삭제할 권한이 없습니다.',
+        error: "Forbidden",
+        message: "프롬프트를 삭제할 권한이 없습니다.",
       });
     }
 
     await promptService.deletePrompt(promptIdNum);
-    
-    return res.success(null, '프롬프트 삭제 성공');
+
+    return res.success(null, "프롬프트 삭제 성공");
   } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes("구매 이력이 있는 유료 프롬프트")
+    ) {
+      return res.fail({
+        statusCode: 400,
+        error: "BadRequest",
+        message: error.message,
+      });
+    }
     return res.fail({
       statusCode: 500,
-      error: 'InternalServerError',
-      message: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
+      error: "InternalServerError",
+      message:
+        error instanceof Error
+          ? error.message
+          : "알 수 없는 오류가 발생했습니다.",
     });
   }
 };
