@@ -118,7 +118,7 @@ CREATE TABLE `Payment` (
     `payment_id` INTEGER NOT NULL AUTO_INCREMENT,
     `purchase_id` INTEGER NOT NULL,
     `status` ENUM('Pending', 'Succeed', 'Failed') NOT NULL,
-    `provider` ENUM('kakaopay', 'tosspayments') NOT NULL,
+    `provider` ENUM('kakaopay', 'tosspay') NOT NULL,
     `merchant_uid` VARCHAR(191) NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
@@ -150,7 +150,6 @@ CREATE TABLE `Prompt` (
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
     `inactive_date` DATETIME(3) NULL,
-    `download_url` TEXT NOT NULL,
 
     INDEX `Prompt_user_id_fkey`(`user_id` ASC),
     PRIMARY KEY (`prompt_id` ASC)
@@ -295,6 +294,7 @@ CREATE TABLE `Tip` (
     `is_visible` BOOLEAN NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
+    `file_url` VARCHAR(255) NULL,
 
     INDEX `Tip_writer_id_fkey`(`writer_id` ASC),
     PRIMARY KEY (`tip_id` ASC)
@@ -380,6 +380,12 @@ CREATE TABLE `WithdrawRequest` (
 
 -- AddForeignKey
 ALTER TABLE `Announcement` ADD CONSTRAINT `Announcement_writer_id_fkey` FOREIGN KEY (`writer_id`) REFERENCES `User`(`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Message` ADD CONSTRAINT `Message_receiver_id_fkey` FOREIGN KEY (`receiver_id`) REFERENCES `User`(`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Message` ADD CONSTRAINT `Message_sender_id_fkey` FOREIGN KEY (`sender_id`) REFERENCES `User`(`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Notification` ADD CONSTRAINT `Notification_actor_id_fkey` FOREIGN KEY (`actor_id`) REFERENCES `User`(`user_id`) ON DELETE SET NULL ON UPDATE CASCADE;
