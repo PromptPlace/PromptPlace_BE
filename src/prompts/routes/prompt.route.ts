@@ -218,7 +218,6 @@ router.get("/", promptController.getAllPrompts);
 //프롬프트 상세 조회 API
 router.get(
   "/:promptId/details",
-  authenticateJwt,
   promptController.getPromptDetails
 );
 
