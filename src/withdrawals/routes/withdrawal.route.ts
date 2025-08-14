@@ -4,6 +4,6 @@ import { authenticateJwt } from '../../config/passport';
 
 const router = Router();
 
-router.get('/withdrawals', authenticateJwt, WithdrawalController.requestWithdrawal);
+router.post('/withdrawals', authenticateJwt, WithdrawalController.requestWithdrawal);
 
 export default router;
