@@ -19,10 +19,10 @@ model User {
   updated_at        DateTime                   @updatedAt
   role              Role                       @default(USER)
   announcements     Announcement[]
+  receivedMessages  Message[]                  @relation("ReceivedMessages")
+  sentMessages      Message[]                  @relation("SentMessages")
   sentNotifications Notification[]             @relation("ActorNotifications")
   notifications     Notification[]             @relation("UserNotifications")
-  sentMessages     Message[] @relation("SentMessages")
-  receivedMessages Message[] @relation("ReceivedMessages")
   subscribers       NotificationSubscription[] @relation("NotificationTargetPrompter")
   subscriptions     NotificationSubscription[] @relation("NotificationSubscriber")
   prompts           Prompt[]
@@ -112,9 +112,9 @@ model Tip {
   title      String
   content    String   @db.Text
   is_visible Boolean
-  file_url        String?  @db.VarChar(255)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  file_url   String?  @db.VarChar(255)
   writer     User     @relation(fields: [writer_id], references: [user_id])
 
   @@index([writer_id], map: "Tip_writer_id_fkey")
@@ -161,9 +161,8 @@ model Message {
   is_deleted  Boolean   @default(false)
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
-
-  sender   User @relation("SentMessages", fields: [sender_id], references: [user_id])
-  receiver User @relation("ReceivedMessages", fields: [receiver_id], references: [user_id])
+  receiver    User      @relation("ReceivedMessages", fields: [receiver_id], references: [user_id])
+  sender      User      @relation("SentMessages", fields: [sender_id], references: [user_id])
 
   @@index([receiver_id], map: "Message_receiver_id_fkey")
   @@index([sender_id], map: "Message_sender_id_fkey")

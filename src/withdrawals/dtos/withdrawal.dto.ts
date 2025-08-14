@@ -1,7 +1,3 @@
-export interface WithdrawalRequestDto {
-  amount: number;
-}
-
 export interface WithdrawalResponseDto {
   message: string;
   status: string;
