@@ -176,7 +176,6 @@ router.get("/", promptController.getAllPrompts);
  *     description: 특정 프롬프트의 상세 정보를 조회합니다. JWT 인증이 필요합니다.
  *     tags: [Prompts]
  *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: promptId
@@ -218,7 +217,6 @@ router.get("/", promptController.getAllPrompts);
 //프롬프트 상세 조회 API
 router.get(
   "/:promptId/details",
-  authenticateJwt,
   promptController.getPromptDetails
 );
 
