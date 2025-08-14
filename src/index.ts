@@ -15,6 +15,7 @@ import promptRoutes from './prompts/routes/prompt.route'; // 프롬프트 관련
 import ReviewRouter from './reviews/routes/review.route';
 import purchaseRouter from './purchases/routes/purchase.request.route';
 import settlementRouter from './settlements/routes/settlement.route';
+import withdrawalRouter from './withdrawals/routes/withdrawal.route';
 import promptDownloadRouter from './prompts/routes/prompt.downlaod.route';
 import promptLikeRouter from './prompts/routes/prompt.like.route';
 import tipRouter from "./tips/routes/tip.route"; // 팁 라우터 import
@@ -109,6 +110,7 @@ app.use("/api/tips", tipRouter);
 
 // 정산 라우터
 app.use("/api/settlements", settlementRouter);
+app.use("/api/settlements", withdrawalRouter);
 
 //공지사항 라우터
 app.use('/api/announcements', announcementRouter);
