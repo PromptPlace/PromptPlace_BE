@@ -445,6 +445,21 @@ export const updatePromptRepo = async (
 
 export const deletePromptRepo = async (promptId: number) => {
   return await prisma.$transaction(async (tx) => {
+    // 삭제 제약: 유료 프롬프트이고 구매 이력이 있으면 삭제 불가
+    const prompt = await tx.prompt.findUnique({
+      where: { prompt_id: promptId },
+      select: { is_free: true },
+    });
+    if (!prompt) {
+      throw new Error("프롬프트를 찾을 수 없습니다.");
+    }
+    if (prompt.is_free === false) {
+      const purchaseCount = await tx.purchase.count({ where: { prompt_id: promptId } });
+      if (purchaseCount > 0) {
+        throw new Error("구매 이력이 있는 유료 프롬프트는 삭제할 수 없습니다.");
+      }
+    }
+
     // 관련 데이터 삭제 (Cascade가 설정되어 있지 않은 경우 수동 삭제)
     await tx.promptTag.deleteMany({
       where: { prompt_id: promptId },
