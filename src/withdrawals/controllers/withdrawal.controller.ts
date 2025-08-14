@@ -13,7 +13,7 @@ export const WithdrawalController = {
     }
 
     try {
-      const response = await WithdrawalService.requestWithdrawal(user.user_id, req.body);
+      const response = await WithdrawalService.requestWithdrawal(user.user_id);
       return res.status(200).json(response);
     } catch (err: any) {
       const status = err.statusCode || 500;
