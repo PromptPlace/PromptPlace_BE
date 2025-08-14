@@ -14,6 +14,7 @@ import membersRouter from './members/routes/member.route'; // members 라우터 
 import promptRoutes from './prompts/routes/prompt.route'; // 프롬프트 관련 라우터
 import ReviewRouter from './reviews/routes/review.route';
 import purchaseRouter from './purchases/routes/purchase.request.route';
+import settlementRouter from './settlements/routes/settlement.route';
 import promptDownloadRouter from './prompts/routes/prompt.downlaod.route';
 import promptLikeRouter from './prompts/routes/prompt.like.route';
 import tipRouter from "./tips/routes/tip.route"; // 팁 라우터 import
@@ -105,6 +106,9 @@ app.use("/api/prompts", promptLikeRouter);
 
 // 팁 라우터
 app.use("/api/tips", tipRouter);
+
+// 정산 라우터
+app.use("/api/settlemts", settlementRouter);
 
 //공지사항 라우터
 app.use('/api/announcements', announcementRouter);
