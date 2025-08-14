@@ -236,6 +236,7 @@ export const createPromptWriteRepo = async (
     tags: string[];
     models: string[];
     
+    
   }
 ) => {
   return await prisma.$transaction(async (tx) => {
@@ -261,7 +262,6 @@ export const createPromptWriteRepo = async (
 
     // 3. 프롬프트 생성
     const prompt = await tx.prompt.create({
-
     data: {
       user_id,
       title: data.title,
@@ -279,7 +279,6 @@ export const createPromptWriteRepo = async (
       rating_avg: 0,
     },
   });
-
 
     // 4. PromptTag 매핑
     for (const tag_id of tagIds) {
@@ -357,6 +356,7 @@ export const updatePromptRepo = async (
     tags?: string[];
     models?: string[];
     
+    
   }
 ) => {
   return await prisma.$transaction(async (tx) => {
@@ -377,7 +377,6 @@ export const updatePromptRepo = async (
 
     // 프롬프트 기본 정보 업데이트
     const updatedPrompt = await tx.prompt.update({
-
     where: { prompt_id: promptId },
     data: {
       title: data.title,
@@ -390,7 +389,6 @@ export const updatePromptRepo = async (
       is_free: data.is_free,
     }
   });
-
 
     // 새로운 태그 매핑
     if (data.tags) {
