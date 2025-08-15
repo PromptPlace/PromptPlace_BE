@@ -29,3 +29,22 @@ export const registerAccount = async (req: Request, res: Response, next: NextFun
     next(err);
   }
 };
+
+export const getAccount = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.user_id;
+
+    if (!userId) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "로그인이 필요합니다.",
+        statusCode: 401,
+      });
+    }
+
+    const result = await AccountService.getAccountInfo(userId);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+};
