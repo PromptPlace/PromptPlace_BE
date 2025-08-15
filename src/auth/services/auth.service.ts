@@ -19,7 +19,7 @@ class AuthService {
       { id: user.user_id },
       process.env.JWT_SECRET!,
       {
-        expiresIn: "3h",
+        expiresIn: "24h",
       }
     );
     const refreshToken = jwt.sign(
