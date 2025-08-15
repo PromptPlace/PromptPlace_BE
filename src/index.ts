@@ -91,7 +91,20 @@ app.use("/api/auth", authRouter); // /api 접두사 추가
 app.use("/api/members", membersRouter);
 
 // 계좌 라우터
-app.use("/api/members/me", accountRouter);
+
+app.use(
+  "/api/members/me",
+  express.text({ type: "text/plain" }),
+  (req, _res, next) => {
+    if (typeof req.body === "string") {
+      try {
+        req.body = JSON.parse(req.body);
+      } catch {}
+    }
+    next();
+  },
+  accountRouter
+);
 
 // 리뷰 라우터
 app.use("/api/reviews", ReviewRouter);
