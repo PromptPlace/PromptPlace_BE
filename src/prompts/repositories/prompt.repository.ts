@@ -2,19 +2,46 @@ import { SearchPromptDto } from "../dtos/search-prompt.dto";
 import { Prisma, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
+async function fetchReviewStatsByPromptIds(promptIds: number[]) {
+  if (!promptIds.length) return new Map<number, { count: number; avg: number | null }>();
+
+  const rows = await prisma.review.groupBy({
+    by: ["prompt_id"],
+    where: { prompt_id: { in: promptIds } },
+    _avg: { rating: true },
+    _count: { _all: true },
+  });
+
+  const map = new Map<number, { count: number; avg: number | null }>();
+  for (const r of rows) {
+    map.set(r.prompt_id, {
+      count: r._count._all,
+      avg: r._avg.rating == null ? null : Math.round(r._avg.rating * 10) / 10,
+    });
+  }
+  return map;
+}
+
+// ✅ 프롬프트 배열에 통계 붙이기
+function attachReviewStats<T extends { prompt_id: number }>(
+  items: T[],
+  stats: Map<number, { count: number; avg: number | null }>
+) {
+  return items.map((it) => {
+    const s = stats.get(it.prompt_id);
+    return {
+      ...it,
+      review_count: s?.count ?? 0,
+      review_rating_avg: s?.avg ?? 0,
+    };
+  });
+}
+
 export const searchPromptRepo = async (data: SearchPromptDto) => {
   const { model, tag, keyword, page, size, sort, is_free } = data;
   const skip = (page - 1) * size;
 
-  // ✅ 정렬 기준
-  let orderBy: Prisma.PromptOrderByWithRelationInput = { rating_avg: "desc" };
-  if (sort === "recent") orderBy = { created_at: "desc" };
-  else if (sort === "views") orderBy = { views: "desc" };
-  else if (sort === "popular") orderBy = { likes: "desc" };
-
-  // ✅ 조건 분기로 where 필터 구성
   const filters: Prisma.PromptWhereInput[] = [];
-
   if (keyword?.trim()) {
     filters.push({
       OR: [
@@ -23,45 +50,31 @@ export const searchPromptRepo = async (data: SearchPromptDto) => {
       ],
     });
   }
-
-  if (model) {
+  if (model && model.length > 0) {
     filters.push({
-      models: {
-        some: {
-          model: {
-            name: model,
-          },
-        },
-      },
+      models: { some: { model: { name: { in: model } } } },
     });
   }
-
   if (tag && tag.length > 0) {
     filters.push({
-      tags: {
-        some: {
-          tag: {
-            name: {
-              in: tag,
-            },
-          },
-        },
-      },
+      tags: { some: { tag: { name: { in: tag } } } },
     });
   }
+  if (is_free === true) filters.push({ is_free: true });
 
-  if (is_free === true) {
-    filters.push({ is_free: true });
-  }
+  const where: Prisma.PromptWhereInput = { AND: filters };
 
-  const where: Prisma.PromptWhereInput = {
-    AND: filters,
-  };
+  // ✅ 기본 orderBy: created_at desc (recent)
+  let orderBy: Prisma.PromptOrderByWithRelationInput | undefined;
+  if (sort === "recent") orderBy = { created_at: "desc" };
+  else if (sort === "popular") orderBy = { likes: "desc" };
+  else if (sort === "views") orderBy = { views: "desc" };
+  else if (sort === "download") orderBy = { downloads: "desc" };
+  // rating_avg는 컬럼이 없으니 orderBy 설정 안 하고, 나중에 메모리에서 정렬
 
-  // ✅ 쿼리 실행
-  const results = await prisma.prompt.findMany({
+  const prompts = await prisma.prompt.findMany({
     where,
-    orderBy,
+    orderBy: orderBy ?? undefined, // rating_avg일 경우 undefined
     skip,
     take: size,
     include: {
@@ -69,40 +82,105 @@ export const searchPromptRepo = async (data: SearchPromptDto) => {
         select: {
           user_id: true,
           nickname: true,
-          profileImage: {
-            select: { url: true },
-          },
+          profileImage: { select: { url: true } },
         },
       },
-      models: {
-        include: {
-          model: {
-            select: { name: true },
-          },
-        },
-      },
-      tags: {
-        include: {
-          tag: {
-            select: {
-              tag_id: true,
-              name: true,
-            },
-          },
-        },
-      },
-      images: {
-        select: { image_url: true },
-        orderBy: { order_index: "asc" },
-      },
+      models: { include: { model: { select: { name: true } } } },
+      tags: { include: { tag: { select: { tag_id: true, name: true } } } },
+      images: { select: { image_url: true }, orderBy: { order_index: "asc" } },
     },
   });
 
-  return results;
+  // ✅ 리뷰 통계 붙이기
+  const stats = await fetchReviewStatsByPromptIds(prompts.map((p) => p.prompt_id));
+  let promptsWithStats = attachReviewStats(prompts, stats);
+
+  // ✅ rating_avg 정렬일 경우 메모리에서 정렬
+  if (sort === "rating_avg") {
+    promptsWithStats = promptsWithStats.sort((a, b) => {
+      const aRating = a.review_rating_avg ?? 0;
+      const bRating = b.review_rating_avg ?? 0;
+      return bRating - aRating; // 내림차순
+    });
+  }
+
+  // ✅ 유저 검색
+  let relatedUsers: any[] = [];
+  if (keyword?.trim()) {
+    // 1) 닉네임 매칭 → 팔로워 수 순
+    const nicknameMatched = await prisma.user.findMany({
+      where: { nickname: { contains: keyword } },
+      select: {
+        user_id: true,
+        nickname: true,
+        profileImage: { select: { url: true } },
+      },
+      take: 10,
+    });
+
+    // 팔로워 수 붙이기
+    const nicknameMatchedWithFollowers = await Promise.all(
+      nicknameMatched.map(async (u) => {
+        const followerCount = await prisma.following.count({
+          where: { following_id: u.user_id },
+        });
+        return { ...u, follower_count: followerCount };
+      })
+    );
+
+    nicknameMatchedWithFollowers.sort((a, b) => b.follower_count - a.follower_count);
+
+    const nicknameIds = nicknameMatchedWithFollowers.map((u) => u.user_id);
+
+    // 2) 제목/설명 매칭 → 조회수+다운로드 합 순
+    const promptAgg = await prisma.prompt.groupBy({
+      by: ["user_id"],
+      where: {
+        OR: [
+          { title: { contains: keyword } },
+          { description: { contains: keyword } },
+        ],
+        user_id: { notIn: nicknameIds },
+      },
+      _sum: { views: true, downloads: true },
+    });
+
+    promptAgg.sort((a, b) => {
+      const aTotal = (a._sum.views ?? 0) + (a._sum.downloads ?? 0);
+      const bTotal = (b._sum.views ?? 0) + (b._sum.downloads ?? 0);
+      return bTotal - aTotal;
+    });
+
+    const promptUsers = await prisma.user.findMany({
+      where: { user_id: { in: promptAgg.map((p) => p.user_id) } },
+      select: {
+        user_id: true,
+        nickname: true,
+        profileImage: { select: { url: true } },
+      },
+    });
+
+    const promptUsersWithTotals = promptUsers.map((u) => {
+      const agg = promptAgg.find((p) => p.user_id === u.user_id);
+      return {
+        ...u,
+        prompt_total: (agg?._sum.views ?? 0) + (agg?._sum.downloads ?? 0),
+      };
+    });
+
+    relatedUsers = [...nicknameMatchedWithFollowers, ...promptUsersWithTotals].slice(0, 10);
+  }
+
+  return {
+    prompts: promptsWithStats,
+    related_users: relatedUsers,
+  };
 };
 
+
+
 export const getAllPromptRepo = async () => {
-  return await prisma.prompt.findMany({
+  const results = await prisma.prompt.findMany({
     include: {
       user: {
         select: {
@@ -136,6 +214,14 @@ export const getAllPromptRepo = async () => {
       },
     },
   });
+
+  if (results.length === 0) return [];
+
+  // 2) 리뷰 통계 가져오기
+  const stats = await fetchReviewStatsByPromptIds(results.map((p) => p.prompt_id));
+
+  // 3) 통계 붙이기
+  return attachReviewStats(results, stats);
 };
 
 export type PromptDetail = {
@@ -219,7 +305,15 @@ export const getPromptDetailRepo = async (promptId: number) => {
     },
   });
 
-  return prompt;
+  if (!prompt) return null;
+
+  // ✅ 리뷰 통계 가져오기 
+  const stats = await fetchReviewStatsByPromptIds([prompt.prompt_id]);
+
+  // ✅ 통계 붙이기
+  const [promptWithStats] = attachReviewStats([prompt], stats);
+
+  return promptWithStats;
 };
 
 export const createPromptWriteRepo = async (
@@ -275,8 +369,6 @@ export const createPromptWriteRepo = async (
       downloads: 0,
       views: 0,
       likes: 0,
-      review_counts: 0,
-      rating_avg: 0,
     },
   });
 

@@ -20,10 +20,11 @@ export const searchPrompts = async (req: Request, res: Response) => {
     } = req.body;
 
     // tag가 문자열인 경우 배열로 변환
+    const modelArray = typeof model === "string" ? [model] : (model as string[]) || [];
     const tagArray = typeof tag === "string" ? [tag] : (tag as string[]) || [];
 
     const dto: SearchPromptDto = {
-      model: typeof model === "string" ? model : "",
+      model: modelArray,
       tag: tagArray,
       keyword,
       page: Number(page),
@@ -34,7 +35,7 @@ export const searchPrompts = async (req: Request, res: Response) => {
 
     const results = await promptService.searchPrompts(dto);
 
-    if (!results || results.length === 0) {
+    if (!results) {
       return res.status(404).json({ message: "검색 결과가 없습니다." });
     }
 
