@@ -110,7 +110,7 @@ export class MemberService {
     return await getMemberPromptsRepo(memberId, cursor, actualLimit);
   }
 
-  async getMemberById(requesterId: number, memberId: number) {
+  async getMemberById(memberId: number) {
     const member = await this.memberRepository.findUserWithIntroById(memberId);
 
     if (!member) {
