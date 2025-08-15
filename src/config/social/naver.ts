@@ -44,7 +44,7 @@ export function configureNaverStrategy() {
               data: {
                 email,
                 name: profile.name || "Unknown",
-                nickname: profile.nickname || profile.name || "Unknown",
+                nickname: profile.name || "Unknown",
                 social_type: "NAVER",
                 status: true,
                 role: "USER",
