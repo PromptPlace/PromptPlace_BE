@@ -83,7 +83,7 @@ export interface ReviewEditDataDTO {
   prompt_title: string;
   model_id: number;
   model_name: string;
-  rating_avg: string;
+  // rating_avg: string;
   content: string;
 }
 
@@ -110,7 +110,7 @@ export const mapToReviewEditDataDTO = ({
     prompt_title: prompt.title,
     model_id: modelId,
     model_name: modelName,
-    rating_avg: prompt.rating_avg.toFixed(1), // 소수점 첫째 자리까지(string)
+    // rating_avg: prompt.rating_avg.toFixed(1), // 소수점 첫째 자리까지(string)
     content: review.content,
   };
 };
