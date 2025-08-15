@@ -191,10 +191,10 @@ export const getPrompterNotificationStatusService = async (
     return { subscribed: false };
   }
 
-  const subscription = await findSubscription(userId, prompterId);
-  let existing: boolean = false;
-  if (subscription) // 구독중이라면 true 반환 
-    existing = true;
+  const existing = await findSubscription(userId, prompterId);
+  let subscribed: boolean = false; // 구독 여부 기본값
+  if (existing) // 구독중이라면 true 반환 
+    subscribed = true;
 
-  return await prompterNotificationStatusDto(userId, prompterId, existing);
+  return await prompterNotificationStatusDto(userId, prompterId, subscribed);
 };
