@@ -132,6 +132,41 @@ router.get('/me', authenticateJwt, getNotificationList); // 알림 목록 조회
  */
 
 router.post('/:prompterId', authenticateJwt, toggleNotificationSubscription); // 프롬프터 알림 설정, 취소
-
+/**
+ * @swagger
+ * /api/notifications/status/{prompterId}:
+ *   get:
+ *     summary: 프롬프터 알림 설정 여부 조회
+ *     description: |
+ *       현재 로그인한 사용자가 특정 프롬프터를 알림 구독하고 있는지 조회합니다.
+ *     tags: [Notifications]
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: path
+ *         name: prompterId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 알림 설정 여부를 확인할 프롬프터 ID
+ *     responses:
+ *       200:
+ *         description: 프롬프터 알림 설정 여부를 성공적으로 조회했습니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 message: 프롬프터 알림 설정 여부를 성공적으로 조회했습니다.
+ *                 data:
+ *                   prompter_id: 2
+ *                   user_id: 5
+ *                   subscribed: true
+ *                 statusCode: 200
+ *       401:
+ *         description: 인증 실패
+ *       500:
+ *         description: 서버 오류
+ */
 router.get('/status/:prompterId', authenticateJwt, getPrompterNotificationStatus); // 프롬프터 알림 설정 여부 조회
 export default router;
