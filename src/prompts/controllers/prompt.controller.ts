@@ -20,10 +20,11 @@ export const searchPrompts = async (req: Request, res: Response) => {
     } = req.body;
 
     // tag가 문자열인 경우 배열로 변환
+    const modelArray = typeof model === "string" ? [model] : (model as string[]) || [];
     const tagArray = typeof tag === "string" ? [tag] : (tag as string[]) || [];
 
     const dto: SearchPromptDto = {
-      model: typeof model === "string" ? model : "",
+      model: modelArray,
       tag: tagArray,
       keyword,
       page: Number(page),
@@ -34,7 +35,7 @@ export const searchPrompts = async (req: Request, res: Response) => {
 
     const results = await promptService.searchPrompts(dto);
 
-    if (!results || results.length === 0) {
+    if (!results) {
       return res.status(404).json({ message: "검색 결과가 없습니다." });
     }
 
@@ -109,12 +110,24 @@ export const presignUrl = async (req: Request, res: Response) => {
 
 export const createPromptImage = async (req: Request, res: Response) => {
   try {
+    // 1. JWT 인증 체크
+    if (!req.user) {
+      return res.fail({
+        statusCode: 401,
+        error: 'Unauthorized',
+        message: '인증이 필요합니다.'
+      });
+    }
+
     const { promptId } = req.params;
     const { image_url, order_index } = req.body;
+    const userId = (req.user as { user_id: number }).user_id;
+
     if (!image_url) {
       return res.status(400).json({ message: "image_url이 필요합니다." });
     }
-    const result = await promptService.createPromptImage(Number(promptId), {
+
+    const result = await promptService.createPromptImage(Number(promptId), userId, {
       image_url,
       order_index,
     });
@@ -124,6 +137,22 @@ export const createPromptImage = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes('프롬프트를 찾을 수 없습니다')) {
+        return res.fail({
+          statusCode: 404,
+          error: 'NotFound',
+          message: '해당 프롬프트를 찾을 수 없습니다.'
+        });
+      }
+      if (error.message.includes('권한이 없습니다')) {
+        return res.fail({
+          statusCode: 403,
+          error: 'Forbidden',
+          message: '해당 프롬프트에 대한 권한이 없습니다.'
+        });
+      }
+    }
     return errorHandler(error, req, res, () => {});
   }
 };
@@ -337,3 +366,4 @@ export const deletePrompt = async (req: Request, res: Response) => {
     });
   }
 };
+

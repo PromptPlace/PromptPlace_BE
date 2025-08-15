@@ -223,8 +223,6 @@ model Prompt {
   downloads      Int
   views          Int
   likes          Int
-  review_counts  Int
-  rating_avg     Float
   created_at     DateTime       @default(now())
   updated_at     DateTime       @updatedAt
   inactive_date  DateTime?

@@ -30,9 +30,13 @@ passport.use(
           where: { user_id: jwtPayload.id },
         });
 
-        // 여기만 추가하면 됩니다!
         if (!user || !user.status) {
-          return done(null, false);
+          // 커스텀 에러 객체로 반환
+          const error = new Error("Unauthorized");
+          (error as any).statusCode = 401;
+          (error as any).error = "Unauthorized";
+          (error as any).message = "로그인이 필요합니다.";
+          return done(error, false);
         }
 
         req.user = user;
