@@ -65,16 +65,12 @@ export const AccountRepository = {
     });
   },
 
-   updatePreRegisteredAccount: async (preregId: number, data: {
-    bank_code: string;
-    account_number: string;
-    account_holder: string;
-  }) => {
-    return prisma.preRegisteredAccount.update({
-      where: { id: preregId },
-      data,
-    });
-  },
+   updateUserBankAccountPreregId: async (userId: number, preregistered_id: number) => {
+  return prisma.userBankAccount.update({
+    where: { user_id: userId },
+    data: { preregistered_id },
+  });
+},
 
   // 다른 유저가 등록한 동일 계좌가 있는지 검사
 findDuplicatePreRegisteredAccount: async ({

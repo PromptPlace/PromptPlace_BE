@@ -73,39 +73,40 @@ export const AccountService = {
   },
 
   updateAccount: async (userId: number, dto: UpdateAccountDto) => {
-    const userAccount = await AccountRepository.getUserBankAccount(userId);
+  const userAccount = await AccountRepository.getUserBankAccount(userId);
+  if (!userAccount) {
+    throw new AppError("등록된 계좌 정보가 없습니다.", 404, "NotFound");
+  }
 
-    if (!userAccount) {
-      throw new AppError("등록된 계좌 정보가 없습니다.", 404, "NotFound");
-    }
+  const bank = await AccountRepository.findBankByCode(dto.bank_code);
+  if (!bank) {
+    throw new AppError("유효하지 않은 은행 코드입니다.", 400, "InvalidBankCode");
+  }
 
-    // 은행 코드 검증 추가
-    const bank = await AccountRepository.findBankByCode(dto.bank_code);
-    if (!bank) {
-      throw new AppError("유효하지 않은 은행 코드입니다.", 400, "InvalidBankCode");
-    }
-
-     // 중복 계좌 확인 (본인 외)
-  const duplicate = await AccountRepository.findDuplicatePreRegisteredAccount({
+  // 1. 본인의 기존 사전 등록 계좌 중 동일 계좌 존재 여부 확인
+  let prereg = await AccountRepository.findPreRegisteredAccount({
     bank_code: dto.bank_code,
     account_number: dto.account_number,
     account_holder: dto.account_holder,
-    exclude_user_id: userId,
+    owner_user_id: userId,
   });
 
-  if (duplicate) {
-    throw new AppError("이미 등록된 계좌입니다.", 400, "DuplicateAccount");
-  }
-    // 계좌 정보 수정
-    await AccountRepository.updatePreRegisteredAccount(userAccount.preregistered.id, {
+  // 2. 없다면 새로 생성
+  if (!prereg) {
+    prereg = await AccountRepository.createPreRegisteredAccount({
       bank_code: dto.bank_code,
       account_number: dto.account_number,
       account_holder: dto.account_holder,
+      owner_user_id: userId,
     });
+  }
 
-    return {
-      message: "계좌 정보가 수정되었습니다.",
-      statusCode: 200,
-    };
-  },
+  // 3. UserBankAccount에 연결된 preregistered_id 변경
+  await AccountRepository.updateUserBankAccountPreregId(userId, prereg.id);
+
+  return {
+    message: "계좌 정보가 수정되었습니다.",
+    statusCode: 200,
+  };
+},
 };
