@@ -20,7 +20,7 @@ export const createReviewInDB = async (data: CreateReviewInput) => {
   });
 };
 
-export const findAllByPromptId = async (
+export const findAllReviewsByPromptId = async (
   promptId: number,
   cursor?: number,
   limit?: number
@@ -36,6 +36,18 @@ export const findAllByPromptId = async (
     take: limit
   });
 };
+
+// 프롬프트 리뷰 개수 조회
+export const CountReivewsbyPromptId = async (
+  promptId: number
+) => {
+  const count = await prisma.review.count({
+    where:{
+      prompt_id: promptId
+    }
+  }); 
+  return count;
+}
 
 
 

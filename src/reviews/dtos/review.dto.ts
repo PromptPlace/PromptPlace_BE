@@ -14,6 +14,7 @@ export interface ReviewResponse {
 
 export interface ReviewListResponse {
   has_more: boolean;
+  totalCount: number;
   reviews: {
     review_id: number;
     writer_id: number;
@@ -28,7 +29,8 @@ export interface ReviewListResponse {
 export const mapToReviewListDTO = (
   rawReviews: Review[],
   rawProfiles: { user_id: number; nickname: string; profileImage: { url: string } | null }[],
-  limit: number
+  limit: number,
+  totalCount: number
 ): ReviewListResponse => {
   const userMap = new Map(
     rawProfiles.map(user => [
@@ -56,6 +58,7 @@ export const mapToReviewListDTO = (
 
   return {
     has_more: rawReviews.length >= limit,
+    totalCount: totalCount,
     reviews
   };
 };
