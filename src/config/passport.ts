@@ -30,9 +30,12 @@ passport.use(
           where: { user_id: jwtPayload.id },
         });
 
-        if (!user) return done(null, false);
+        // 여기만 추가하면 됩니다!
+        if (!user || !user.status) {
+          return done(null, false);
+        }
 
-        req.user = user; // 커스텀으로 req.user 확장 시 타입 정의 필요
+        req.user = user;
         return done(null, user);
       } catch (err) {
         return done(err as Error, false);
