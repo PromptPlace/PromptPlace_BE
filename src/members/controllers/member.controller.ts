@@ -152,13 +152,10 @@ export class MemberController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const requesterId = (req.user as any).user_id;
+      // requesterId 제거 - 인증 불필요
       const memberId = parseInt(req.params.memberId, 10);
 
-      const member = await this.memberService.getMemberById(
-        requesterId,
-        memberId
-      );
+      const member = await this.memberService.getMemberById(memberId);
 
       res.status(200).json({
         message: "회원 정보 조회 완료",
