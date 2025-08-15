@@ -70,11 +70,11 @@ export const UserNotificationListDTO = (
 export const prompterNotificationStatusDto = (
   userId: number,
   prompterId: number,
-  existing: boolean
+  subscribed: boolean
 ) => {
   return {
     user_id: userId,
     prompter_id: prompterId,
-    existing: existing
+    subscribed: subscribed
   }
 }
