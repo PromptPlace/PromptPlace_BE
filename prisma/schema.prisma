@@ -365,28 +365,6 @@ model Settlement {
   @@index([user_id])
 }
 
-model Account {
-  account_id       Int      @id @default(autoincrement())
-  user_id          Int      @unique // 사용자당 1개만 가능
-  bank_code        String   
-  account_number   String   @db.VarChar(50)
-  account_holder   String   @db.VarChar(50)
-  created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
-
-  user             User     @relation(fields: [user_id], references: [user_id])
-  bank             Bank     @relation(fields: [bank_code], references: [bank_code])
-}
-
-model Bank {
-  bank_code   String   @id @db.VarChar(50)          // 예: '004'
-  bank_name   String   @db.VarChar(50)            // 예: 'KB국민은행'
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-
-  accounts    Account[]            
-}
-
 model Review {
   review_id  Int      @id @default(autoincrement())
   rating     Float
