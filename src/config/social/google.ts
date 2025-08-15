@@ -27,11 +27,18 @@ export function configureGoogleStrategy() {
           });
 
           if (user) {
-            // 사용자가 존재하면 정보를 덮어쓰지 않음 (사용자가 직접 수정한 정보 보존)
-            // 소셜 로그인은 단순히 인증만 처리
+            if (!user.status) {
+              user = await prisma.user.update({
+                where: { email },
+                data: {
+                  status: true,
+                  inactive_date: null,
+                  updated_at: new Date(),
+                },
+              });
+            }
             return done(null, user);
           } else {
-            // 사용자가 없으면 새로 생성
             user = await prisma.user.create({
               data: {
                 email,
