@@ -53,7 +53,6 @@ export const updateAccount = async (req: Request, res: Response, next: NextFunct
   try {
     const dto = new UpdateAccountDto();
     dto.bank_code = req.body.bank_code;
-    dto.bank_name = req.body.bank_name;
     dto.account_number = req.body.account_number;
     dto.account_holder = req.body.account_holder;
 

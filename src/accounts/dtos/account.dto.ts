@@ -26,9 +26,6 @@ export class UpdateAccountDto {
   bank_code!: string;
 
   @IsString()
-  bank_name!: string;
-
-  @IsString()
   account_number!: string;
 
   @IsString()
