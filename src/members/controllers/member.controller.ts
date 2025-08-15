@@ -442,7 +442,7 @@ export class MemberController {
         const message = errors
           .map((error) => Object.values(error.constraints || {}))
           .join(", ");
-        throw new AppError(message, 400, "BadRequest");
+        throw new AppError("SNS ID는 필수 입력 항목입니다.", 400, "BadRequest");
       }
 
       const updatedSns = await this.memberService.updateSns(
