@@ -9,6 +9,21 @@ export const errorHandler = (
 ): void => {
   if (res.headersSent) return next(err);
 
+  // 401 에러 통일 처리
+  if (
+    err.statusCode === 401 ||
+    err.message === "Unauthorized" ||
+    err.name === "JsonWebTokenError" ||
+    err.name === "TokenExpiredError"
+  ) {
+    res.status(401).json({
+      error: "Unauthorized",
+      message: "로그인이 필요합니다.",
+      statusCode: 401,
+    });
+    return;
+  }
+
   if (err instanceof AppError) {
     res.fail({
       statusCode: err.statusCode,
