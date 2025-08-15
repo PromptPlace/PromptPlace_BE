@@ -41,12 +41,6 @@ export const searchPromptRepo = async (data: SearchPromptDto) => {
   const { model, tag, keyword, page, size, sort, is_free } = data;
   const skip = (page - 1) * size;
 
-  // ✅ 기존 프롬프트 검색 로직
-  let orderBy: Prisma.PromptOrderByWithRelationInput = { rating_avg: "desc" };
-  if (sort === "recent") orderBy = { created_at: "desc" };
-  else if (sort === "views") orderBy = { views: "desc" };
-  else if (sort === "popular") orderBy = { likes: "desc" };
-
   const filters: Prisma.PromptWhereInput[] = [];
   if (keyword?.trim()) {
     filters.push({
@@ -70,9 +64,17 @@ export const searchPromptRepo = async (data: SearchPromptDto) => {
 
   const where: Prisma.PromptWhereInput = { AND: filters };
 
+  // ✅ 기본 orderBy: created_at desc (recent)
+  let orderBy: Prisma.PromptOrderByWithRelationInput | undefined;
+  if (sort === "recent") orderBy = { created_at: "desc" };
+  else if (sort === "popular") orderBy = { likes: "desc" };
+  else if (sort === "views") orderBy = { views: "desc" };
+  else if (sort === "download") orderBy = { downloads: "desc" };
+  // rating_avg는 컬럼이 없으니 orderBy 설정 안 하고, 나중에 메모리에서 정렬
+
   const prompts = await prisma.prompt.findMany({
     where,
-    orderBy,
+    orderBy: orderBy ?? undefined, // rating_avg일 경우 undefined
     skip,
     take: size,
     include: {
@@ -91,7 +93,16 @@ export const searchPromptRepo = async (data: SearchPromptDto) => {
 
   // ✅ 리뷰 통계 붙이기
   const stats = await fetchReviewStatsByPromptIds(prompts.map((p) => p.prompt_id));
-  const promptsWithStats = attachReviewStats(prompts, stats);
+  let promptsWithStats = attachReviewStats(prompts, stats);
+
+  // ✅ rating_avg 정렬일 경우 메모리에서 정렬
+  if (sort === "rating_avg") {
+    promptsWithStats = promptsWithStats.sort((a, b) => {
+      const aRating = a.review_rating_avg ?? 0;
+      const bRating = b.review_rating_avg ?? 0;
+      return bRating - aRating; // 내림차순
+    });
+  }
 
   // ✅ 유저 검색
   let relatedUsers: any[] = [];
@@ -117,7 +128,6 @@ export const searchPromptRepo = async (data: SearchPromptDto) => {
       })
     );
 
-    // 팔로워 수 기준 정렬
     nicknameMatchedWithFollowers.sort((a, b) => b.follower_count - a.follower_count);
 
     const nicknameIds = nicknameMatchedWithFollowers.map((u) => u.user_id);
@@ -135,7 +145,6 @@ export const searchPromptRepo = async (data: SearchPromptDto) => {
       _sum: { views: true, downloads: true },
     });
 
-    // 정렬: 조회수+다운로드 합 내림차순
     promptAgg.sort((a, b) => {
       const aTotal = (a._sum.views ?? 0) + (a._sum.downloads ?? 0);
       const bTotal = (b._sum.views ?? 0) + (b._sum.downloads ?? 0);
@@ -151,7 +160,6 @@ export const searchPromptRepo = async (data: SearchPromptDto) => {
       },
     });
 
-    // 프롬프트 합계 값 붙이기
     const promptUsersWithTotals = promptUsers.map((u) => {
       const agg = promptAgg.find((p) => p.user_id === u.user_id);
       return {
@@ -160,7 +168,6 @@ export const searchPromptRepo = async (data: SearchPromptDto) => {
       };
     });
 
-    // 3) 합치고 10명 제한
     relatedUsers = [...nicknameMatchedWithFollowers, ...promptUsersWithTotals].slice(0, 10);
   }
 
@@ -169,6 +176,7 @@ export const searchPromptRepo = async (data: SearchPromptDto) => {
     related_users: relatedUsers,
   };
 };
+
 
 
 export const getAllPromptRepo = async () => {
@@ -361,8 +369,6 @@ export const createPromptWriteRepo = async (
       downloads: 0,
       views: 0,
       likes: 0,
-      review_counts: 0,
-      rating_avg: 0,
     },
   });
 
