@@ -2,6 +2,7 @@ import {
     mapToSubscribeResponse,
     CreateNotificationParams,
     UserNotificationListDTO,
+    prompterNotificationStatusDto
 } from '../dtos/notification.dto';
 
 import {
@@ -174,3 +175,22 @@ export const findUserNotificationsService = async (
     const rawNotifications = await findNotificationsByUserId(userId, cursor, limit);
     return UserNotificationListDTO(rawNotifications, limit);
 }
+
+// 프롬프터 알림 설정 여부 조회
+export const getPrompterNotificationStatusService = async (
+  userId: number,
+  rawPrompterId: string
+) => {
+  if (!rawPrompterId || isNaN(Number(rawPrompterId))) {
+    throw new Error('유효하지 않은 prompterId입니다.');
+  }
+  const prompterId = Number(rawPrompterId);
+
+  if (userId === prompterId) {
+    // 자기 자신은 구독 불가지만, 상태 조회는 false로 응답
+    return { subscribed: false };
+  }
+
+  const existing = await findSubscription(userId, prompterId);
+  return await prompterNotificationStatusDto(userId, prompterId, existing);
+};

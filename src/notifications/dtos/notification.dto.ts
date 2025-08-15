@@ -65,3 +65,16 @@ export const UserNotificationListDTO = (
     notifications,
   };
 };
+
+// 특정 프롬프터 알림 구독 여부 조회 dto
+export const prompterNotificationStatusDto = (
+  userId: number,
+  prompterId: number,
+  existing: boolean
+) => {
+  return {
+    user_id: userId,
+    prompter_id: prompterId,
+    existing: existing
+  }
+}
