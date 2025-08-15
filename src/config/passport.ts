@@ -1,6 +1,6 @@
 import passport from "passport";
-import dotenv from 'dotenv';
-dotenv.config(); 
+import dotenv from "dotenv";
+dotenv.config();
 import {
   Strategy as JwtStrategy,
   ExtractJwt,
