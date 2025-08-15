@@ -211,6 +211,7 @@ router.get('/received-reviews/me', authenticateJwt, getMyReceivedReviews); // �
  *       - `cursor`는 이전 요청에서 받은 마지막 리뷰의 ID를 의미하며, 이를 기준으로 이후 데이터를 조회  
  *       - 첫 요청 시에는 `cursor`를 생략하여 최신 리뷰부터 조회  
  *       - `has_more` 속성으로 더 불러올 데이터가 있는지 미리 확인 가능
+ *       - `total_count` 속성으로 해당 프롬프트의 총 리뷰 개수 확인 가능(limit과 무관)
  *       
  *       ### Query String
  *       | 항목     | 설명                                      | 예시                         | 필수 여부                |
@@ -274,6 +275,7 @@ router.get('/received-reviews/me', authenticateJwt, getMyReceivedReviews); // �
  *                     content: 너무 유용했어요!
  *                     created_at: "2025-07-27T12:31:05.849Z"
  *                 has_more: false
+ *                 total_count: 2
  *               statusCode: 200
  */
 

@@ -14,7 +14,7 @@ export interface ReviewResponse {
 
 export interface ReviewListResponse {
   has_more: boolean;
-  totalCount: number;
+  total_count: number;
   reviews: {
     review_id: number;
     writer_id: number;
@@ -58,7 +58,7 @@ export const mapToReviewListDTO = (
 
   return {
     has_more: rawReviews.length >= limit,
-    totalCount: totalCount,
+    total_count: totalCount,
     reviews
   };
 };
