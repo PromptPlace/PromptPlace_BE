@@ -59,12 +59,26 @@ export const getPresignedUrl = async (key: string, contentType: string) => {
 /**
  * PromptImage 매핑 생성 서비스
  * @param prompt_id 프롬프트 ID 
+ * @param user_id 요청한 사용자 ID
  * @param dto { image_url, order_index }
  */
 export const createPromptImage = async (
   prompt_id: number,
+  user_id: number,
   dto: CreatePromptImageDto
 ) => {
+  // 1. 프롬프트 존재 여부 및 소유자 확인
+  const prompt = await promptRepository.getPromptByIdRepo(prompt_id);
+  
+  if (!prompt) {
+    throw new Error('프롬프트를 찾을 수 없습니다.');
+  }
+  
+  if (prompt.user_id !== user_id) {
+    throw new Error('해당 프롬프트에 대한 권한이 없습니다.');
+  }
+  
+  // 2. 이미지 매핑 생성
   return await promptRepository.createPromptImageRepo(prompt_id, dto);
 };
 
