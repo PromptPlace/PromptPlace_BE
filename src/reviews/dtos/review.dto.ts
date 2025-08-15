@@ -30,7 +30,8 @@ export const mapToReviewListDTO = (
   rawReviews: Review[],
   rawProfiles: { user_id: number; nickname: string; profileImage: { url: string } | null }[],
   limit: number,
-  totalCount: number
+  totalCount: number,
+  hasMore: boolean
 ): ReviewListResponse => {
   const userMap = new Map(
     rawProfiles.map(user => [
@@ -57,7 +58,7 @@ export const mapToReviewListDTO = (
   });
 
   return {
-    has_more: rawReviews.length >= limit,
+    has_more: hasMore,
     total_count: totalCount,
     reviews
   };

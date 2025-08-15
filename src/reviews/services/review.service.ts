@@ -40,14 +40,19 @@ export const findReviewsByPromptId = async (
 
   // 리뷰 개수 불러오기
   const totalCount = await CountReivewsbyPromptId(promptId);
-  // 리뷰 불러오기
+  // 리뷰 불러오기(limit+1개)
   const rawReviews: Review[] = await findAllReviewsByPromptId(promptId, cursor, limit);
+  // hasMore 계산
+  const hasMore = rawReviews.length > limit;  
+  // limit까지만 잘라서 사용
+  const slicedReviews = hasMore ? rawReviews.slice(0, limit) : rawReviews;
   // 리뷰 작성자 user_id 리스트
   const userIds = rawReviews.map(review => review.user_id);
   // 사용자 프로필 정보 가져오기 (nickname + image_url)
   const userProfiles = await findUserProfilesByUserIds(userIds);
+  
   // DTO로 변환
-  return mapToReviewListDTO(rawReviews, userProfiles, limit, totalCount);
+  return mapToReviewListDTO(slicedReviews, userProfiles, limit, totalCount, hasMore);
 };
 
 

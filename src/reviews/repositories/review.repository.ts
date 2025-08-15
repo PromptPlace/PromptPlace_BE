@@ -23,7 +23,7 @@ export const createReviewInDB = async (data: CreateReviewInput) => {
 export const findAllReviewsByPromptId = async (
   promptId: number,
   cursor?: number,
-  limit?: number
+  limit: number = 10 // 기본값 
 ) => {
   return await prisma.review.findMany({
     where: {
@@ -33,7 +33,7 @@ export const findAllReviewsByPromptId = async (
     orderBy: {
       review_id: 'desc'
     },
-    take: limit
+    take: limit + 1
   });
 };
 
