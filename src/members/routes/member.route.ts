@@ -187,10 +187,7 @@ router.get(
  *         description: 서버 오류
  */
 // 특정 회원 정보 조회 API - 인증 불필요
-router.get(
-  "/:memberId",
-  memberController.getMemberById.bind(memberController)
-);
+router.get("/:memberId", memberController.getMemberById.bind(memberController));
 
 /**
  * @swagger
