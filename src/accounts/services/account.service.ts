@@ -85,6 +85,17 @@ export const AccountService = {
       throw new AppError("유효하지 않은 은행 코드입니다.", 400, "InvalidBankCode");
     }
 
+     // 중복 계좌 확인 (본인 외)
+  const duplicate = await AccountRepository.findDuplicatePreRegisteredAccount({
+    bank_code: dto.bank_code,
+    account_number: dto.account_number,
+    account_holder: dto.account_holder,
+    exclude_user_id: userId,
+  });
+
+  if (duplicate) {
+    throw new AppError("이미 등록된 계좌입니다.", 400, "DuplicateAccount");
+  }
     // 계좌 정보 수정
     await AccountRepository.updatePreRegisteredAccount(userAccount.preregistered.id, {
       bank_code: dto.bank_code,
