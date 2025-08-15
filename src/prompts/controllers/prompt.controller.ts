@@ -109,21 +109,89 @@ export const presignUrl = async (req: Request, res: Response) => {
 
 export const createPromptImage = async (req: Request, res: Response) => {
   try {
-    const { promptId } = req.params;
-    const { image_url, order_index } = req.body;
-    if (!image_url) {
-      return res.status(400).json({ message: "image_url이 필요합니다." });
+    // 1. 인증 확인
+    if (!req.user) {
+      return res.fail({
+        statusCode: 401,
+        error: 'Unauthorized',
+        message: '인증이 필요합니다.'
+      });
     }
-    const result = await promptService.createPromptImage(Number(promptId), {
-      image_url,
+
+    // 2. promptId 유효성 검사
+    const { promptId } = req.params;
+    const promptIdNum = Number(promptId);
+    
+    if (!promptId || isNaN(promptIdNum) || promptIdNum <= 0) {
+      return res.fail({
+        statusCode: 400,
+        error: 'BadRequest',
+        message: '유효한 프롬프트 ID가 필요합니다.'
+      });
+    }
+
+    // 3. 요청 body 유효성 검사
+    const { image_url, order_index } = req.body;
+    
+    if (!image_url || typeof image_url !== 'string' || image_url.trim() === '') {
+      return res.fail({
+        statusCode: 400,
+        error: 'BadRequest',
+        message: 'image_url은 필수이며 유효한 문자열이어야 합니다.'
+      });
+    }
+
+    // order_index가 제공된 경우 숫자 유효성 검사
+    if (order_index !== undefined && (typeof order_index !== 'number' || isNaN(order_index) || order_index < 0)) {
+      return res.fail({
+        statusCode: 400,
+        error: 'BadRequest',
+        message: 'order_index는 0 이상의 숫자여야 합니다.'
+      });
+    }
+
+    // 4. 이미지 매핑 생성
+    const userId = (req.user as { user_id: number }).user_id;
+    const result = await promptService.createPromptImage(promptIdNum, userId, {
+      image_url: image_url.trim(),
       order_index,
     });
-    return res.status(201).json({
-      statusCode: 201,
-      message: "프롬프트 이미지 매핑 성공",
-      data: result,
-    });
+
+    return res.status(201).success(result, '프롬프트 이미지 매핑 성공');
+
   } catch (error) {
+    // 5. 서비스 레이어 에러 처리
+    if (error instanceof Error) {
+      // 프롬프트 존재하지 않음
+      if (error.message.includes('프롬프트를 찾을 수 없습니다')) {
+        return res.fail({
+          statusCode: 404,
+          error: 'NotFound',
+          message: '해당 프롬프트를 찾을 수 없습니다.'
+        });
+      }
+      
+      // 권한 없음
+      if (error.message.includes('권한이 없습니다')) {
+        return res.fail({
+          statusCode: 403,
+          error: 'Forbidden',
+          message: '해당 프롬프트에 대한 권한이 없습니다.'
+        });
+      }
+      
+      // Unique 제약 위반 (같은 프롬프트에 같은 이미지 URL)
+      if (error.message.includes('Unique constraint') || 
+          error.message.includes('UNIQUE')) {
+        return res.fail({
+          statusCode: 409,
+          error: 'Conflict',
+          message: '해당 프롬프트에 이미 등록된 이미지 URL입니다.'
+        });
+      }
+    }
+    
+    // 6. 기타 예상치 못한 에러
     return errorHandler(error, req, res, () => {});
   }
 };
