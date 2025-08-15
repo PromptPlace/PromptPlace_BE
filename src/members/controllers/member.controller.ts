@@ -61,7 +61,10 @@ export class MemberController {
       const followerId = (req.user as any).user_id;
       const followingId = parseInt(req.params.memberId, 10);
       await this.memberService.unfollowUser(followerId, followingId);
-      res.status(200).json({ message: "언팔로우 성공" });
+      res.status(200).json({
+        message: "언팔로우 성공",
+        statusCode: 200,
+      });
     } catch (error) {
       next(error);
     }
@@ -191,7 +194,7 @@ export class MemberController {
 
       res.status(200).json({
         message: "회원 정보 수정 완료",
-        user: updatedUser,
+        data: updatedUser,
         statusCode: 200,
       });
     } catch (error) {
@@ -223,8 +226,10 @@ export class MemberController {
 
       res.status(200).json({
         message: "한줄 소개가 성공적으로 작성되었습니다.",
-        intro: result.description,
-        updated_at: result.updated_at,
+        data: {
+          intro: result.description,
+          updated_at: result.updated_at,
+        },
         statusCode: 200,
       });
     } catch (error) {
@@ -256,8 +261,10 @@ export class MemberController {
 
       res.status(200).json({
         message: "한줄 소개가 성공적으로 수정되었습니다.",
-        intro: result.description,
-        updated_at: result.updated_at,
+        data: {
+          intro: result.description,
+          updated_at: result.updated_at,
+        },
         statusCode: 200,
       });
     } catch (error) {
@@ -289,7 +296,7 @@ export class MemberController {
 
       res.status(201).json({
         message: "이력이 성공적으로 작성되었습니다.",
-        history: {
+        data: {
           history_id: newHistory.history_id,
           history: newHistory.history,
         },
@@ -326,8 +333,10 @@ export class MemberController {
 
       res.status(200).json({
         message: "이력이 성공적으로 수정되었습니다.",
-        history_id: updatedHistory.history_id,
-        history: updatedHistory.history,
+        data: {
+          history_id: updatedHistory.history_id,
+          history: updatedHistory.history,
+        },
         statusCode: 200,
       });
     } catch (error) {
@@ -348,8 +357,10 @@ export class MemberController {
 
       res.status(200).json({
         message: "이력이 성공적으로 삭제되었습니다.",
-        history_id: historyId,
-        deleted_at: new Date(),
+        data: {
+          history_id: historyId,
+          deleted_at: new Date(),
+        },
         statusCode: 200,
       });
     } catch (error) {
@@ -373,7 +384,7 @@ export class MemberController {
 
       res.status(200).json({
         message: "회원 이력 조회 완료",
-        histories: histories,
+        data: histories,
         total_count: histories.length,
         statusCode: 200,
       });
@@ -403,10 +414,12 @@ export class MemberController {
 
       res.status(200).json({
         message: "SNS가 성공적으로 작성되었습니다.",
-        sns_id: newSns.sns_id,
-        url: newSns.url,
-        description: newSns.description,
-        created_at: newSns.created_at,
+        data: {
+          sns_id: newSns.sns_id,
+          url: newSns.url,
+          description: newSns.description,
+          created_at: newSns.created_at,
+        },
         statusCode: 200,
       });
     } catch (error) {
@@ -440,10 +453,12 @@ export class MemberController {
 
       res.status(200).json({
         message: "SNS가 성공적으로 수정되었습니다.",
-        sns_id: updatedSns.sns_id,
-        url: updatedSns.url,
-        description: updatedSns.description,
-        updated_at: updatedSns.updated_at,
+        data: {
+          sns_id: updatedSns.sns_id,
+          url: updatedSns.url,
+          description: updatedSns.description,
+          updated_at: updatedSns.updated_at,
+        },
         statusCode: 200,
       });
     } catch (error) {
