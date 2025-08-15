@@ -75,4 +75,28 @@ export const AccountRepository = {
       data,
     });
   },
+
+  // 다른 유저가 등록한 동일 계좌가 있는지 검사
+findDuplicatePreRegisteredAccount: async ({
+  bank_code,
+  account_number,
+  account_holder,
+  exclude_user_id,
+}: {
+  bank_code: string;
+  account_number: string;
+  account_holder: string;
+  exclude_user_id: number;
+}) => {
+  return prisma.preRegisteredAccount.findFirst({
+    where: {
+      bank_code,
+      account_number,
+      account_holder,
+      NOT: {
+        owner_user_id: exclude_user_id,
+      },
+    },
+  });
+},
 };
