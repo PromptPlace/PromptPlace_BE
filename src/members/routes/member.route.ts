@@ -128,24 +128,67 @@ router.get(
  * @swagger
  * /api/members/{memberId}:
  *   get:
- *     summary: 회원 정보 조회
+ *     summary: 회원 정보 조회 (공개)
+ *     description: 특정 회원의 공개 정보를 조회합니다. 인증이 필요하지 않습니다.
  *     tags: [Member]
- *     security:
- *       - jwt: []
  *     parameters:
  *       - in: path
  *         name: memberId
  *         required: true
  *         schema:
  *           type: integer
+ *         description: 조회할 회원의 ID
  *     responses:
  *       200:
- *         description: 회원 정보 반환
+ *         description: 회원 정보 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "회원 정보 조회 완료"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     member_id:
+ *                       type: integer
+ *                       example: 1
+ *                     nickname:
+ *                       type: string
+ *                       example: "프롬프트마스터"
+ *                     name:
+ *                       type: string
+ *                       example: "홍길동"
+ *                     profile_image:
+ *                       type: string
+ *                       nullable: true
+ *                       example: "https://example.com/image.jpg"
+ *                     intros:
+ *                       type: string
+ *                       nullable: true
+ *                       example: "프롬프트 전문가입니다."
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *                     status:
+ *                       type: integer
+ *                       example: 1
+ *                     role:
+ *                       type: string
+ *                       example: "USER"
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *       404:
+ *         description: 회원을 찾을 수 없음
+ *       500:
+ *         description: 서버 오류
  */
-// 특정 회원 정보 조회 API
+// 특정 회원 정보 조회 API - 인증 불필요
 router.get(
   "/:memberId",
-  authenticateJwt,
   memberController.getMemberById.bind(memberController)
 );
 
