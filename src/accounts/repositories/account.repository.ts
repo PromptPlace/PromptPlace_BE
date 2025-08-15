@@ -64,4 +64,15 @@ export const AccountRepository = {
       },
     });
   },
+
+   updatePreRegisteredAccount: async (preregId: number, data: {
+    bank_code: string;
+    account_number: string;
+    account_holder: string;
+  }) => {
+    return prisma.preRegisteredAccount.update({
+      where: { id: preregId },
+      data,
+    });
+  },
 };
