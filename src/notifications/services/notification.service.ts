@@ -133,6 +133,7 @@ export const createInquiryNotification = async (
 // 새로운 프롬프트 업로드 알림
 export const createPromptNotification = async (
   prompterId: number,
+  promptId: number
 ) => {
   // 프롬프터를 알림설정한 사용자 아이디 목록 추출
   const subscribedUserIds: number[] = await findUsersSubscribedToPrompter(prompterId);
@@ -144,13 +145,14 @@ export const createPromptNotification = async (
   } 
   const prompterNickname = prompter.nickname; 
 
+
   await Promise.all(
     subscribedUserIds.map((userId) => 
       createNotificationService({
         userId,
         type: NotificationType.NEW_PROMPT,
         content: `‘${prompterNickname}’님이 새 프롬프트를 업로드하셨습니다.`,
-        linkUrl: `/profile/${prompterId}`,
+        linkUrl: `/prompt/${promptId}`,
         actorId: prompterId,
       })
     )

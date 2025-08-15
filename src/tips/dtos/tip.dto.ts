@@ -26,6 +26,7 @@ export interface CreateTipDTO {
   title: string;
   content: string;
   is_visible: boolean;
+  file_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -44,8 +45,11 @@ export const mapToTipListDTO = (
       tip_id: tip.tip_id,
       writer_id: tip.writer_id,
       title: tip.title,
+      content: tip.content,
+      is_visible: tip.is_visible,
+      file_url: tip.file_url,
       created_at: tip.created_at.toISOString(),
-      //   file_url: tip.file_url,
+      updated_at: tip.updated_at.toISOString(),
     })),
     pagination: {
       page,
@@ -62,6 +66,7 @@ export const mapToCreateTipDTO = (rawTip: Tip): CreateTipDTO => ({
   title: rawTip.title,
   content: rawTip.content,
   is_visible: rawTip.is_visible,
+  file_url: rawTip.file_url,
   created_at: rawTip.created_at.toISOString(),
   updated_at: rawTip.updated_at.toISOString(),
 });

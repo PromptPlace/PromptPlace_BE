@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import {
   findTipList,
+  getTipService,
   createTipService,
   patchTipService,
   deleteTipService,
@@ -28,6 +29,23 @@ export const getTipList = async (
     return res.status(500).json({
       error: err.name || "InternalServerError",
       message: err.message || "팁 목록 조회 중 오류가 발생했습니다.",
+      statusCode: err.statusCode || 500,
+    });
+  }
+};
+
+// 팁 생성 - 관리자 인증 필요
+export const getTip = async (req: Request, res: Response) => {
+  try {
+    const result = await getTipService(req.params.tipId);
+    return res.success({
+      data: result,
+    });
+  } catch (err: any) {
+    console.error(err);
+    return res.status(500).json({
+      error: err.name || "InternalServerError",
+      message: err.message || "팁 조회 중 오류가 발생했습니다.",
       statusCode: err.statusCode || 500,
     });
   }

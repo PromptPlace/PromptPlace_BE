@@ -5,23 +5,35 @@ import { CreateInquiryDto } from "../dtos/create-inquiry.dto";
 @Service()
 export class InquiryRepository {
   async findInquiryById(inquiryId: number) {
-    return prisma.inquiry.findUnique({
+    const inquiry = await prisma.inquiry.findUnique({
       where: {
         inquiry_id: inquiryId,
       },
-      include: {
-        sender: {
-          select: {
-            nickname: true,
-          },
-        },
-        receiver: {
-          select: {
-            nickname: true,
-          },
-        },
-      },
     });
+
+    if (!inquiry) return null;
+
+    const [sender, receiver] = await Promise.all([
+      prisma.user.findUnique({
+        where: { user_id: inquiry.sender_id },
+        select: { nickname: true },
+      }),
+      prisma.user.findUnique({
+        where: { user_id: inquiry.receiver_id },
+        select: { nickname: true },
+      }),
+    ]);
+
+    // sender나 receiver가 null이면 에러 처리
+    if (!sender || !receiver) {
+      throw new Error(`사용자 정보를 찾을 수 없습니다. sender: ${sender ? 'found' : 'not found'}, receiver: ${receiver ? 'found' : 'not found'}`);
+    }
+
+    return {
+      ...inquiry,
+      sender,
+      receiver,
+    };
   }
 
   async createInquiry(senderId: number, createInquiryDto: CreateInquiryDto) {
@@ -63,7 +75,7 @@ export class InquiryRepository {
     receiverId: number,
     type?: "buyer" | "non_buyer"
   ) {
-    return prisma.inquiry.findMany({
+    const inquiries = await prisma.inquiry.findMany({
       where: {
         receiver_id: receiverId,
         ...(type && { type }),
@@ -71,11 +83,6 @@ export class InquiryRepository {
       select: {
         inquiry_id: true,
         sender_id: true,
-        sender: {
-          select: {
-            nickname: true,
-          },
-        },
         type: true,
         status: true,
         title: true,
@@ -84,6 +91,36 @@ export class InquiryRepository {
       },
       orderBy: {
         created_at: "desc",
+      },
+    });
+
+    // sender 정보를 별도로 가져오기
+    const inquiriesWithSender = await Promise.all(
+      inquiries.map(async (inquiry) => {
+        const sender = await prisma.user.findUnique({
+          where: { user_id: inquiry.sender_id },
+          select: { nickname: true },
+        });
+        
+        // sender가 null이면 에러 처리
+        if (!sender) {
+          throw new Error(`발신자 정보를 찾을 수 없습니다. sender_id: ${inquiry.sender_id}`);
+        }
+        
+        return {
+          ...inquiry,
+          sender,
+        };
+      })
+    );
+
+    return inquiriesWithSender;
+  }
+
+  async deleteInquiry(inquiryId: number) {
+    return prisma.inquiry.delete({
+      where: {
+        inquiry_id: inquiryId,
       },
     });
   }

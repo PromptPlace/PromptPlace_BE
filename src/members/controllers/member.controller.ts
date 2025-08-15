@@ -493,6 +493,9 @@ export class MemberController {
     }
   }
 
+  /**
+   * 프로필 이미지 업로드 (S3)
+   */
   public async uploadProfileImage(
     req: Request,
     res: Response,
@@ -500,15 +503,22 @@ export class MemberController {
   ): Promise<void> {
     try {
       const userId = (req.user as any).user_id;
+
       if (!req.file) {
         throw new AppError("이미지 파일이 필요합니다.", 400, "BadRequest");
       }
-      const imageUrl = req.file.path;
 
-      await this.memberService.uploadProfileImage(userId, imageUrl);
+      // 파일을 Service에 전달하여 S3에 업로드
+      const result = await this.memberService.uploadProfileImage(
+        userId,
+        req.file
+      );
 
       res.status(200).json({
-        message: "프로필 이미지 등록 완료",
+        message: "프로필 이미지 업로드 완료",
+        data: {
+          image_url: result.url,
+        },
         statusCode: 200,
       });
     } catch (error) {
@@ -572,6 +582,27 @@ export class MemberController {
 
       res.status(200).json({
         message: "회원 탈퇴가 완료되었습니다.",
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async getAllMembers(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+
+      const result = await this.memberService.getAllMembers(page, limit);
+
+      res.status(200).json({
+        message: "전체 회원 조회 완료",
+        data: result,
         statusCode: 200,
       });
     } catch (error) {

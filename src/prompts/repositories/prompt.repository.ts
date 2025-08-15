@@ -7,10 +7,10 @@ export const searchPromptRepo = async (data: SearchPromptDto) => {
   const skip = (page - 1) * size;
 
   // ✅ 정렬 기준
-  let orderBy: Prisma.PromptOrderByWithRelationInput = { rating_avg: 'desc' };
-  if (sort === 'recent') orderBy = { created_at: 'desc' };
-  else if (sort === 'views') orderBy = { views: 'desc' };
-  else if (sort === 'popular') orderBy = { likes: 'desc' };
+  let orderBy: Prisma.PromptOrderByWithRelationInput = { rating_avg: "desc" };
+  if (sort === "recent") orderBy = { created_at: "desc" };
+  else if (sort === "views") orderBy = { views: "desc" };
+  else if (sort === "popular") orderBy = { likes: "desc" };
 
   // ✅ 조건 분기로 where 필터 구성
   const filters: Prisma.PromptWhereInput[] = [];
@@ -65,8 +65,35 @@ export const searchPromptRepo = async (data: SearchPromptDto) => {
     skip,
     take: size,
     include: {
+      user: {
+        select: {
+          user_id: true,
+          nickname: true,
+          profileImage: {
+            select: { url: true },
+          },
+        },
+      },
+      models: {
+        include: {
+          model: {
+            select: { name: true },
+          },
+        },
+      },
+      tags: {
+        include: {
+          tag: {
+            select: {
+              tag_id: true,
+              name: true,
+            },
+          },
+        },
+      },
       images: {
         select: { image_url: true },
+        orderBy: { order_index: "asc" },
       },
     },
   });
@@ -74,10 +101,8 @@ export const searchPromptRepo = async (data: SearchPromptDto) => {
   return results;
 };
 
-
-export const getPromptDetailRepo = async (promptId: number) => {
-  const prompt = await prisma.prompt.findUnique({
-    where: { prompt_id: promptId },
+export const getAllPromptRepo = async () => {
+  return await prisma.prompt.findMany({
     include: {
       user: {
         select: {
@@ -106,65 +131,95 @@ export const getPromptDetailRepo = async (promptId: number) => {
         },
       },
       images: {
+        select: { image_url: true },
+        orderBy: { order_index: "asc" },
+      },
+    },
+  });
+};
+
+export type PromptDetail = {
+  title: string;
+  prompt: string;
+  prompt_result: string | null;
+  has_image: boolean;
+  description: string | null;
+  usage_guide: string | null;
+  price: number | null;
+  is_free: boolean;
+  views: number; // 👈 추가
+  tags: { tag_id: number; name: string }[];
+  models: string[];
+  images: string[];
+  writer: {
+    user_id: number;
+    nickname: string;
+    profile_image_url: string | null;
+  };
+};
+
+const promptSelect = Prisma.validator<Prisma.PromptSelect>()({
+  title: true,
+  prompt: true,
+  prompt_result: true,
+  has_image: true,
+  description: true,
+  usage_guide: true,
+  price: true,
+  is_free: true,
+  views: true, // 👈 추가
+  user: {
+    select: {
+      user_id: true,
+      nickname: true,
+      profileImage: { select: { url: true } },
+    },
+  },
+  models: {
+    select: {
+      model: { select: { name: true } },
+    },
+  },
+  tags: {
+    select: {
+      tag: { select: { tag_id: true, name: true } },
+    },
+  },
+  images: {
+    select: { image_url: true, order_index: true },
+    orderBy: { order_index: "asc" },
+  },
+});
+
+export const getPromptDetailRepo = async (promptId: number) => {
+  const prompt = await prisma.prompt.findUnique({
+    where: { prompt_id: promptId },
+    include: {
+      user: {
         select: {
-          image_url: true,
+          user_id: true,
+          nickname: true,
+          profileImage: { select: { url: true } },
         },
-        orderBy: {
-          order_index: 'asc',
+      },
+      models: {
+        include: {
+          model: { select: { name: true } },
         },
+      },
+      tags: {
+        include: {
+          tag: { select: { tag_id: true, name: true } },
+        },
+      },
+      images: {
+        select: { image_url: true, order_index: true },
+        orderBy: { order_index: "asc" },
       },
     },
   });
 
-  if (!prompt) return null;
-
-const {
-  title,
-  prompt: promptText,
-  prompt_result,
-  has_image,
-  description,
-  usage_guide,
-  price,
-  is_free,
-  models,
-  tags,
-  images,
-  user,
-} = prompt;
-
-
-return {
-  title,
-  prompt: promptText,
-  prompt_result,
-  has_image,
-  description,
-  usage_guide,
-  price,
-  is_free,
-
-  tags: tags.map(
-    ({ tag }: { tag: { tag_id: number; name: string } }) => ({
-      tag_id: tag.tag_id,
-      name: tag.name,
-    })
-  ),
-
-  models: models.map(
-    ({ model }: { model: { name: string } }) => model.name
-  ),
-
-  images: images.map(
-    ({ image_url }: { image_url: string }) => image_url
-  ),
-
-  writer: {
-    user_id: user.user_id,
-    nickname: user.nickname,
-    profile_image_url: user.profileImage?.url ?? null,
-  },
-};
+  return prompt;
 };
 
 export const createPromptWriteRepo = async (
@@ -180,7 +235,8 @@ export const createPromptWriteRepo = async (
     is_free: boolean;
     tags: string[];
     models: string[];
-    download_url: string;
+    
+    
   }
 ) => {
   return await prisma.$transaction(async (tx) => {
@@ -221,39 +277,38 @@ export const createPromptWriteRepo = async (
       likes: 0,
       review_counts: 0,
       rating_avg: 0,
-      download_url: data.download_url, 
     },
   });
 
-  // 4. PromptTag 매핑
-  for (const tag_id of tagIds) {
-    await tx.promptTag.create({
-      data: {
-        prompt_id: prompt.prompt_id,
-        tag_id,
+    // 4. PromptTag 매핑
+    for (const tag_id of tagIds) {
+      await tx.promptTag.create({
+        data: {
+          prompt_id: prompt.prompt_id,
+          tag_id,
+        },
+      });
+    }
+
+    // 5. PromptModel 매핑 (여러 모델)
+    for (const model_id of modelIds) {
+      await tx.promptModel.create({
+        data: {
+          prompt_id: prompt.prompt_id,
+          model_id,
+        },
+      });
+    }
+
+    // 6. 결과 반환 (프롬프트 + 태그 + 모델 정보)
+    const result = await tx.prompt.findUnique({
+      where: { prompt_id: prompt.prompt_id },
+      include: {
+        tags: { include: { tag: true } },
+        models: { include: { model: true } },
       },
     });
-  }
-
-  // 5. PromptModel 매핑 (여러 모델)
-  for (const model_id of modelIds) {
-    await tx.promptModel.create({
-      data: {
-        prompt_id: prompt.prompt_id,
-        model_id,
-      },
-    });
-  }
-
-  // 6. 결과 반환 (프롬프트 + 태그 + 모델 정보)
-  const result = await tx.prompt.findUnique({
-    where: { prompt_id: prompt.prompt_id },
-    include: {
-      tags: { include: { tag: true } },
-      models: { include: { model: true } },
-    },
-  });
-  return result;
+    return result;
   });
 };
 
@@ -275,15 +330,15 @@ export const getPromptByIdRepo = async (promptId: number) => {
     where: { prompt_id: promptId },
     include: {
       user: {
-        select: { user_id: true, nickname: true }
+        select: { user_id: true, nickname: true },
       },
       tags: {
-        include: { tag: true }
+        include: { tag: true },
       },
       models: {
-        include: { model: true }
-      }
-    }
+        include: { model: true },
+      },
+    },
   });
 };
 
@@ -300,7 +355,8 @@ export const updatePromptRepo = async (
     is_free?: boolean;
     tags?: string[];
     models?: string[];
-    download_url?: string;
+    
+    
   }
 ) => {
   return await prisma.$transaction(async (tx) => {
@@ -308,13 +364,13 @@ export const updatePromptRepo = async (
     if (data.tags || data.models) {
       if (data.tags) {
         await tx.promptTag.deleteMany({
-          where: { prompt_id: promptId }
+          where: { prompt_id: promptId },
         });
       }
-      
+
       if (data.models) {
         await tx.promptModel.deleteMany({
-          where: { prompt_id: promptId }
+          where: { prompt_id: promptId },
         });
       }
     }
@@ -331,81 +387,95 @@ export const updatePromptRepo = async (
       usage_guide: data.usage_guide,
       price: data.price,
       is_free: data.is_free,
-      download_url: data.download_url,
     }
   });
 
-  // 새로운 태그 매핑
-  if (data.tags) {
-    const tagIds: number[] = [];
-    for (const tagName of data.tags) {
-      let tag = await tx.tag.findFirst({ where: { name: tagName } });
-      if (!tag) {
-        tag = await tx.tag.create({ data: { name: tagName } });
+    // 새로운 태그 매핑
+    if (data.tags) {
+      const tagIds: number[] = [];
+      for (const tagName of data.tags) {
+        let tag = await tx.tag.findFirst({ where: { name: tagName } });
+        if (!tag) {
+          tag = await tx.tag.create({ data: { name: tagName } });
+        }
+        tagIds.push(tag.tag_id);
       }
-      tagIds.push(tag.tag_id);
-    }
 
-    for (const tag_id of tagIds) {
-      await tx.promptTag.create({
-        data: {
-          prompt_id: promptId,
-          tag_id,
-        },
-      });
-    }
-  }
-
-  // 새로운 모델 매핑 (여러 모델)
-  if (data.models) {
-    const modelIds: number[] = [];
-    for (const modelName of data.models) {
-      const model = await tx.model.findFirst({ where: { name: modelName } });
-      if (!model) {
-        throw new Error(`모델 '${modelName}'이(가) 존재하지 않습니다.`);
+      for (const tag_id of tagIds) {
+        await tx.promptTag.create({
+          data: {
+            prompt_id: promptId,
+            tag_id,
+          },
+        });
       }
-      modelIds.push(model.model_id);
     }
 
-    for (const model_id of modelIds) {
-      await tx.promptModel.create({
-        data: {
-          prompt_id: promptId,
-          model_id,
-        },
-      });
-    }
-  }
+    // 새로운 모델 매핑 (여러 모델)
+    if (data.models) {
+      const modelIds: number[] = [];
+      for (const modelName of data.models) {
+        const model = await tx.model.findFirst({ where: { name: modelName } });
+        if (!model) {
+          throw new Error(`모델 '${modelName}'이(가) 존재하지 않습니다.`);
+        }
+        modelIds.push(model.model_id);
+      }
 
-  // 업데이트된 프롬프트 반환
-  return await tx.prompt.findUnique({
-    where: { prompt_id: promptId },
-    include: {
-      tags: { include: { tag: true } },
-      models: { include: { model: true } },
-    },
-  });
+      for (const model_id of modelIds) {
+        await tx.promptModel.create({
+          data: {
+            prompt_id: promptId,
+            model_id,
+          },
+        });
+      }
+    }
+
+    // 업데이트된 프롬프트 반환
+    return await tx.prompt.findUnique({
+      where: { prompt_id: promptId },
+      include: {
+        tags: { include: { tag: true } },
+        models: { include: { model: true } },
+      },
+    });
   });
 };
 
 export const deletePromptRepo = async (promptId: number) => {
   return await prisma.$transaction(async (tx) => {
+    // 삭제 제약: 유료 프롬프트이고 구매 이력이 있으면 삭제 불가
+    const prompt = await tx.prompt.findUnique({
+      where: { prompt_id: promptId },
+      select: { is_free: true },
+    });
+    if (!prompt) {
+      throw new Error("프롬프트를 찾을 수 없습니다.");
+    }
+    if (prompt.is_free === false) {
+      const purchaseCount = await tx.purchase.count({ where: { prompt_id: promptId } });
+      if (purchaseCount > 0) {
+        throw new Error("구매 이력이 있는 유료 프롬프트는 삭제할 수 없습니다.");
+      }
+    }
+
     // 관련 데이터 삭제 (Cascade가 설정되어 있지 않은 경우 수동 삭제)
     await tx.promptTag.deleteMany({
-      where: { prompt_id: promptId }
+      where: { prompt_id: promptId },
     });
-    
+
     await tx.promptModel.deleteMany({
-      where: { prompt_id: promptId }
+      where: { prompt_id: promptId },
     });
-    
+
     await tx.promptImage.deleteMany({
-      where: { prompt_id: promptId }
+      where: { prompt_id: promptId },
     });
 
     // 프롬프트 삭제
     return await tx.prompt.delete({
-    where: { prompt_id: promptId }
-  });
+      where: { prompt_id: promptId },
+    });
   });
 };

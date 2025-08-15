@@ -2,95 +2,104 @@ name: deploy-main
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Check prisma has changes
-        uses: dorny/paths-filter@v3
         id: paths-filter
+        uses: dorny/paths-filter@v3
         with:
           filters: |
             prisma: ["prisma/**"]
 
       - name: Configure SSH
+        env:
+          EC2_USER: ubuntu
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
+          set -euo pipefail
           mkdir -p ~/.ssh
-          echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa
+          printf "%s" "$EC2_SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           cat >>~/.ssh/config <<END
-          Host promptplace
+          Host prod
             HostName $EC2_HOST
             User $EC2_USER
             IdentityFile ~/.ssh/id_rsa
             StrictHostKeyChecking no
           END
-        env:
-          EC2_USER: ubuntu
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
 
-      - name: Copy Workspace
+      - name: Prepare target dir
         run: |
-          ssh promptplace 'sudo mkdir -p /opt/app'
-          ssh promptplace 'sudo chown ubuntu:ubuntu /opt/app'
-          scp -r ./[!.]* promptplace:/opt/app
+          ssh prod 'sudo mkdir -p /opt/app && sudo chown ubuntu:ubuntu /opt/app'
+
+      - name: Sync workspace (rsync --delete)
+        run: |
+          rsync -az --delete \
+            --exclude ".git" \
+            --exclude "node_modules" \
+            ./ prod:/opt/app/
 
       - name: Write .env on EC2
         run: |
-          ssh promptplace '
-            cat > /opt/app/.env <<EOF
+          ssh prod 'cat > /opt/app/.env <<EOF
           ${{ secrets.ENV_CONTENT }}
-          EOF
-          '
+          EOF'
 
-      - name: Install dependencies
+      - name: Install & Build on server
         run: |
-          ssh promptplace 'cd /opt/app && pnpm install'
+          ssh prod 'cd /opt/app && pnpm install --frozen-lockfile && pnpm build'
 
-      - name: Build TypeScript on server
+      - name: Prisma generate
         run: |
-          ssh promptplace 'cd /opt/app && pnpm exec tsc'
+          ssh prod 'cd /opt/app && pnpm exec prisma generate'
 
-      - name: Generate Prisma client
-        run: |
-          ssh promptplace 'cd /opt/app && pnpm exec prisma generate'
-
-      - name: Apply Prisma migrations
+      - name: Prisma migrate (only when schema changed)
         if: steps.paths-filter.outputs.prisma == 'true'
         run: |
-          ssh promptplace 'cd /opt/app && pnpm exec prisma migrate deploy'
+          ssh prod 'cd /opt/app && pnpm exec prisma migrate deploy'
 
-      - name: Copy systemd service file
+      - name: Install/Update systemd service
         run: |
-          ssh promptplace '
-            echo "[Unit]
-            Description=PromptPlace Backend
-            After=network.target
+          ssh prod 'cat > app.service << "UNIT"
+          [Unit]
+          Description=PromptPlace Backend
+          After=network.target
 
-            [Service]
-            User=ubuntu
-            WorkingDirectory=/opt/app
-            EnvironmentFile=/opt/app/.env
-            ExecStart=/usr/bin/pnpm start
-            Restart=always
+          [Service]
+          User=ubuntu
+          WorkingDirectory=/opt/app
+          EnvironmentFile=/opt/app/.env
+          Environment=NODE_ENV=production
+          Environment=PNPM_HOME=/home/ubuntu/.local/share/pnpm
+          Environment=PATH=/home/ubuntu/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin
+          ExecStart=/bin/bash -lc '"'"'pnpm start'"'"'
+          Restart=always
+          RestartSec=3
+          # Optional: 확보/로그
+          StandardOutput=journal
+          StandardError=journal
 
-            [Install]
-            WantedBy=multi-user.target" | sudo tee /etc/systemd/system/app.service
+          [Install]
+          WantedBy=multi-user.target
+          UNIT
+          sudo mv app.service /etc/systemd/system/app.service
+          sudo systemctl daemon-reload
+          sudo systemctl enable app
+          sudo systemctl restart app
           '
 
-      - name: Enable systemd service
+      # PM2를 쓰고 있었다면 서비스 충돌 방지를 위해 종료(1회 실행)
+      - name: Stop PM2 app (one-time)
         run: |
-          ssh promptplace 'sudo systemctl daemon-reload'
-          ssh promptplace 'sudo systemctl enable app'
-
-      - name: Restart systemd service
-        run: |
-          ssh promptplace 'sudo systemctl restart app'
+          ssh prod 'pm2 delete promptplace || true'

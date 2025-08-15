@@ -2,6 +2,7 @@ import { Tip } from "@prisma/client";
 import { mapToTipListDTO, mapToCreateTipDTO } from "../dtos/tip.dto";
 import {
   findtips,
+  getTipRepository,
   createTipRepository,
   updateTipRepository,
   removeTipRepository,
@@ -18,6 +19,18 @@ export const findTipList = async (rawPage?: string, rawSize?: string) => {
   const totalCount = rawTips.length;
 
   return mapToTipListDTO(rawTips, page, size, totalCount);
+};
+
+export const getTipService = async (tipId: string) => {
+  if (!tipId) {
+    throw new Error("tipId가 누락되었습니다.");
+  }
+  const result = await getTipRepository(tipId);
+  
+  if (!result) {
+  throw new Error("Tip not found");
+  }
+  return mapToCreateTipDTO(result);
 };
 
 export const createTipService = async (data: any) => {

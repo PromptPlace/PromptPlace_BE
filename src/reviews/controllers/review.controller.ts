@@ -40,9 +40,12 @@ export const getReviewsByPromptId = async (
     );
 
     
-    res.success({
+    res.success(
+      {
       ...result,
-    });
+    },
+    "프롬프트 리뷰 목록을 성공적으로 불러왔습니다."
+  );
   } catch (err: any) {
     console.error(err);
     res.fail({
@@ -82,7 +85,9 @@ export const getReviewsByPromptId = async (
 
     res.success({
       ...result,
-    });
+    },
+    "리뷰가 성공적으로 등록되었습니다."
+  );
   } catch (err: any) {
     console.error(err);
     res.fail({
@@ -119,8 +124,9 @@ export const deleteReview = async (
     await deleteReviewService(reviewId, userId);
 
     res.success({
-      message: '리뷰가 성공적으로 삭제되었습니다.',
-    });
+    },
+    "리뷰가 성공적으로 삭제되었습니다."
+  );
   } catch (err: any) {
     console.error(err);
     res.fail({
@@ -159,7 +165,11 @@ export const getReviewEditData = async (
       (req.user as {user_id: number}).user_id
     );
 
-    res.success({ ...review });
+    res.success({ 
+      ...review 
+    },
+    "리뷰 수정 화면 데이터를 성공적으로 불러왔습니다."
+  );
     
   } catch (err: any) {
     console.error(err);
@@ -204,9 +214,10 @@ export const editReview = async (
     const updatedReview = await editReviewService(reviewId, userId, rating, content);
 
     res.success({
-      message: '리뷰가 성공적으로 수정되었습니다.',
-      review: updatedReview,
-    });
+      ...updatedReview,
+    },
+    "리뷰가 성공적으로 수정되었습니다."
+  );
   } catch (err: any) {
     console.error(err);
     res.fail({
@@ -239,10 +250,10 @@ export const getReviewsWrittenByMe = async (
     const reviews = await findReviewsWrittenByUser(userId, cursor, limit);
 
     res.success({
-      statusCode: 200,
-      message: '내가 작성한 리뷰 목록을 성공적으로 불러왔습니다.',
       ...reviews
-    });
+    },
+    "내가 작성한 리뷰 목록을 성공적으로 불러왔습니다."
+  );
   } catch (err: any) {
     res.fail({
       error: err.name || 'InternalServerError',
@@ -274,10 +285,10 @@ export const getMyReceivedReviews = async (
     const reviews = await findMyReceivedReviews(userId, cursor, limit);
 
     res.success({
-      statusCode: 200,
-      message: '내가 받은 리뷰 목록을 성공적으로 불러왔습니다.',
       ...reviews,
-    });
+    },
+    '내가 받은 리뷰 목록을 성공적으로 불러왔습니다.'
+  );
   } catch (err: any) {
     console.error(err);
     res.fail({

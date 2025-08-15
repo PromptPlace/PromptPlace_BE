@@ -2,6 +2,7 @@ import { Announcement } from "@prisma/client";
 import { mapToAnnouncementListDTO, mapToCreateAnnouncementDTO } from "../dtos/announcement.dto";
 import {
   findAnnouncements,
+  getAnnouncementRepository,
   createAnnouncementRepository,
   updateAnnouncementRepository,
   removeAnnouncementRepository,
@@ -19,6 +20,18 @@ export const findAnnouncementList = async (rawPage?: string, rawSize?: string) =
 
   return mapToAnnouncementListDTO(rawAnnouncements, page, size, totalCount);
 };
+
+export const getAnnouncementService = async (announcementId: string) => {
+  if (!announcementId) {
+    throw new Error("announcementId가 누락되었습니다.");
+  }
+  const result = await getAnnouncementRepository(announcementId);
+  if (!result) {
+  throw new Error("Tip not found");
+  }
+  return mapToCreateAnnouncementDTO(result);
+};
+
 
 export const createAnnouncementService = async (data: any) => {
   if (!data.writer_id) {

@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getTipList,
+  getTip,
   createTip,
   patchTip,
   deleteTip,
@@ -41,21 +42,33 @@ const router = express.Router({ mergeParams: true });
  *           application/json:
  *             schema:
  *               type: object
- *               properties:
+ *               example:
+ *                 message: 요청이 성공적으로 처리되었습니다.
  *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       tip_id:
- *                         type: integer
- *                       title:
- *                         type: string
- *                       content:
- *                         type: string
- *                       created_at:
- *                         type: string
- *                         format: date-time
+ *                   data:
+ *                     tips:
+ *                       - tip_id: 13
+ *                         writer_id: 5
+ *                         title: 예시로 올려보는 프롬프트!
+ *                         content: 목적에 맞는 프롬프트를 만들려면 입력-출력 예제를 활용하세요.
+ *                         is_visible: true
+ *                         file_url: null
+ *                         created_at: 2025-07-31T12:15:59.700Z
+ *                         updated_at: 2025-07-31T12:15:59.700Z
+ *                       - tip_id: 10
+ *                         writer_id: 5
+ *                         title: 예시로 올려보는 프롬프트!
+ *                         content: 목적에 맞는 프롬프트를 만들려면 입력-출력 예제를 활용하세요.
+ *                         is_visible: true
+ *                         file_url: null
+ *                         created_at: 2025-07-31T07:50:59.331Z
+ *                         updated_at: 2025-07-31T07:50:59.331Z
+ *                     pagination:
+ *                       page: 1
+ *                       size: 10
+ *                       total_elements: 7
+ *                       total_pages: 1
+ *                 statusCode: 200
  */
 // 모두 접근 가능
 router.get("/", getTipList);
@@ -90,6 +103,8 @@ router.get("/", getTipList);
  *         description: 관리자 권한 없음
  */
 // 관리자만 접근 가능
+router.get("/:tipId/details", authenticateJwt, getTip);
+
 router.post("/", authenticateJwt, isAdmin, createTip);
 
 /**

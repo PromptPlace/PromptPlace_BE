@@ -9,11 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toggleNotificationSubscription = void 0;
+exports.getNotificationList = exports.toggleNotificationSubscription = void 0;
 const notification_service_1 = require("../services/notification.service");
 const toggleNotificationSubscription = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    console.log('req.user:', req.user);
     if (!req.user) {
         res.fail({
             statusCode: 401,
@@ -47,3 +46,29 @@ const toggleNotificationSubscription = (req, res) => __awaiter(void 0, void 0, v
     }
 });
 exports.toggleNotificationSubscription = toggleNotificationSubscription;
+// 알림 목록 조회
+const getNotificationList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!req.user) {
+        res.fail({
+            statusCode: 401,
+            error: 'no user',
+            message: '로그인이 필요합니다.',
+        });
+        return;
+    }
+    try {
+        const userId = req.user.user_id;
+        const cursor = req.query.cursor;
+        const limit = req.query.limit;
+        const notifications = yield (0, notification_service_1.findUserNotificationsService)(userId, cursor, limit);
+        res.success(Object.assign({}, notifications));
+    }
+    catch (err) {
+        res.fail({
+            error: err.name || 'InternalServerError',
+            message: err.message || '사용자 알림 목록을 불러오는 중 오류가 발생했습니다.',
+            statusCode: err.statusCode || 500,
+        });
+    }
+});
+exports.getNotificationList = getNotificationList;

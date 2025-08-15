@@ -14,6 +14,14 @@ export const findtips = async (page: number, size: number) => {
   });
 };
 
+export const getTipRepository = async (tipId: string) => {
+  const parsedTipId = parseInt(tipId, 10);
+
+  return await prisma.tip.findUnique({
+    where: { tip_id: parsedTipId },
+  });
+};
+
 export const createTipRepository = async (data: any) => {
   return await prisma.tip.create({
     data: {

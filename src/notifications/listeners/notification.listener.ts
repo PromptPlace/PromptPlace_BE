@@ -40,15 +40,15 @@ eventBus.on('follow.created', async (followerId: number, followingId: number) =>
 eventBus.on('inquiry.created', async (receiverId: number, senderId: number) => {
   try {
     await createInquiryNotification(receiverId, senderId);
-  } catch (err) {
+  } catch (err) { 
     console.error("[알림 리스너 오류]: 새로운 문의 알림 생성 실패", err);
   }
 });
 
 // 새로운 프롬프트 업로드 알림 리스너
-eventBus.on('prompt.created', async (prompterId: number) => {
+eventBus.on('prompt.created', async (prompterId: number, promptId: number) => {
   try {
-    await createPromptNotification(prompterId);
+    await createPromptNotification(prompterId, promptId);
   } catch (err) {
     console.error("[알림 리스너 오류]: 새로운 프롬프트 업로드 알림 생성 실패", err);
   }

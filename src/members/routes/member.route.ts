@@ -466,7 +466,7 @@ router.get(
  * @swagger
  * /api/members/images:
  *   post:
- *     summary: 프로필 이미지 업로드
+ *     summary: 프로필 이미지 업로드 (S3)
  *     tags: [Member]
  *     security:
  *       - jwt: []
@@ -479,15 +479,15 @@ router.get(
  *               profile_image:
  *                 type: string
  *                 format: binary
+ *                 description: 업로드할 프로필 이미지 파일
  *     responses:
  *       200:
- *         description: 업로드 성공
+ *         description: 프로필 이미지 업로드 성공
  */
-// 회원 프로필 이미지 등록 API
 router.post(
   "/images",
   authenticateJwt,
-  upload.single("profile_image"),
+  upload.single("profile_image"), // multer로 파일 받기
   memberController.uploadProfileImage.bind(memberController)
 );
 
@@ -588,5 +588,106 @@ router.delete(
   authenticateJwt,
   memberController.withdrawMember.bind(memberController)
 );
+
+/**
+ * @swagger
+ * /api/members:
+ *   get:
+ *     summary: 전체 회원 조회 (공개)
+ *     description: 홈페이지 인기 유저 표시용으로 전체 회원을 조회하는 공개 API
+ *     tags: [Member]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *           minimum: 1
+ *         description: 페이지 번호
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *           minimum: 1
+ *           maximum: 100
+ *         description: 페이지당 조회할 회원 수
+ *     responses:
+ *       200:
+ *         description: 전체 회원 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 전체 회원 조회 완료
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     members:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           user_id:
+ *                             type: integer
+ *                             example: 1
+ *                           nickname:
+ *                             type: string
+ *                             example: 프롬프트마스터
+ *                           created_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2024-01-15T09:30:00Z"
+ *                           updated_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2024-02-20T14:22:00Z"
+ *                           follower_cnt:
+ *                             type: integer
+ *                             example: 125
+ *                           profile_image_url:
+ *                             type: string
+ *                             nullable: true
+ *                             example: "https://example.com/profile.jpg"
+ *                             description: 프로필 이미지 URL (없으면 null)
+ *                     total:
+ *                       type: integer
+ *                       example: 1500
+ *                     page:
+ *                       type: integer
+ *                       example: 1
+ *                     limit:
+ *                       type: integer
+ *                       example: 20
+ *                     total_pages:
+ *                       type: integer
+ *                       example: 75
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: InternalServerError
+ *                 message:
+ *                   type: string
+ *                   example: 알 수 없는 오류가 발생했습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 500
+ */
+// 전체 회원 조회 API (공개)
+router.get("/", memberController.getAllMembers.bind(memberController));
 
 export default router;

@@ -9,7 +9,11 @@ import { CreateHistoryDto } from "../dtos/create-history.dto";
 import { UpdateHistoryDto } from "../dtos/update-history.dto";
 import { CreateSnsDto } from "../dtos/create-sns.dto";
 import { UpdateSnsDto } from "../dtos/update-sns.dto";
-import eventBus from '../../config/eventBus';
+import eventBus from "../../config/eventBus";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { v4 as uuidv4 } from "uuid";
+
 @Service()
 export class MemberService {
   constructor(private memberRepository: MemberRepository) {}
@@ -62,14 +66,16 @@ export class MemberService {
       memberId
     );
 
-    return followers.map((f) => ({
-      follow_id: f.follow_id,
-      follower_id: f.follower_id,
-      nickname: f.follower.nickname,
-      email: f.follower.email,
-      created_at: f.created_at,
-      updated_at: f.updated_at,
-    }));
+    return followers
+      .filter((f) => f.follower) // null 체크
+      .map((f) => ({
+        follow_id: f.follow_id,
+        follower_id: f.follower_id,
+        nickname: f.follower!.nickname,
+        email: f.follower!.email,
+        created_at: f.created_at,
+        updated_at: f.updated_at,
+      }));
   }
 
   async getFollowings(memberId: number) {
@@ -82,14 +88,16 @@ export class MemberService {
       memberId
     );
 
-    return followings.map((f) => ({
-      follow_id: f.follow_id,
-      following_id: f.following_id,
-      nickname: f.following.nickname,
-      email: f.following.email,
-      created_at: f.created_at,
-      updated_at: f.updated_at,
-    }));
+    return followings
+      .filter((f) => f.following) // null 체크
+      .map((f) => ({
+        follow_id: f.follow_id,
+        following_id: f.following_id,
+        nickname: f.following!.nickname,
+        email: f.following!.email,
+        created_at: f.created_at,
+        updated_at: f.updated_at,
+      }));
   }
 
   async getMemberPrompts(memberId: number, cursor?: number, limit?: number) {
@@ -101,14 +109,6 @@ export class MemberService {
   }
 
   async getMemberById(requesterId: number, memberId: number) {
-    if (requesterId !== memberId) {
-      throw new AppError(
-        "해당 회원 정보에 접근할 권한이 없습니다.",
-        403,
-        "Forbidden"
-      );
-    }
-
     const member = await this.memberRepository.findUserWithIntroById(memberId);
 
     if (!member) {
@@ -121,9 +121,11 @@ export class MemberService {
       name: member.name,
       nickname: member.nickname,
       intros: member.intro?.description || null,
+      profile_image: member.profileImage?.url || null, // 프로필 이미지 추가
       created_at: member.created_at,
       updated_at: member.updated_at,
       status: member.status ? 1 : 0,
+      role: member.role,
     };
   }
 
@@ -216,7 +218,7 @@ export class MemberService {
       throw new AppError(
         "해당 이력을 삭제할 권한이 없습니다.",
         403,
-        "Forbidden",
+        "Forbidden"
       );
     }
 
@@ -224,62 +226,12 @@ export class MemberService {
   }
 
   async getHistories(requesterId: number, memberId: number) {
-    if (requesterId !== memberId) {
-      throw new AppError(
-        "해당 회원의 이력을 조회할 권한이 없습니다.",
-        403,
-        "Forbidden"
-      );
-    }
-
     const user = await this.memberRepository.findUserById(memberId);
     if (!user) {
       throw new AppError("해당 회원을 찾을 수 없습니다.", 404, "NotFound");
     }
 
-    const purchases = await this.memberRepository.findPurchasesByUserId(
-      memberId
-    );
-    const uploads = await this.memberRepository.findPromptsByUserId(memberId);
-    const withdrawals = await this.memberRepository.findWithdrawalsByUserId(
-      memberId
-    );
-
-    const purchaseHistories = purchases.map((p) => ({
-      type: "PROMPT_PURCHASE",
-      title: `${p.prompt.title} 구매`,
-      description: p.prompt.description,
-      amount: p.amount,
-      created_at: p.created_at,
-    }));
-
-    const uploadHistories = uploads.map((p) => ({
-      type: "PROMPT_UPLOAD",
-      title: `${p.title} 업로드`,
-      description: p.description,
-      amount: 0,
-      created_at: p.created_at,
-    }));
-
-    const withdrawalHistories = withdrawals.map((w) => ({
-      type: "WITHDRAWAL",
-      title: "수익 출금 요청",
-      description: "프롬프트 판매 수익 출금",
-      amount: w.amount,
-      created_at: w.created_at,
-    }));
-
-    const allHistories = [
-      ...purchaseHistories,
-      ...uploadHistories,
-      ...withdrawalHistories,
-    ];
-
-    allHistories.sort(
-      (a, b) => b.created_at.getTime() - a.created_at.getTime()
-    );
-
-    return allHistories;
+    return await this.memberRepository.findHistoriesByUserId(memberId);
   }
 
   async createSns(userId: number, createSnsDto: CreateSnsDto) {
@@ -331,8 +283,40 @@ export class MemberService {
     return this.memberRepository.findSnsByUserId(memberId);
   }
 
-  async uploadProfileImage(userId: number, imageUrl: string) {
-    return this.memberRepository.upsertProfileImage(userId, imageUrl);
+  /**
+   * 프로필 이미지 업로드 (파일을 S3에 업로드)
+   */
+  async uploadProfileImage(userId: number, file: Express.Multer.File) {
+    // 파일 확장자 추출
+    const ext = file.originalname.split(".").pop();
+    const newKey = `profile-images/${uuidv4()}_${Date.now()}.${ext}`;
+
+    // S3 클라이언트 생성
+    const s3 = new S3Client({
+      region: process.env.S3_REGION,
+      credentials: {
+        accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+      },
+    });
+
+    // S3에 파일 업로드
+    const uploadCommand = new PutObjectCommand({
+      Bucket: process.env.S3_BUCKET,
+      Key: newKey,
+      Body: file.buffer, // multer.memoryStorage() 사용 시
+      ContentType: file.mimetype,
+    });
+
+    await s3.send(uploadCommand);
+
+    // S3 URL 생성
+    const imageUrl = `https://${process.env.S3_BUCKET}.s3.${process.env.S3_REGION}.amazonaws.com/${newKey}`;
+
+    // 데이터베이스에 저장
+    await this.memberRepository.upsertProfileImage(userId, imageUrl);
+
+    return { url: imageUrl, key: newKey };
   }
 
   async followMember(followerId: number, followingId: number) {
@@ -361,7 +345,10 @@ export class MemberService {
     }
 
     // 팔로우 생성
-    const follow = await this.memberRepository.createFollow(followerId, followingId);
+    const follow = await this.memberRepository.createFollow(
+      followerId,
+      followingId
+    );
 
     // 팔로우 알림 이벤트 발생
     eventBus.emit("follow.created", followerId, followingId);
@@ -404,5 +391,26 @@ export class MemberService {
 
     // 회원 비활성화
     return this.memberRepository.deactivateUser(userId);
+  }
+
+  async getAllMembers(page: number = 1, limit: number = 20) {
+    // 관리자 권한 확인은 컨트롤러에서 처리
+    if (page < 1) {
+      throw new AppError(
+        "페이지 번호는 1 이상이어야 합니다.",
+        400,
+        "BadRequest"
+      );
+    }
+
+    if (limit < 1 || limit > 100) {
+      throw new AppError(
+        "페이지당 조회할 회원 수는 1-100 사이여야 합니다.",
+        400,
+        "BadRequest"
+      );
+    }
+
+    return await this.memberRepository.findAllMembers(page, limit);
   }
 }
