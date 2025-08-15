@@ -360,20 +360,14 @@ class AuthService {
       let user = await prisma.user.findUnique({ where: { email } });
 
       if (user) {
-        user = await prisma.user.update({
-          where: { email },
-          data: {
-            name: naverUser.name || user.name,
-            nickname: naverUser.nickname || user.nickname || user.name,
-            updated_at: new Date(),
-          },
-        });
+        // 사용자가 존재하면 그대로 반환 (덮어쓰지 않음)
+        return user;
       } else {
         user = await prisma.user.create({
           data: {
             email,
-            name: naverUser.name || "네이버 사용자",
-            nickname: naverUser.nickname || naverUser.name || "네이버 사용자",
+            name: naverUser.name || "Unknown",
+            nickname: naverUser.nickname || naverUser.name || "Unknown",
             social_type: "NAVER",
             status: true,
             role: "USER",
