@@ -48,4 +48,27 @@ export const AccountService = {
       statusCode: 200,
     };
   },
+
+  getAccountInfo: async (userId: number) => {
+    const userAccount = await AccountRepository.getUserBankAccount(userId);
+
+    if (!userAccount) {
+      throw new AppError("등록된 계좌 정보가 없습니다.", 404, "NotFound");
+    }
+
+    const prereg = userAccount.preregistered;
+    const bank = prereg.bank;
+
+    return {
+      message: "계좌 정보를 불러왔습니다.",
+      data: {
+        account_id: userAccount.account_id,
+        bank_code: prereg.bank_code,
+        bank_name: bank.name,
+        account_number: prereg.account_number,
+        account_holder: prereg.account_holder,
+      },
+      statusCode: 200,
+    };
+  },
 };

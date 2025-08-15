@@ -11,3 +11,11 @@ export class RegisterAccountDto {
   @IsString()
   account_holder!: string;
 }
+
+export class GetAccountResponseDto {
+  account_id!: number;
+  bank_code!: string;
+  bank_name!: string;
+  account_number!: string;
+  account_holder!: string;
+}

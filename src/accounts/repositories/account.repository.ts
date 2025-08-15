@@ -51,4 +51,17 @@ export const AccountRepository = {
       },
     });
   },
+
+  getUserBankAccount: async (userId: number) => {
+    return prisma.userBankAccount.findUnique({
+      where: { user_id: userId },
+      include: {
+        preregistered: {
+          include: {
+            bank: true, // bank.name 포함
+          },
+        },
+      },
+    });
+  },
 };
