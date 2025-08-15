@@ -211,14 +211,8 @@ class AuthService {
       let user = await prisma.user.findUnique({ where: { email } });
 
       if (user) {
-        user = await prisma.user.update({
-          where: { email },
-          data: {
-            name: kakaoUser.properties?.nickname || user.name,
-            nickname: kakaoUser.properties?.nickname || user.nickname,
-            updated_at: new Date(),
-          },
-        });
+        // 사용자가 존재하면 그대로 반환 (덮어쓰지 않음)
+        return user;
       } else {
         user = await prisma.user.create({
           data: {
@@ -285,14 +279,8 @@ class AuthService {
       let user = await prisma.user.findUnique({ where: { email } });
 
       if (user) {
-        user = await prisma.user.update({
-          where: { email },
-          data: {
-            name: googleUser.name || user.name,
-            nickname: googleUser.name || user.nickname,
-            updated_at: new Date(),
-          },
-        });
+        // 사용자가 존재하면 그대로 반환 (덮어쓰지 않음)
+        return user;
       } else {
         user = await prisma.user.create({
           data: {
