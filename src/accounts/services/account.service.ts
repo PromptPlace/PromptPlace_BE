@@ -1,4 +1,4 @@
-import { RegisterAccountDto } from "../dtos/account.dto";
+import { RegisterAccountDto, UpdateAccountDto } from "../dtos/account.dto";
 import { AccountRepository } from "../repositories/account.repository";
 import { AppError } from "../../errors/AppError";
 
@@ -68,6 +68,32 @@ export const AccountService = {
         account_number: prereg.account_number,
         account_holder: prereg.account_holder,
       },
+      statusCode: 200,
+    };
+  },
+
+  updateAccount: async (userId: number, dto: UpdateAccountDto) => {
+    const userAccount = await AccountRepository.getUserBankAccount(userId);
+
+    if (!userAccount) {
+      throw new AppError("등록된 계좌 정보가 없습니다.", 404, "NotFound");
+    }
+
+    // 은행 코드 검증 추가
+    const bank = await AccountRepository.findBankByCode(dto.bank_code);
+    if (!bank) {
+      throw new AppError("유효하지 않은 은행 코드입니다.", 400, "InvalidBankCode");
+    }
+
+    // 계좌 정보 수정
+    await AccountRepository.updatePreRegisteredAccount(userAccount.preregistered.id, {
+      bank_code: dto.bank_code,
+      account_number: dto.account_number,
+      account_holder: dto.account_holder,
+    });
+
+    return {
+      message: "계좌 정보가 수정되었습니다.",
       statusCode: 200,
     };
   },
