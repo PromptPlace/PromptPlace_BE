@@ -242,9 +242,15 @@ export class MemberRepository {
           where: { user_id: following.follower_id },
           select: { nickname: true, email: true },
         });
+
+        const followerCount = await prisma.following.count({
+          where: { following_id: following.follower_id },
+        });
+
         return {
           ...following,
           follower,
+          follower_cnt: followerCount,
         };
       })
     );
@@ -272,9 +278,15 @@ export class MemberRepository {
           where: { user_id: following.following_id },
           select: { nickname: true, email: true },
         });
+
+        const followerCount = await prisma.following.count({
+          where: { following_id: following.following_id },
+        });
+
         return {
           ...following,
           following: followingUser,
+          following_cnt: followerCount,
         };
       })
     );

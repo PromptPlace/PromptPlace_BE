@@ -31,6 +31,33 @@ const memberController = new MemberController();
  *     responses:
  *       200:
  *         description: 팔로워 목록 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       follow_id:
+ *                         type: integer
+ *                       follower_id:
+ *                         type: integer
+ *                       nickname:
+ *                         type: string
+ *                       email:
+ *                         type: string
+ *                       follower_cnt:
+ *                         type: integer
+ *                         description: 해당 팔로워의 팔로워 수
+ *                       created_at:
+ *                         type: string
+ *                       updated_at:
+ *                         type: string
  */
 router.get(
   "/followers/:memberId",

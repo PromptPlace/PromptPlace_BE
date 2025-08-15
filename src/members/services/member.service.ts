@@ -73,6 +73,7 @@ export class MemberService {
         follower_id: f.follower_id,
         nickname: f.follower!.nickname,
         email: f.follower!.email,
+        follower_cnt: f.follower_cnt,
         created_at: f.created_at,
         updated_at: f.updated_at,
       }));
@@ -95,6 +96,7 @@ export class MemberService {
         following_id: f.following_id,
         nickname: f.following!.nickname,
         email: f.following!.email,
+        following_cnt: f.following_cnt,
         created_at: f.created_at,
         updated_at: f.updated_at,
       }));
