@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import {
     createSubscriptionService,
     findUserNotificationsService,
+    getPrompterNotificationStatusService,
 } from '../services/notification.service';
 
 
@@ -81,6 +82,52 @@ export const getNotificationList = async (
     res.fail({
       error: err.name || 'InternalServerError',
       message: err.message || '사용자 알림 목록을 불러오는 중 오류가 발생했습니다.',
+      statusCode: err.statusCode || 500,
+    });
+  }
+};
+
+// 프롬프터 알림 설정 여부 조회
+export const getPrompterNotificationStatus = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  if (!req.user) {
+    res.fail({
+      statusCode: 401,
+      error: 'no user',
+      message: '로그인이 필요합니다.',
+    });
+    return;
+  }
+
+  try {
+    const userId = (req.user as { user_id: number }).user_id;
+    const prompterId = (req.params.prompterId)?.toString();
+
+    if (!prompterId) {
+      res.status(400).json({ message: 'prompterId가 없습니다.' });
+      return;
+    }
+
+    const subscribed = await getPrompterNotificationStatusService(
+      userId,
+      prompterId
+    );
+
+    res.success(
+      {
+        ...subscribed,
+      },
+      '프롬프터 알림 설정 여부를 성공적으로 조회했습니다.'
+    );
+  } catch (err: any) {
+    console.error(err);
+    res.fail({
+      error: err.name || 'InternalServerError',
+      message:
+        err.message ||
+        '프롬프터 알림 설정 여부를 조회하는 중 오류가 발생했습니다.',
       statusCode: err.statusCode || 500,
     });
   }
