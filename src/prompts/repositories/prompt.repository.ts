@@ -369,6 +369,8 @@ export const createPromptWriteRepo = async (
       downloads: 0,
       views: 0,
       likes: 0,
+      review_counts: 0,
+      rating_avg: 0,
     },
   });
 
@@ -552,18 +554,13 @@ export const deletePromptRepo = async (promptId: number) => {
       }
     }
 
-    // 관련 데이터 삭제 (Cascade가 설정되어 있지 않은 경우 수동 삭제)
-    await tx.promptTag.deleteMany({
-      where: { prompt_id: promptId },
-    });
-
-    await tx.promptModel.deleteMany({
-      where: { prompt_id: promptId },
-    });
-
-    await tx.promptImage.deleteMany({
-      where: { prompt_id: promptId },
-    });
+    // 관련 데이터 수동 삭제
+    await tx.promptLike.deleteMany({ where: { prompt_id: promptId } });
+    await tx.review.deleteMany({ where: { prompt_id: promptId } });
+    await tx.promptReport.deleteMany({ where: { prompt_id: promptId } });
+    await tx.promptTag.deleteMany({ where: { prompt_id: promptId } });
+    await tx.promptModel.deleteMany({ where: { prompt_id: promptId } });
+    await tx.promptImage.deleteMany({ where: { prompt_id: promptId } });
 
     // 프롬프트 삭제
     return await tx.prompt.delete({
