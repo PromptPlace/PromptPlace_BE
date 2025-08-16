@@ -369,7 +369,6 @@ export const createPromptWriteRepo = async (
       downloads: 0,
       views: 0,
       likes: 0,
-      rating_avg: 0,
     },
   });
 
