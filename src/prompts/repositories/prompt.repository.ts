@@ -278,6 +278,14 @@ const promptSelect = Prisma.validator<Prisma.PromptSelect>()({
 });
 
 export const getPromptDetailRepo = async (promptId: number) => {
+
+  await prisma.prompt.update({
+    where: { prompt_id: promptId },
+    data: {
+      views: { increment: 1 },
+    },
+  });
+
   const prompt = await prisma.prompt.findUnique({
     where: { prompt_id: promptId },
     include: {

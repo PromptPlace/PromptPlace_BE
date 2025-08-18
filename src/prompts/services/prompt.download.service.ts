@@ -32,6 +32,9 @@ export const PromptDownloadService = {
       }
     }
 
+    // ✅ 다운로드 카운트 증가
+    await PromptDownloadRepository.increaseDownload(promptId);
+
     return {
       message: '프롬프트 무료 다운로드 완료',
       title: prompt.title,
