@@ -7,6 +7,7 @@ import passport from "passport";
 import { Strategy as KakaoStrategy } from "passport-kakao";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as NaverStrategy } from "passport-naver-v2";
+import { isActive } from "../../utils/status";
 
 interface Tokens {
   accessToken: string;
@@ -117,7 +118,33 @@ class AuthService {
   async exchangeGoogleToken(code: string) {
     try {
       // 기존 Passport 구글 전략을 활용하여 사용자 정보 처리
-      const user = await this.handleGoogleUserFromCode(code);
+      let user = await this.handleGoogleUserFromCode(code);
+
+      if (!isActive(user.status)) {
+        const inactive = user.inactive_date
+          ? new Date(user.inactive_date)
+          : null;
+        const canReactivate =
+          inactive &&
+          Date.now() >= inactive.getTime() + 30 * 24 * 60 * 60 * 1000;
+
+        if (!canReactivate) {
+          throw new AppError(
+            "비활성화된 계정입니다. 30일 후에 다시 시도해주세요.",
+            403,
+            "Forbidden"
+          );
+        }
+
+        user = await prisma.user.update({
+          where: { user_id: user.user_id },
+          data: {
+            status: true,
+            inactive_date: null,
+            updated_at: new Date(),
+          },
+        });
+      }
 
       const { accessToken, refreshToken } = await this.generateTokens(user);
 
@@ -144,7 +171,33 @@ class AuthService {
   async exchangeNaverToken(code: string) {
     try {
       // 기존 Passport 네이버 전략을 활용하여 사용자 정보 처리
-      const user = await this.handleNaverUserFromCode(code);
+      let user = await this.handleNaverUserFromCode(code);
+
+      if (!isActive(user.status)) {
+        const inactive = user.inactive_date
+          ? new Date(user.inactive_date)
+          : null;
+        const canReactivate =
+          inactive &&
+          Date.now() >= inactive.getTime() + 30 * 24 * 60 * 60 * 1000;
+
+        if (!canReactivate) {
+          throw new AppError(
+            "비활성화된 계정입니다. 30일 후에 다시 시도해주세요.",
+            403,
+            "Forbidden"
+          );
+        }
+
+        user = await prisma.user.update({
+          where: { user_id: user.user_id },
+          data: {
+            status: true,
+            inactive_date: null,
+            updated_at: new Date(),
+          },
+        });
+      }
 
       const { accessToken, refreshToken } = await this.generateTokens(user);
 
