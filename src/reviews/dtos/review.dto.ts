@@ -207,7 +207,8 @@ export const mapToMyReceivedReviewListDTO = (
     nickname: string;
     profileImage: { url: string } | null;
   }[],
-  limit: number
+  limit: number,
+  hasMore: boolean
 ): {
   reviews: MyReceivedReviewDTO[];
   has_more: boolean;
@@ -241,6 +242,6 @@ export const mapToMyReceivedReviewListDTO = (
 
   return {
     reviews,
-    has_more: rawReviews.length >= limit,
+    has_more: hasMore
   };
 };
