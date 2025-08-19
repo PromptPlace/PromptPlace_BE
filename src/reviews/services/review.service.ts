@@ -20,6 +20,7 @@ import {
   findAllMyReviewsByUserId,
   findUserById,
   CountReivewsbyPromptId,
+  CountReivewsbyUserId,
 } from '../repositories/review.repository';
 import { Review } from '@prisma/client';
 
@@ -263,8 +264,16 @@ export const findReviewsWrittenByUser = async (
   if (cursor !== undefined && isNaN(cursor)) throw new Error('cursor값이 적절하지 않습니다');
   if (isNaN(limit)) throw new Error('limit값이 적절하지 않습니다');
 
+  // 리뷰 개수 불러오기
+  const totalCount = await CountReivewsbyUserId(userId);
+  // 리뷰 불러오기(limit+1)
   const rawReviews = await findAllReviewsByUserId(userId, cursor, limit);
-  return mapToMyReviewListDTO(rawReviews, limit);
+  // hasMore계산
+  const hasMore = rawReviews.length > limit;
+  // limit까지만 잘라서 사용
+  const slicedReviews = hasMore ? rawReviews.slice(0, limit) : rawReviews;
+
+  return mapToMyReviewListDTO(slicedReviews, hasMore);
 };
 
 // 내가 받은 리뷰 목록 조회

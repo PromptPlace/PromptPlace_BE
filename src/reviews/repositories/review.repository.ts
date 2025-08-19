@@ -37,7 +37,7 @@ export const findAllReviewsByPromptId = async (
   });
 };
 
-// 프롬프트 리뷰 개수 조회
+// promptId로 리뷰 개수 조회
 export const CountReivewsbyPromptId = async (
   promptId: number
 ) => {
@@ -49,7 +49,17 @@ export const CountReivewsbyPromptId = async (
   return count;
 }
 
-
+// userId로 리뷰 개수 조회
+export const CountReivewsbyUserId = async (
+  userId: number
+) => {
+  const count = await prisma.review.count({
+    where:{
+      user_id: userId
+    }
+  }); 
+  return count;
+}
 
 // 리뷰 작성자들의 닉네임 + 프로필 이미지 URL 조회
 export const findUserProfilesByUserIds = async (userIds: number[]) => {
@@ -180,7 +190,7 @@ export const findAllReviewsByUserId = async (
     orderBy: {
       review_id: 'desc',
     },
-    take: limit,
+    take: limit + 1,
     include: {
       prompt: {
         select: {
@@ -197,7 +207,7 @@ export const findAllReviewsByUserId = async (
 export const findAllMyReviewsByUserId = async (
   userId: number,
   cursor?: number,
-  limit?: number
+  limit: number = 10
 ) => {
   return await prisma.review.findMany({
     where: {
@@ -214,7 +224,7 @@ export const findAllMyReviewsByUserId = async (
         }
       }
     },
-    take: limit,
+    take: limit + 1,
     orderBy: {
       review_id: 'desc',
     }

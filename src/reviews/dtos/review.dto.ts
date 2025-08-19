@@ -140,7 +140,7 @@ export const mapToReviewUpdateResponse = (
 // 내가 작성한 리뷰 리스트 반환 DTO
 export const mapToMyReviewListDTO = (
   rawReviews: (Review & { prompt: { prompt_id: number; title: string } })[],
-  limit: number
+  hasMore: boolean
 ): {
   reviews: {
     review_id: number;
@@ -165,7 +165,7 @@ export const mapToMyReviewListDTO = (
 
   return {
     reviews,
-    has_more: rawReviews.length >= limit
+    has_more: hasMore
   };
 };
 
