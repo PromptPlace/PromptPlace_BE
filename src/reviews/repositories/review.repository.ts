@@ -180,7 +180,7 @@ export const updateReviewById = async (
 export const findAllReviewsByUserId = async (
   userId: number,
   cursor?: number,
-  limit?: number
+  limit: number = 10
 ) => {
   return await prisma.review.findMany({
     where: {
