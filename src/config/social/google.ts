@@ -27,16 +27,6 @@ export function configureGoogleStrategy() {
           });
 
           if (user) {
-            if (!user.status) {
-              user = await prisma.user.update({
-                where: { email },
-                data: {
-                  status: true,
-                  inactive_date: null,
-                  updated_at: new Date(),
-                },
-              });
-            }
             return done(null, user);
           } else {
             user = await prisma.user.create({
@@ -49,9 +39,8 @@ export function configureGoogleStrategy() {
                 role: "USER",
               },
             });
+            return done(null, user);
           }
-
-          return done(null, user);
         } catch (error) {
           return done(error, false);
         }
