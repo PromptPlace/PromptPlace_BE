@@ -288,7 +288,6 @@ export const findMyReceivedReviews = async (
   if (cursor !== undefined && isNaN(cursor)) throw new Error('cursor값이 적절하지 않습니다');
   if (isNaN(limit)) throw new Error('limit값이 적절하지 않습니다');
 
-  const totalCount = await CountReivewsbyUserId(userId);
   const rawReviews = await findAllMyReviewsByUserId(userId, cursor, limit); // limit+1개
   const hasMore = rawReviews.length > limit;
   // limit까지만 잘라서 사용

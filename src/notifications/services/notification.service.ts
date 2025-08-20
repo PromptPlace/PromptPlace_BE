@@ -164,7 +164,7 @@ export const createPromptNotification = async (
 export const findUserNotificationsService = async (
   userId: number,
   rawCursor?: string,
-  rawLimit?: string
+  rawLimit?: string 
 ) => {
     const cursor = rawCursor ? parseInt(rawCursor, 10) : undefined;
     const limit = rawLimit ? parseInt(rawLimit, 10) : 10;
@@ -172,8 +172,12 @@ export const findUserNotificationsService = async (
     if (cursor !== undefined && isNaN(cursor)) throw new Error('cursor값이 적절하지 않습니다');
     if (isNaN(limit)) throw new Error('limit값이 적절하지 않습니다');
   
-    const rawNotifications = await findNotificationsByUserId(userId, cursor, limit);
-    return UserNotificationListDTO(rawNotifications, limit);
+    const rawNotifications = await findNotificationsByUserId(userId, cursor, limit); 
+    const hasMore = rawNotifications.length > limit;
+
+    const slicedNotifications = hasMore ? rawNotifications.slice(0, limit) : rawNotifications;
+    
+    return UserNotificationListDTO(slicedNotifications, hasMore);
 }
 
 // 프롬프터 알림 설정 여부 조회

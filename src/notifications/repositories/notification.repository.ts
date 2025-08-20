@@ -104,7 +104,7 @@ export const createNotification = async ({
 export const findNotificationsByUserId = async (
   userId: number,
   cursor?: number,
-  limit?: number
+  limit: number = 10
 ) => {
   return await prisma.notification.findMany({
     where: {
@@ -113,7 +113,7 @@ export const findNotificationsByUserId = async (
     orderBy: {
       notification_id: 'desc', // 최신순
     },
-    take: limit,
+    take: limit + 1,
     ...(cursor && {
       cursor: {
         notification_id: cursor,
