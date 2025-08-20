@@ -274,7 +274,7 @@ export const getMyReceivedReviews = async (
       statusCode: 401,
       error: 'no user',
       message: '로그인이 필요합니다.',
-    });
+    }); 
     return;
   }
 

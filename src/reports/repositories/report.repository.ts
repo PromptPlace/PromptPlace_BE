@@ -47,14 +47,14 @@ export const findUserById = async (userId: number) => {
 // 신고 목록 조회 (페이징 지원)
 export const findAllReports = async (
   cursor?: number,
-  limit?: number
+  limit: number = 10
 ) => {
   return await prisma.promptReport.findMany({
     where: {}, // 필터 없음-> 모든 신고 조회
     orderBy: {
       report_id: 'desc' // 최신순 정렬
     },
-    take: limit, 
+    take: limit + 1, 
     // cursor가 있으면 해당 cursor 이후의 데이터만 조회
     ...(cursor && {
       skip: 1, // cursor 건너뛰기

@@ -49,9 +49,8 @@ export const UserNotificationListDTO = (
     created_at: Date;
     link_url: string | null;
   }[],
-  limit: number
+  hasMore: boolean
 ): NotificationListResponse => {
-  const has_more = rawNotifications.length === limit;
 
   const notifications = rawNotifications.map((n) => ({
     notification_id: n.notification_id,
@@ -61,7 +60,7 @@ export const UserNotificationListDTO = (
   }));
 
   return {
-    has_more,
+    has_more: hasMore,
     notifications,
   };
 };
