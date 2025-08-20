@@ -19,8 +19,6 @@ const memberController = new MemberController();
  *   get:
  *     summary: 회원의 팔로워 목록 조회
  *     tags: [Member]
- *     security:
- *       - jwt: []
  *     parameters:
  *       - in: path
  *         name: memberId
@@ -61,7 +59,6 @@ const memberController = new MemberController();
  */
 router.get(
   "/followers/:memberId",
-  authenticateJwt,
   memberController.getFollowers.bind(memberController)
 );
 
