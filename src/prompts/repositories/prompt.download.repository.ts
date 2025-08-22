@@ -32,6 +32,11 @@ export const PromptDownloadRepository = {
           select: {
             prompt_id: true,
             title: true,
+            user: {
+            select: {
+              nickname: true,
+            },
+          },
             models: {
               include: {
                 model: { select: { name: true } },
