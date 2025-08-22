@@ -14,5 +14,6 @@ export interface DownloadedPromptResponseDTO {
   models: string[];
   has_review: boolean;
   is_recent_review: boolean;
+  nickname: string;
   statusCode: number;
 }

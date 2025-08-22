@@ -81,6 +81,7 @@ async getPromptContent(userId: number, promptId: number): Promise<PromptDownload
         models: prompt.models.map((m) => m.model.name),
         has_review: hasReview,
         is_recent_review: isRecentReview,
+        nickname: prompt.user.nickname,
         statusCode: 200,
       };
     });
