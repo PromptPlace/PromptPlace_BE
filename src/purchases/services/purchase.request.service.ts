@@ -17,6 +17,9 @@ export const PurchaseRequestService = {
       payment_gateway: dto.pg,
       merchant_uid: dto.merchant_uid,
       redirect_url: dto.redirect_url, // 클라이언트가 넘긴 값 사용
+       custom_data: {
+        prompt_id: dto.prompt_id, 
+      },
       statusCode: 200,
     };
   },
