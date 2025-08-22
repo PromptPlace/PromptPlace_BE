@@ -25,7 +25,7 @@ export class InquiryService {
       senderId,
       createInquiryDto
     );
- 
+
     // 새 문의 알림 이벤트 발생
     eventBus.emit("inquiry.created", receiver.user_id, senderId);
 
@@ -140,7 +140,11 @@ export class InquiryService {
     return inquiries.map((inquiry) => {
       // sender가 null일 수 있으므로 안전하게 처리
       if (!inquiry.sender) {
-        throw new AppError("발신자 정보를 찾을 수 없습니다.", 500, "InternalServerError");
+        throw new AppError(
+          "발신자 정보를 찾을 수 없습니다.",
+          500,
+          "InternalServerError"
+        );
       }
 
       return {
@@ -163,8 +167,8 @@ export class InquiryService {
       throw new AppError("해당 문의를 찾을 수 없습니다.", 404, "NotFound");
     }
 
-    // 2. 삭제 권한 확인 (문의 작성자인지)
-    if (inquiry.sender_id !== userId) {
+    // 2. 삭제 권한 확인 (문의 수신자인지)
+    if (inquiry.receiver_id !== userId) {
       throw new AppError("문의를 삭제할 권한이 없습니다.", 403, "Forbidden");
     }
 

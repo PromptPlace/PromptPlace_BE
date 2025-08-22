@@ -308,7 +308,7 @@ pnpm start
 ### 호 (원종호)
 
 - **학교/전공**: 동국대학교 컴퓨터AI학부
-- **이메일**: [kgbk0613@naver.com](mailto:kgbk0613@naver.com)
+- **이메일**: [wjh061016@gmail.com](mailto:wjh061016@gmail.com)
 - **GitHub**: [https://github.com/yee2know](https://github.com/yee2know)
 
 ### 리매니아 (최성준)

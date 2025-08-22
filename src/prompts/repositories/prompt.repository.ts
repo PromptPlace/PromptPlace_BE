@@ -278,6 +278,14 @@ const promptSelect = Prisma.validator<Prisma.PromptSelect>()({
 });
 
 export const getPromptDetailRepo = async (promptId: number) => {
+
+  await prisma.prompt.update({
+    where: { prompt_id: promptId },
+    data: {
+      views: { increment: 1 },
+    },
+  });
+
   const prompt = await prisma.prompt.findUnique({
     where: { prompt_id: promptId },
     include: {
@@ -552,18 +560,13 @@ export const deletePromptRepo = async (promptId: number) => {
       }
     }
 
-    // 관련 데이터 삭제 (Cascade가 설정되어 있지 않은 경우 수동 삭제)
-    await tx.promptTag.deleteMany({
-      where: { prompt_id: promptId },
-    });
-
-    await tx.promptModel.deleteMany({
-      where: { prompt_id: promptId },
-    });
-
-    await tx.promptImage.deleteMany({
-      where: { prompt_id: promptId },
-    });
+    // 관련 데이터 수동 삭제
+    await tx.promptLike.deleteMany({ where: { prompt_id: promptId } });
+    await tx.review.deleteMany({ where: { prompt_id: promptId } });
+    await tx.promptReport.deleteMany({ where: { prompt_id: promptId } });
+    await tx.promptTag.deleteMany({ where: { prompt_id: promptId } });
+    await tx.promptModel.deleteMany({ where: { prompt_id: promptId } });
+    await tx.promptImage.deleteMany({ where: { prompt_id: promptId } });
 
     // 프롬프트 삭제
     return await tx.prompt.delete({

@@ -11,6 +11,7 @@ import { Request } from "express";
 import { configureGoogleStrategy } from "./social/google";
 import { configureNaverStrategy } from "./social/naver";
 import { configureKakaoStrategy } from "./social/kakao";
+import { isActive } from "../utils/status";
 import prisma from "./prisma";
 
 // JWT Strategy 설정
@@ -30,7 +31,7 @@ passport.use(
           where: { user_id: jwtPayload.id },
         });
 
-        if (!user || !user.status) {
+        if (!user || !isActive(user.status)) {
           // 커스텀 에러 객체로 반환
           const error = new Error("Unauthorized");
           (error as any).statusCode = 401;

@@ -144,12 +144,12 @@ export class MemberRepository {
   }
 
   async deactivateUser(userId: number) {
-    return prisma.user.update({
+    await prisma.$executeRawUnsafe(
+      "UPDATE `User` SET status = 0, inactive_date = NOW() WHERE user_id = ?",
+      userId
+    );
+    return prisma.user.findUnique({
       where: { user_id: userId },
-      data: {
-        status: false,
-        inactive_date: new Date(),
-      },
     });
   }
 

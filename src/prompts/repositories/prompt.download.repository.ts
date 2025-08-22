@@ -9,6 +9,21 @@ export const PromptDownloadRepository = {
     });
   },
 
+  async increaseDownload(promptId: number) {
+    return prisma.prompt.update({
+      where: { prompt_id: promptId },
+      data: {
+        downloads: {
+          increment: 1,
+        },
+      },
+      select: {
+        prompt_id: true,
+        downloads: true,
+      },
+    });
+  },
+
   async getDownloadedPromptsByUser(userId: number) {
     return prisma.purchase.findMany({
       where: { user_id: userId },

@@ -51,7 +51,7 @@ export const toReportedPromptListResponse = (
     prompt: { prompt_id: number; title: string };// 프롬프트 정보 (프롬프트 ID & 제목)
     reporter: { user_id: number; nickname: string };// 신고자 정보 (ID & 닉네임)
   })[],
-  limit: number// 페이징 제한 개수
+  hasMore: boolean
 ): ReportedPromptListResponse => {
   // DB 원본 데이터를 ReportedPromptDTO 배열로 변환
   const transformed: ReportedPromptDTO[] = reports.map((report) => ({
@@ -66,7 +66,7 @@ export const toReportedPromptListResponse = (
   // 최종 응답 객체 반환 (has_more은 페이징 기준으로 판단)
   return {
     reports: transformed,
-    has_more: reports.length >= limit// limit보다 많으면 더 있음
+    has_more: hasMore
   };
 };
 

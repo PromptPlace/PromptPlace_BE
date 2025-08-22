@@ -51,6 +51,8 @@ async getPromptContent(userId: number, promptId: number): Promise<PromptDownload
     }
   }
 
+  await PromptDownloadRepository.increaseDownload(promptId);
+
   return {
     message: prompt.is_free ? '프롬프트 무료 다운로드 완료' : '프롬프트 다운로드 완료',
     title: prompt.title,
