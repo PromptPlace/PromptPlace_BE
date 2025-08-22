@@ -4,46 +4,64 @@ import { AppError } from '../../errors/AppError';
 import prisma from "../../config/prisma";
 
 export const PromptDownloadService = {
-  async getPromptContent(userId: number, promptId: number): Promise<PromptDownloadResponseDTO> {
-    const prompt = await PromptDownloadRepository.findById(promptId);
+async getPromptContent(userId: number, promptId: number): Promise<PromptDownloadResponseDTO> {
+  const prompt = await PromptDownloadRepository.findById(promptId);
 
-    if (!prompt) {
-      throw new AppError('해당 프롬프트를 찾을 수 없습니다.', 404, 'NotFound');
+  if (!prompt) {
+    throw new AppError('해당 프롬프트를 찾을 수 없습니다.', 404, 'NotFound');
+  }
+
+  let isPaid = false;
+
+  if (!prompt.is_free) {
+    // 유료 프롬프트일 경우 결제 상태 확인
+    const purchase = await prisma.purchase.findFirst({
+      where: {
+        user_id: userId,
+        prompt_id: promptId,
+      },
+      include: {
+        payment: true,
+      },
+    });
+
+    isPaid = purchase?.payment?.status === 'Succeed';
+
+    if (!isPaid) {
+      throw new AppError('해당 프롬프트는 무료가 아니며, 결제가 완료되지 않았습니다.', 403, 'Forbidden');
     }
+  } else {
+    // 무료 프롬프트일 경우 purchase 기록이 없다면 추가
+    const existingPurchase = await prisma.purchase.findFirst({
+      where: {
+        user_id: userId,
+        prompt_id: promptId,
+      },
+    });
 
-    let isPaid = false;
-
-     // 유료 프롬프트인 경우 결제 여부 확인
-    if (!prompt.is_free) {
-      const purchase = await prisma.purchase.findFirst({
-        where: {
+    if (!existingPurchase) {
+      await prisma.purchase.create({
+        data: {
           user_id: userId,
           prompt_id: promptId,
-        },
-        include: {
-          payment: true,
+           amount: 0,
+          is_free: true,
         },
       });
-
-      isPaid = purchase?.payment?.status === 'Succeed';
-
-      if (!isPaid) {
-        throw new AppError('해당 프롬프트는 무료가 아니며, 결제가 완료되지 않았습니다.', 403, 'Forbidden');
-      }
     }
+  }
 
-    // ✅ 다운로드 카운트 증가
-    await PromptDownloadRepository.increaseDownload(promptId);
+  await PromptDownloadRepository.increaseDownload(promptId);
 
-    return {
-      message: '프롬프트 무료 다운로드 완료',
-      title: prompt.title,
-      prompt: prompt.prompt,
-      is_free: prompt.is_free,
-      is_paid: prompt.is_free ? true : isPaid,
-      statusCode: 200,
-    };
-  },
+  return {
+    message: prompt.is_free ? '프롬프트 무료 다운로드 완료' : '프롬프트 다운로드 완료',
+    title: prompt.title,
+    prompt: prompt.prompt,
+    is_free: prompt.is_free,
+    is_paid: prompt.is_free ? true : isPaid,
+    statusCode: 200,
+  };
+},
 
   async getDownloadedPrompts(userId: number): Promise<DownloadedPromptResponseDTO[]> {
     const downloads = await PromptDownloadRepository.getDownloadedPromptsByUser(userId);

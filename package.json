@@ -10,7 +10,7 @@
     "tsoa:routes": "tsoa routes",
     "tsoa:spec": "tsoa spec",
     "tsoa:build": "npm run tsoa:routes && npm run tsoa:spec",
-    "generate:swagger": "ts-node scripts/generate-swagger.ts"
+    "generate:swagger": "ts-node src/scripts/generate-swagger.ts"
   },
   "keywords": [],
   "author": "",

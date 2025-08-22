@@ -1,0 +1,5099 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "PromptPlace API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/members/me/accounts": {
+      "post": {
+        "summary": "계좌 등록",
+        "description": "사용자가 본인의 계좌를 등록합니다. 한 사용자당 하나의 계좌만 등록 가능합니다.",
+        "tags": [
+          "Account"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "bank_code",
+                  "account_number",
+                  "account_holder"
+                ],
+                "properties": {
+                  "bank_code": {
+                    "type": "string",
+                    "example": "090"
+                  },
+                  "account_number": {
+                    "type": "string",
+                    "example": "3333222111000"
+                  },
+                  "account_holder": {
+                    "type": "string",
+                    "example": "홍길동"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "계좌 등록 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "계좌 정보가 등록되었습니다."
+                    },
+                    "account_id": {
+                      "type": "integer",
+                      "example": 123
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "유효하지 않은 은행 코드 등 잘못된 요청"
+          },
+          "409": {
+            "description": "이미 계좌가 등록된 경우"
+          }
+        }
+      },
+      "get": {
+        "summary": "계좌 정보 조회",
+        "description": "로그인한 사용자의 등록된 계좌 정보를 조회합니다.",
+        "tags": [
+          "Account"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "계좌 정보 조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "계좌 정보를 불러왔습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "account_id": {
+                          "type": "integer",
+                          "example": 123
+                        },
+                        "bank_code": {
+                          "type": "string",
+                          "example": "090"
+                        },
+                        "bank_name": {
+                          "type": "string",
+                          "example": "카카오뱅크"
+                        },
+                        "account_number": {
+                          "type": "string",
+                          "example": "3333222111000"
+                        },
+                        "account_holder": {
+                          "type": "string",
+                          "example": "홍길동"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "404": {
+            "description": "등록된 계좌 정보 없음"
+          }
+        }
+      },
+      "patch": {
+        "summary": "계좌 정보 수정",
+        "description": "등록된 계좌 정보를 새 계좌로 수정합니다. 본인 소유 계좌만 등록 가능합니다.",
+        "tags": [
+          "Account"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "bank_code",
+                  "account_number",
+                  "account_holder"
+                ],
+                "properties": {
+                  "bank_code": {
+                    "type": "string",
+                    "example": "090"
+                  },
+                  "account_number": {
+                    "type": "string",
+                    "example": "9876543210000"
+                  },
+                  "account_holder": {
+                    "type": "string",
+                    "example": "홍길동"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "계좌 정보 수정 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "계좌 정보가 수정되었습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "유효하지 않은 은행 코드 또는 중복된 계좌"
+          },
+          "404": {
+            "description": "등록된 계좌 없음"
+          }
+        }
+      }
+    },
+    "/api/auth/login/google/callback": {
+      "get": {
+        "summary": "구글 로그인 콜백",
+        "description": "구글 OAuth 인증 후 콜백 URL입니다. 클라이언트에서 이 URL로 자동 리디렉션됩니다.",
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "구글 로그인 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "구글 로그인이 완료되었습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "access_token": {
+                          "type": "string"
+                        },
+                        "refresh_token": {
+                          "type": "string"
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "user_id": {
+                              "type": "integer"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "nickname": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "social_type": {
+                              "type": "string",
+                              "example": "google"
+                            },
+                            "status": {
+                              "type": "string",
+                              "example": "ACTIVE"
+                            },
+                            "role": {
+                              "type": "string"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "비활성화된 계정"
+          }
+        }
+      }
+    },
+    "/api/auth/login/naver/callback": {
+      "get": {
+        "summary": "네이버 로그인 콜백",
+        "description": "네이버 OAuth 인증 후 콜백 URL입니다.",
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "네이버 로그인 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "네이버 로그인이 완료되었습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "access_token": {
+                          "type": "string"
+                        },
+                        "refresh_token": {
+                          "type": "string"
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "user_id": {
+                              "type": "integer"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "nickname": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "social_type": {
+                              "type": "string",
+                              "example": "naver"
+                            },
+                            "status": {
+                              "type": "string",
+                              "example": "ACTIVE"
+                            },
+                            "role": {
+                              "type": "string"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "비활성화된 계정"
+          }
+        }
+      }
+    },
+    "/api/auth/login/kakao/callback": {
+      "get": {
+        "summary": "카카오 로그인 콜백",
+        "description": "카카오 OAuth 인증 후 콜백 URL입니다. 클라이언트에서 이 URL로 자동 리디렉션됩니다.",
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "카카오 로그인 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "카카오 로그인이 완료되었습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "access_token": {
+                          "type": "string"
+                        },
+                        "refresh_token": {
+                          "type": "string"
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "user_id": {
+                              "type": "integer"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "nickname": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "social_type": {
+                              "type": "string",
+                              "example": "kakao"
+                            },
+                            "status": {
+                              "type": "string",
+                              "example": "ACTIVE"
+                            },
+                            "role": {
+                              "type": "string"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "비활성화된 계정"
+          }
+        }
+      }
+    },
+    "/api/auth/complete-signup": {
+      "post": {
+        "summary": "회원가입 완료",
+        "description": "소셜 로그인 후 추가 정보를 입력하여 회원가입을 완료합니다.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "name",
+                  "nickname"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 50,
+                    "example": "홍길동"
+                  },
+                  "nickname": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 50,
+                    "example": "길동이"
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "example": "안녕하세요! 프롬프트 제작자입니다."
+                  },
+                  "sns_url": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "example": "https://instagram.com/username"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "회원가입 완료 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "회원가입이 완료되었습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "access_token": {
+                          "type": "string"
+                        },
+                        "refresh_token": {
+                          "type": "string"
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "user_id": {
+                              "type": "integer"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "nickname": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "social_type": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string"
+                            },
+                            "role": {
+                              "type": "string"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 데이터"
+          },
+          "404": {
+            "description": "사용자를 찾을 수 없음"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      }
+    },
+    "/api/auth/kakao/token": {
+      "post": {
+        "summary": "카카오 로그인 토큰 교환",
+        "description": "프론트엔드에서 받은 카카오 인증코드로 JWT 토큰을 발급받습니다.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "code"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "카카오 OAuth 인증코드",
+                    "example": "abc123def456ghi789"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "카카오 로그인 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "카카오 로그인이 완료되었습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "access_token": {
+                          "type": "string",
+                          "description": "JWT 액세스 토큰 (3시간 유효)",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        },
+                        "refresh_token": {
+                          "type": "string",
+                          "description": "JWT 리프레시 토큰 (14일 유효)",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "user_id": {
+                              "type": "integer",
+                              "description": "사용자 고유 ID",
+                              "example": 1
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "사용자 이름 (카카오는 제공하지 않아 빈 문자열)",
+                              "example": ""
+                            },
+                            "nickname": {
+                              "type": "string",
+                              "description": "카카오 닉네임",
+                              "example": "카카오닉네임"
+                            },
+                            "email": {
+                              "type": "string",
+                              "description": "카카오 계정 이메일",
+                              "example": "user@kakao.com"
+                            },
+                            "social_type": {
+                              "type": "string",
+                              "description": "소셜 로그인 타입",
+                              "example": "KAKAO"
+                            },
+                            "status": {
+                              "type": "boolean",
+                              "description": "계정 활성화 상태",
+                              "example": true
+                            },
+                            "role": {
+                              "type": "string",
+                              "description": "사용자 역할",
+                              "example": "USER"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "description": "계정 생성 시간"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "description": "계정 정보 수정 시간"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 데이터",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "BadRequest"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "인증코드가 필요합니다."
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "카카오 인증에 실패했습니다."
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "InternalServerError"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "알 수 없는 오류가 발생했습니다."
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/google/token": {
+      "post": {
+        "summary": "구글 로그인 토큰 교환",
+        "description": "프론트엔드에서 받은 구글 인증코드로 JWT 토큰을 발급받습니다.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "code"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "구글 OAuth 인증코드",
+                    "example": "4/0AfJohXn..."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "구글 로그인 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "구글 로그인이 완료되었습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "access_token": {
+                          "type": "string",
+                          "description": "JWT 액세스 토큰 (3시간 유효)",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        },
+                        "refresh_token": {
+                          "type": "string",
+                          "description": "JWT 리프레시 토큰 (14일 유효)",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "user_id": {
+                              "type": "integer",
+                              "description": "사용자 고유 ID",
+                              "example": 1
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "구글 계정 이름",
+                              "example": "홍길동"
+                            },
+                            "nickname": {
+                              "type": "string",
+                              "description": "구글 계정 닉네임",
+                              "example": "길동이"
+                            },
+                            "email": {
+                              "type": "string",
+                              "description": "구글 계정 이메일",
+                              "example": "user@gmail.com"
+                            },
+                            "social_type": {
+                              "type": "string",
+                              "description": "소셜 로그인 타입",
+                              "example": "GOOGLE"
+                            },
+                            "status": {
+                              "type": "boolean",
+                              "description": "계정 활성화 상태",
+                              "example": true
+                            },
+                            "role": {
+                              "type": "string",
+                              "description": "사용자 역할",
+                              "example": "USER"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "description": "계정 생성 시간"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "description": "계정 정보 수정 시간"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 데이터",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "BadRequest"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "인증코드가 필요합니다."
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "구글 인증에 실패했습니다."
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "InternalServerError"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "알 수 없는 오류가 발생했습니다."
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/naver/token": {
+      "post": {
+        "summary": "네이버 로그인 토큰 교환",
+        "description": "프론트엔드에서 받은 네이버 인증코드로 JWT 토큰을 발급받습니다.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "code"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "네이버 OAuth 인증코드",
+                    "example": "abc123def456ghi789"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "네이버 로그인 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "네이버 로그인이 완료되었습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "access_token": {
+                          "type": "string",
+                          "description": "JWT 액세스 토큰 (3시간 유효)",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        },
+                        "refresh_token": {
+                          "type": "string",
+                          "description": "JWT 리프레시 토큰 (14일 유효)",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "user_id": {
+                              "type": "integer",
+                              "description": "사용자 고유 ID",
+                              "example": 1
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "네이버 계정 이름",
+                              "example": "홍길동"
+                            },
+                            "nickname": {
+                              "description": "네이버 계정 닉네임",
+                              "example": "길동이"
+                            },
+                            "email": {
+                              "type": "string",
+                              "description": "네이버 계정 이메일",
+                              "example": "user@naver.com"
+                            },
+                            "social_type": {
+                              "type": "string",
+                              "description": "소셜 로그인 타입",
+                              "example": "NAVER"
+                            },
+                            "status": {
+                              "type": "boolean",
+                              "description": "계정 활성화 상태",
+                              "example": true
+                            },
+                            "role": {
+                              "type": "string",
+                              "description": "사용자 역할",
+                              "example": "USER"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "description": "계정 생성 시간"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "description": "계정 정보 수정 시간"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 데이터",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "BadRequest"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "인증코드가 필요합니다."
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "네이버 인증에 실패했습니다."
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "InternalServerError"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "알 수 없는 오류가 발생했습니다."
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "get": {
+        "summary": "로그아웃",
+        "description": "현재 로그인된 사용자의 리프레시 토큰을 삭제합니다.",
+        "tags": [
+          "Auth"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "로그아웃 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "로그아웃이 완료되었습니다."
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      }
+    },
+    "/api/inquiries": {
+      "post": {
+        "summary": "1:1 문의 등록",
+        "tags": [
+          "Inquiry"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "receiver_id",
+                  "type",
+                  "title",
+                  "content"
+                ],
+                "properties": {
+                  "receiver_id": {
+                    "type": "integer",
+                    "description": "수신자 회원 ID"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "buyer",
+                      "non_buyer"
+                    ]
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "문의 등록 성공"
+          }
+        }
+      }
+    },
+    "/api/inquiries/received": {
+      "get": {
+        "summary": "받은 문의 목록 조회",
+        "tags": [
+          "Inquiry"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "type",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "buyer",
+                "non_buyer"
+              ]
+            },
+            "description": "필터링할 문의 유형"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "받은 문의 목록 조회 성공"
+          }
+        }
+      }
+    },
+    "/api/inquiries/{inquiryId}": {
+      "get": {
+        "summary": "문의 상세 조회",
+        "tags": [
+          "Inquiry"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "inquiryId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "문의 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "문의 상세 조회 성공"
+          }
+        }
+      },
+      "delete": {
+        "summary": "문의 삭제",
+        "tags": [
+          "Inquiry"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "inquiryId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "삭제할 문의 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "문의 삭제 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "문의가 성공적으로 삭제되었습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "로그인이 필요합니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 401
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "권한 없음",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Forbidden"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "문의를 삭제할 권한이 없습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 403
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "문의 없음",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "NotFound"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "해당 문의를 찾을 수 없습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 404
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "InternalServerError"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "알 수 없는 오류가 발생했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 500
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inquiries/{inquiryId}/replies": {
+      "post": {
+        "summary": "문의 답변 등록",
+        "tags": [
+          "Inquiry"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "inquiryId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "content"
+                ],
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "example": "답변 드립니다. 감사합니다."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "답변 등록 성공"
+          }
+        }
+      }
+    },
+    "/api/inquiries/{inquiryId}/read": {
+      "patch": {
+        "summary": "문의 읽음 처리",
+        "tags": [
+          "Inquiry"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "inquiryId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "읽음 처리 성공"
+          }
+        }
+      }
+    },
+    "/api/members/followers/{memberId}": {
+      "get": {
+        "summary": "회원의 팔로워 목록 조회",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "회원 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "팔로워 목록 조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "follow_id": {
+                            "type": "integer"
+                          },
+                          "follower_id": {
+                            "type": "integer"
+                          },
+                          "nickname": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "follower_cnt": {
+                            "type": "integer",
+                            "description": "해당 팔로워의 팔로워 수"
+                          },
+                          "created_at": {
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/members/following/{memberId}": {
+      "get": {
+        "summary": "회원의 팔로잉 목록 조회",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "회원 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "팔로잉 목록 조회 성공"
+          }
+        }
+      }
+    },
+    "/api/members/{memberId}/prompts": {
+      "get": {
+        "summary": "회원이 작성한 프롬프트 목록 조회",
+        "tags": [
+          "Member"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "페이징 커서"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "한 페이지에 가져올 개수 (최대 50)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "프롬프트 목록 조회 성공"
+          }
+        }
+      }
+    },
+    "/api/members/{memberId}": {
+      "get": {
+        "summary": "회원 정보 조회 (공개)",
+        "description": "특정 회원의 공개 정보를 조회합니다. 인증이 필요하지 않습니다.",
+        "tags": [
+          "Member"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "조회할 회원의 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "회원 정보 조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "회원 정보 조회 완료"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "member_id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "nickname": {
+                          "type": "string",
+                          "example": "프롬프트마스터"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "홍길동"
+                        },
+                        "profile_image": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "https://example.com/image.jpg"
+                        },
+                        "intros": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "프롬프트 전문가입니다."
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "status": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "role": {
+                          "type": "string",
+                          "example": "USER"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "회원을 찾을 수 없음"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      }
+    },
+    "/api/members": {
+      "patch": {
+        "summary": "회원 정보 수정",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nickname": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "회원 정보 수정 성공"
+          }
+        }
+      },
+      "get": {
+        "summary": "전체 회원 조회 (공개)",
+        "description": "홈페이지 인기 유저 표시용으로 전체 회원을 조회하는 공개 API",
+        "tags": [
+          "Member"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            },
+            "description": "페이지 번호"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 1,
+              "maximum": 100
+            },
+            "description": "페이지당 조회할 회원 수"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "전체 회원 조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "전체 회원 조회 완료"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "members": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "user_id": {
+                                "type": "integer",
+                                "example": 1
+                              },
+                              "nickname": {
+                                "type": "string",
+                                "example": "프롬프트마스터"
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T09:30:00Z"
+                              },
+                              "updated_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-02-20T14:22:00Z"
+                              },
+                              "follower_cnt": {
+                                "type": "integer",
+                                "example": 125
+                              },
+                              "profile_image_url": {
+                                "type": "string",
+                                "nullable": true,
+                                "example": "https://example.com/profile.jpg",
+                                "description": "프로필 이미지 URL (없으면 null)"
+                              }
+                            }
+                          }
+                        },
+                        "total": {
+                          "type": "integer",
+                          "example": 1500
+                        },
+                        "page": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "limit": {
+                          "type": "integer",
+                          "example": 20
+                        },
+                        "total_pages": {
+                          "type": "integer",
+                          "example": 75
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "InternalServerError"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "알 수 없는 오류가 발생했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 500
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/members/intros": {
+      "post": {
+        "summary": "회원 한 줄 소개 작성 또는 수정",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "example": "프롬프트 전문가입니다."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "소개 작성/수정 성공"
+          }
+        }
+      },
+      "patch": {
+        "summary": "회원 한줄 소개 수정",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "example": "GPT 전문가입니다."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "한줄 소개 수정 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "한줄 소개가 성공적으로 수정되었습니다."
+                    },
+                    "intro": {
+                      "type": "string",
+                      "example": "GPT 전문가입니다."
+                    },
+                    "updated_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청"
+          },
+          "401": {
+            "description": "인증 실패"
+          }
+        }
+      }
+    },
+    "/api/members/histories": {
+      "post": {
+        "summary": "회원 이력 작성",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "history": {
+                    "type": "string",
+                    "example": "2020~2023 GPT 연구소 재직"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "이력 작성 성공"
+          }
+        }
+      }
+    },
+    "/api/members/histories/{historyId}": {
+      "patch": {
+        "summary": "회원 이력 수정",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "historyId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "history": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "이력 수정 성공"
+          }
+        }
+      },
+      "delete": {
+        "summary": "회원 이력 삭제",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "historyId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "이력 삭제 성공"
+          }
+        }
+      }
+    },
+    "/api/members/{memberId}/histories": {
+      "get": {
+        "summary": "특정 회원의 이력 목록 조회",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "이력 목록 조회 성공"
+          }
+        }
+      }
+    },
+    "/api/members/sns": {
+      "post": {
+        "summary": "SNS 등록",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SNS 등록 성공"
+          }
+        }
+      }
+    },
+    "/api/members/sns/{snsId}": {
+      "patch": {
+        "summary": "SNS 수정",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "snsId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SNS 수정 성공"
+          }
+        }
+      },
+      "delete": {
+        "summary": "SNS 삭제",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "snsId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SNS 삭제 성공"
+          }
+        }
+      }
+    },
+    "/api/members/{memberId}/sns": {
+      "get": {
+        "summary": "회원 SNS 목록 조회",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SNS 목록 조회 성공"
+          }
+        }
+      }
+    },
+    "/api/members/images": {
+      "post": {
+        "summary": "프로필 이미지 업로드 (S3)",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "profile_image": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "업로드할 프로필 이미지 파일"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "프로필 이미지 업로드 성공"
+          }
+        }
+      }
+    },
+    "/api/members/follows/{memberId}": {
+      "post": {
+        "summary": "회원 팔로우",
+        "description": "특정 사용자를 팔로우합니다.",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memberId",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true,
+            "description": "팔로우할 대상 회원의 ID"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "팔로우 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "팔로우 성공"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      },
+      "delete": {
+        "summary": "회원 언팔로우",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "description": "언팔로우할 회원의 ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "언팔로우 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "언팔로우 성공"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      }
+    },
+    "/api/members/withdrawl": {
+      "delete": {
+        "summary": "회원 탈퇴",
+        "tags": [
+          "Member"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "탈퇴 완료"
+          }
+        }
+      }
+    },
+    "/api/messages": {
+      "get": {
+        "summary": "받은 메시지 목록 조회",
+        "description": "로그인한 사용자의 받은 메시지 목록을 조회합니다.",
+        "tags": [
+          "Message"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "메시지 목록 조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "메시지 목록 조회 성공"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "message_id": {
+                            "type": "integer",
+                            "example": 12
+                          },
+                          "title": {
+                            "type": "string",
+                            "example": "관리자가 메시지를 보냈습니다."
+                          },
+                          "is_read": {
+                            "type": "boolean",
+                            "example": false
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2025-08-06T09:00:00Z"
+                          }
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          }
+        }
+      }
+    },
+    "/api/messages/{message_id}": {
+      "get": {
+        "summary": "메시지 상세 조회",
+        "description": "특정 메시지의 상세 내용을 조회합니다.",
+        "tags": [
+          "Message"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "message_id",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true,
+            "description": "메시지 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "메시지 조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "메시지 상세 조회 성공"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message_id": {
+                          "type": "integer",
+                          "example": 12
+                        },
+                        "title": {
+                          "type": "string",
+                          "example": "답변이 도착했습니다."
+                        },
+                        "body": {
+                          "type": "string",
+                          "example": "문의 주신 건에 대해 안내드립니다..."
+                        },
+                        "is_read": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-08-06T09:00:00Z"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          },
+          "404": {
+            "description": "메시지 없음"
+          }
+        }
+      }
+    },
+    "/api/messages/{message_id}/read": {
+      "patch": {
+        "summary": "메시지 읽음 처리",
+        "description": "특정 메시지를 읽음 상태로 변경합니다.",
+        "tags": [
+          "Message"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "message_id",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true,
+            "description": "메시지 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "메시지 읽음 처리 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "메시지가 읽음 처리되었습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          },
+          "404": {
+            "description": "메시지 없음"
+          }
+        }
+      }
+    },
+    "/api/messages/{message_id}/delete": {
+      "patch": {
+        "summary": "메시지 삭제",
+        "description": "특정 메시지를 삭제 처리합니다. 실제 삭제가 아닌 soft delete입니다.",
+        "tags": [
+          "Message"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "message_id",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true,
+            "description": "메시지 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "메시지 삭제 처리 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "메시지가 삭제 처리되었습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          },
+          "404": {
+            "description": "메시지 없음"
+          }
+        }
+      }
+    },
+    "/api/notifications/{prompterId}": {
+      "post": {
+        "summary": "프롬프터 알림 토글 (등록/취소)",
+        "description": "이미 구독 중이면 취소, 아니면 등록합니다.",
+        "tags": [
+          "Notifications"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "prompterId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "대상 프롬프터 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "알림 등록/취소 결과",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "프롬프터 알림이 성공적으로 등록되었습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "subscribed": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "user_id": {
+                          "type": "integer",
+                          "example": 10
+                        },
+                        "prompter_id": {
+                          "type": "integer",
+                          "example": 3
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      }
+    },
+    "/api/notifications/me": {
+      "get": {
+        "summary": "내 알림 목록 조회",
+        "description": "커서 기반 페이지네이션(cursor-based-pagination) 사용.\n- `cursor`는 이전 요청에서 받은 마지막 데이터의 ID를 의미하며, 이를 기준으로 이후 데이터를 조회.\n- 첫 요청 시에는 `cursor`를 생략하여 최신 데이터부터 조회.\n- `has_more` 속성으로 더 불러올 데이터가 있는지 미리 확인 가능.\n",
+        "tags": [
+          "Notifications"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "마지막으로 조회된 ID.   처음 요청 시 생략 가능.   예: 첫 요청에서 id=80~70까지 받았다면 다음 요청 시 `cursor=70`\n"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "가져올 항목 수 (기본값 10)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "알림 목록을 성공적으로 불러왔습니다.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "내 알림 목록을 성공적으로 불러왔습니다.",
+                    "data": {
+                      "has_more": false,
+                      "notifications": [
+                        {
+                          "notification_id": 123,
+                          "content": "프롬프트에 새로운 문의가 접수되었습니다.",
+                          "created_at": "2025-07-06T18:10:00",
+                          "link_url": "/inquiries/10"
+                        },
+                        {
+                          "notification_id": 122,
+                          "content": "신고가 접수되었습니다.",
+                          "created_at": "2025-07-06T18:10:00",
+                          "link_url": null
+                        },
+                        {
+                          "notification_id": 121,
+                          "content": "새로운 공지사항이 등록되었습니다",
+                          "created_at": "2025-07-06T18:10:00",
+                          "link_url": "/announcements/12"
+                        },
+                        {
+                          "notification_id": 120,
+                          "content": "‘cindy’님이 회원님을 팔로우합니다.",
+                          "created_at": "2025-07-06T18:10:00",
+                          "link_url": "/profile/15"
+                        },
+                        {
+                          "notification_id": 119,
+                          "content": "‘남아린’님이 새 프롬프트를 업로드하셨습니다.",
+                          "created_at": "2025-07-06T18:10:00",
+                          "link_url": "/prompt/456"
+                        }
+                      ]
+                    },
+                    "status_code": 200
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      }
+    },
+    "/api/notifications/status/{prompterId}": {
+      "get": {
+        "summary": "프롬프터 알림 설정 여부 조회",
+        "description": "현재 로그인한 사용자가 특정 프롬프터를 알림 구독하고 있는지 조회합니다.\n",
+        "tags": [
+          "Notifications"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "prompterId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "알림 설정 여부를 확인할 프롬프터 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "프롬프터 알림 설정 여부를 성공적으로 조회했습니다.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "프롬프터 알림 설정 여부를 성공적으로 조회했습니다.",
+                    "data": {
+                      "prompter_id": 2,
+                      "user_id": 5,
+                      "subscribed": true
+                    },
+                    "statusCode": 200
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      }
+    },
+    "/api/prompts/{promptId}/downloads": {
+      "get": {
+        "summary": "프롬프트 상세 내용 또는 다운로드",
+        "description": "로그인한 사용자가 프롬프트 상세 내용을 확인하거나 다운로드합니다.",
+        "tags": [
+          "PromptDownload"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "description": "조회할 프롬프트 ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "프롬프트 내용 반환 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromptContent"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증이 필요합니다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "로그인이 필요합니다."
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 401
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "프롬프트를 찾을 수 없음"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      }
+    },
+    "/api/prompts/{promptId}/likes": {
+      "post": {
+        "summary": "프롬프트 찜하기",
+        "description": "현재 로그인한 사용자가 특정 프롬프트를 찜합니다.",
+        "tags": [
+          "PromptLike"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "찜할 프롬프트 ID"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "프롬프트 찜 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증이 필요합니다"
+          },
+          "404": {
+            "description": "프롬프트를 찾을 수 없음"
+          },
+          "409": {
+            "description": "이미 찜한 프롬프트"
+          }
+        }
+      },
+      "delete": {
+        "summary": "프롬프트 찜 취소",
+        "description": "로그인한 사용자가 특정 프롬프트에 대한 찜을 취소합니다.",
+        "tags": [
+          "PromptLike"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "찜을 취소할 프롬프트 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "프롬프트 찜 취소 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증이 필요합니다"
+          },
+          "404": {
+            "description": "찜 기록 없음"
+          }
+        }
+      }
+    },
+    "/api/prompts/likes": {
+      "get": {
+        "summary": "찜한 프롬프트 목록 조회",
+        "description": "로그인한 사용자가 찜한 프롬프트 목록을 조회합니다.",
+        "tags": [
+          "PromptLike"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "찜한 프롬프트 목록",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Prompt"
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증이 필요합니다"
+          }
+        }
+      }
+    },
+    "/api/prompts/searches": {
+      "get": {
+        "summary": "프롬프트 검색",
+        "description": "키워드, 태그, 모델 등을 기준으로 프롬프트를 검색합니다.",
+        "tags": [
+          "Prompts"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "keyword",
+            "required": true,
+            "description": "검색어",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "description": "태그 (여러 개 가능)",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "model",
+            "description": "모델 이름",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "recent",
+                "views",
+                "popular"
+              ],
+              "default": "recent"
+            }
+          },
+          {
+            "in": "query",
+            "name": "is_free",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "검색 성공"
+          },
+          "400": {
+            "description": "잘못된 요청"
+          }
+        }
+      }
+    },
+    "/api/prompts": {
+      "get": {
+        "summary": "프롬프트 전체 조회",
+        "description": "모든 프롬프트 목록을 조회합니다. JWT 인증이 필요합니다.",
+        "tags": [
+          "Prompts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "프롬프트 전체 조회 성공",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "프롬프트 전체 조회 성공",
+                  "data": [
+                    {
+                      "prompt_id": 3,
+                      "user_id": 1,
+                      "title": "프롬프트 1",
+                      "prompt": "프롬프트 입력 1",
+                      "prompt_result": "프롬프트 결과 1",
+                      "has_image": true,
+                      "description": "설명 1",
+                      "usage_guide": "사용 가이드 1",
+                      "price": 0,
+                      "is_free": true,
+                      "downloads": 0,
+                      "views": 0,
+                      "likes": 0,
+                      "review_counts": 0,
+                      "rating_avg": 0,
+                      "created_at": "2025-07-20T16:51:42.632Z",
+                      "updated_at": "2025-07-20T16:51:42.632Z",
+                      "inactive_date": null,
+                      "user": {
+                        "user_id": 1,
+                        "nickname": "류민주",
+                        "profileImage": null
+                      },
+                      "models": [
+                        {
+                          "promptmodel_id": 1,
+                          "prompt_id": 3,
+                          "model_id": 1,
+                          "model": {
+                            "name": "모델 이름 1"
+                          }
+                        }
+                      ],
+                      "tags": [
+                        {
+                          "prompttag_id": 1,
+                          "prompt_id": 3,
+                          "tag_id": 1,
+                          "tag": {
+                            "tag_id": 1,
+                            "name": "태그 1"
+                          }
+                        }
+                      ],
+                      "images": [
+                        {
+                          "image_url": "https://example.com/image1.jpg"
+                        },
+                        {
+                          "image_url": "https://promptplace-s3.s3.ap-northeast-2.amazonaws.com/promptimages/7d53a160-db18-4deb-8437-744f2fc1005e_promptplace.png"
+                        }
+                      ]
+                    },
+                    {
+                      "prompt_id": 4,
+                      "user_id": 2,
+                      "title": "프롬프트 2",
+                      "prompt": "프롬프트 입력 2",
+                      "prompt_result": "프롬프트 결과 2",
+                      "has_image": false,
+                      "description": "설명 2",
+                      "usage_guide": "사용 가이드 2",
+                      "price": 1000,
+                      "is_free": false,
+                      "downloads": 10,
+                      "views": 100,
+                      "likes": 5,
+                      "review_counts": 0,
+                      "rating_avg": 0,
+                      "created_at": "2025-07-20T16:51:42.723Z",
+                      "updated_at": "2025-07-20T16:51:42.723Z",
+                      "inactive_date": null,
+                      "user": {
+                        "user_id": 2,
+                        "nickname": "원종호",
+                        "profileImage": null
+                      },
+                      "models": [
+                        {
+                          "promptmodel_id": 2,
+                          "prompt_id": 4,
+                          "model_id": 2,
+                          "model": {
+                            "name": "모델 이름 2"
+                          }
+                        }
+                      ],
+                      "tags": [
+                        {
+                          "prompttag_id": 2,
+                          "prompt_id": 4,
+                          "tag_id": 2,
+                          "tag": {
+                            "tag_id": 2,
+                            "name": "태그 2"
+                          }
+                        }
+                      ],
+                      "images": [
+                        {
+                          "image_url": "https://example.com/image2.jpg"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청"
+          }
+        }
+      },
+      "post": {
+        "summary": "프롬프트 작성",
+        "tags": [
+          "Prompts"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title",
+                  "prompt",
+                  "prompt_result",
+                  "description",
+                  "price",
+                  "tags",
+                  "models",
+                  "is_free"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "prompt": {
+                    "type": "string"
+                  },
+                  "prompt_result": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "usage_guide": {
+                    "type": "string"
+                  },
+                  "price": {
+                    "type": "number"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "models": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "is_free": {
+                    "type": "boolean"
+                  },
+                  "has_image": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "업로드 성공"
+          },
+          "400": {
+            "description": "필수 필드 누락"
+          },
+          "401": {
+            "description": "인증 실패"
+          }
+        }
+      }
+    },
+    "/api/prompts/{promptId}/details": {
+      "get": {
+        "summary": "프롬프트 상세 조회",
+        "description": "특정 프롬프트의 상세 정보를 조회합니다. JWT 인증이 필요합니다.",
+        "tags": [
+          "Prompts"
+        ],
+        "security": null,
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "조회할 프롬프트 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "프롬프트 상세 조회 성공",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "프롬프트 상세 조회 성공",
+                  "data": {
+                    "title": "프롬프트 2",
+                    "prompt": "프롬프트 입력 2",
+                    "prompt_result": "프롬프트 결과 2",
+                    "has_image": false,
+                    "description": "설명 2",
+                    "usage_guide": "사용 가이드 2",
+                    "price": 1000,
+                    "is_free": false,
+                    "tags": [
+                      {
+                        "tag_id": 2,
+                        "name": "태그 2"
+                      }
+                    ],
+                    "models": [
+                      "모델 이름 2"
+                    ],
+                    "images": [
+                      "https://example.com/image2.jpg"
+                    ],
+                    "writer": {
+                      "user_id": 2,
+                      "nickname": "원종호",
+                      "profile_image_url": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청"
+          }
+        }
+      }
+    },
+    "/api/prompts/{promptId}/images": {
+      "post": {
+        "summary": "프롬프트에 이미지 등록",
+        "tags": [
+          "Prompts"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image_url": {
+                    "type": "string"
+                  },
+                  "order_index": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "image_url"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "이미지 매핑 성공"
+          },
+          "400": {
+            "description": "필수 값 누락"
+          },
+          "401": {
+            "description": "인증 실패"
+          }
+        }
+      }
+    },
+    "/api/prompts/{promptId}": {
+      "patch": {
+        "summary": "프롬프트 수정",
+        "tags": [
+          "Prompts"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "prompt": {
+                    "type": "string"
+                  },
+                  "prompt_result": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "usage_guide": {
+                    "type": "string"
+                  },
+                  "price": {
+                    "type": "number"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "models": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "is_free": {
+                    "type": "boolean"
+                  },
+                  "has_image": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "수정 성공"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          },
+          "404": {
+            "description": "프롬프트 없음"
+          }
+        }
+      },
+      "delete": {
+        "summary": "프롬프트 삭제",
+        "tags": [
+          "Prompts"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "삭제 성공"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          },
+          "404": {
+            "description": "프롬프트 없음"
+          }
+        }
+      }
+    },
+    "/api/prompts/purchases/requests": {
+      "post": {
+        "summary": "결제 요청 생성",
+        "description": "결제 시작을 위한 요청을 생성합니다.",
+        "tags": [
+          "Purchase"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "prompt_id": {
+                    "type": "integer"
+                  },
+                  "pg": {
+                    "type": "string",
+                    "enum": [
+                      "kakaopay",
+                      "tosspayments"
+                    ]
+                  },
+                  "merchant_uid": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "integer"
+                  },
+                  "buyer_name": {
+                    "type": "string"
+                  },
+                  "redirect_url": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "결제 요청 생성 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "payment_gateway": {
+                      "type": "string"
+                    },
+                    "merchant_uid": {
+                      "type": "string"
+                    },
+                    "redirect_url": {
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "404": {
+            "description": "리소스 없음"
+          },
+          "409": {
+            "description": "중복/상태 충돌"
+          }
+        }
+      }
+    },
+    "/api/prompts/purchases/complete": {
+      "post": {
+        "summary": "결제 완료 처리(Webhook/리다이렉트 후 서버 검증)",
+        "description": "포트원 imp_uid 기반으로 서버에서 결제 검증 후 구매/결제/정산을 기록합니다.",
+        "tags": [
+          "Purchase"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "imp_uid": {
+                    "type": "string"
+                  },
+                  "merchant_uid": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "결제 완료 처리 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "Succeed",
+                        "Failed",
+                        "Pending"
+                      ]
+                    },
+                    "purchase_id": {
+                      "type": "integer",
+                      "nullable": true
+                    },
+                    "statusCode": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "검증 실패/유효하지 않은 요청"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "404": {
+            "description": "리소스 없음"
+          },
+          "409": {
+            "description": "충돌"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      }
+    },
+    "/api/prompts/purchases": {
+      "get": {
+        "summary": "내 결제 내역 조회",
+        "description": "인증된 사용자의 결제(구매) 내역을 조회합니다.",
+        "tags": [
+          "Purchase"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer"
+            },
+            "required": false,
+            "description": "페이지 번호 (옵션)"
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer"
+            },
+            "required": false,
+            "description": "페이지 크기 (옵션)"
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "Succeed",
+                "Failed",
+                "Pending"
+              ]
+            },
+            "required": false,
+            "description": "결제 상태 필터 (옵션)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "결제 내역 조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "purchases": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "prompt_id": {
+                            "type": "integer"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "price": {
+                            "type": "integer"
+                          },
+                          "purchased_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "seller_nickname": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "pg": {
+                            "type": "string",
+                            "enum": [
+                              "kakaopay",
+                              "tosspay",
+                              null
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      }
+    },
+    "/api/reports": {
+      "post": {
+        "summary": "프롬프트 신고 등록",
+        "tags": [
+          "Report"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "prompt_id",
+                  "report_type",
+                  "description"
+                ],
+                "properties": {
+                  "prompt_id": {
+                    "type": "integer",
+                    "description": "신고 대상 프롬프트 ID",
+                    "example": 1
+                  },
+                  "report_type": {
+                    "type": "string",
+                    "enum": [
+                      "FALSE_OR_EXAGGERATED",
+                      "COPYRIGHT_INFRINGEMENT",
+                      "INAPPROPRIATE_OR_HARMFUL",
+                      "ETC"
+                    ],
+                    "description": "신고 유형\n- FALSE_OR_EXAGGERATED: 허위 또는 과장된 콘텐츠\n- COPYRIGHT_INFRINGEMENT: 저작권 및 지적재산권 침해\n- INAPPROPRIATE_OR_HARMFUL: 불쾌하거나 부적절한 내용\n- ETC: 기타\n",
+                    "example": "FALSE_OR_EXAGGERATED"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "신고 상세 설명",
+                    "example": "부적절한 프롬프트에요"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "프롬프트 신고가 성공적으로 접수되었습니다.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "프롬프트 신고가 성공적으로 접수되었습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "report_id": {
+                          "type": "integer",
+                          "example": 12
+                        },
+                        "reporter_id": {
+                          "type": "integer",
+                          "example": 10
+                        },
+                        "prompt_id": {
+                          "type": "integer",
+                          "example": 3
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "부적절한 프롬프트에요"
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-07-29T17:43:32.317Z"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      },
+      "get": {
+        "summary": "신고된 프롬프트 목록 조회 (관리자 전용)",
+        "description": "커서 기반 페이지네이션(cursor-based-pagination) 사용.\n- `cursor`는 이전 요청에서 받은 마지막 목록의 ID를 의미하며, 이를 기준으로 이후 데이터를 조회.\n- 첫 요청 시에는 `cursor`를 생략하여 최신 리뷰부터 조회.\n- `has_more` 속성으로 더 불러올 데이터가 있는지 미리 확인 가능.\n",
+        "tags": [
+          "Report"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "마지막으로 조회된 ID.   처음 요청 시 생략 가능.   예: 첫 요청에서 id=80~70까지 받았다면 다음 요청 시 `cursor=70`\n"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "가져올 리뷰 수 (기본값 10)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "신고된 프롬프트 목록을 성공적으로 불러왔습니다.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "신고된 프롬프트 목록을 성공적으로 불러왔습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "reports": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "report_id": {
+                                "type": "integer",
+                                "example": 56
+                              },
+                              "prompt_id": {
+                                "type": "integer",
+                                "example": 11
+                              },
+                              "prompt_title": {
+                                "type": "string",
+                                "example": "프롬프트 제목"
+                              },
+                              "reporter_id": {
+                                "type": "integer",
+                                "example": 12
+                              },
+                              "reporter_nickname": {
+                                "type": "string",
+                                "example": "신고자 닉네임1"
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2025-07-27T12:11:02.000Z"
+                              },
+                              "is_read": {
+                                "type": "boolean",
+                                "example": false
+                              }
+                            }
+                          }
+                        },
+                        "has_more": {
+                          "type": "boolean",
+                          "example": false
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      }
+    },
+    "/api/reports/{reportId}": {
+      "get": {
+        "summary": "특정 신고 상세 조회 (관리자 전용)",
+        "tags": [
+          "Report"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reportId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "신고 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "프롬프트 신고 상세 정보를 성공적으로 불러왔습니다.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "프롬프트 신고 상세 정보를 성공적으로 불러왔습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "report_id": {
+                          "type": "integer",
+                          "example": 5
+                        },
+                        "prompt_id": {
+                          "type": "integer",
+                          "example": 5
+                        },
+                        "prompt_title": {
+                          "type": "string",
+                          "example": "프롬프트 3"
+                        },
+                        "reporter_id": {
+                          "type": "integer",
+                          "example": 10
+                        },
+                        "reporter_nickname": {
+                          "type": "string",
+                          "example": "남아린"
+                        },
+                        "reporter_email": {
+                          "type": "string",
+                          "example": "20230871@duksung.ac.kr"
+                        },
+                        "prompt_type": {
+                          "type": "string",
+                          "example": "ETC"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "기타 문제로 신고합니다."
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-07-29T17:24:19.749Z"
+                        },
+                        "isRead": {
+                          "type": "boolean",
+                          "example": true
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "404": {
+            "description": "신고 정보 없음"
+          },
+          "500": {
+            "description": "서버 오류"
+          }
+        }
+      }
+    },
+    "/api/reviews/me": {
+      "get": {
+        "summary": "내가 작성한 리뷰 목록 조회",
+        "description": "### API 설명\n\n- 커서 기반 페이지네이션(cursor-based-pagination) 사용  \n- `cursor`는 이전 요청에서 받은 마지막 리뷰의 ID를 의미하며, 이를 기준으로 이후 데이터를 조회  \n- 첫 요청 시에는 `cursor`를 생략하여 최신 리뷰부터 조회  \n- `has_more` 속성으로 더 불러올 데이터가 있는지 미리 확인 가능\n\n### Query String\n| 항목    | 설명                                         | 예시                             | 필수 여부                  |\n|---------|----------------------------------------------|----------------------------------|----------------------------|\n| cursor  | 마지막으로 조회된 리뷰 ID (처음 요청 시 생략 가능) | `cursor=70`<br>(예: id=80~70이면 cursor=70) | ❌ (처음 요청 시 생략 가능) |\n| limit   | 가져올 리뷰 수                                 | `limit=7`                        | ❌ (기본값: 10)             |\n\n### Header\n```json\n{\n  \"Authorization\": \"Bearer {access_token}\"\n}\n```\n",
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "마지막으로 조회된 리뷰 ID (커서 기반 페이지네이션)"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "가져올 리뷰 수"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "내가 작성한 리뷰 목록을 성공적으로 불러왔습니다.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "내가 작성한 리뷰 목록을 성공적으로 불러왔습니다.",
+                  "data": {
+                    "statusCode": 200,
+                    "reviews": [
+                      {
+                        "review_id": 10,
+                        "prompt_id": 5,
+                        "prompt_title": "프롬프트 3",
+                        "rating": 4.5,
+                        "content": "너무 유용했어요!",
+                        "created_at": "2025-07-25T04:39:21.000Z",
+                        "updated_at": "2025-07-25T07:32:34.821Z"
+                      },
+                      {
+                        "review_id": 7,
+                        "prompt_id": 5,
+                        "prompt_title": "프롬프트 3",
+                        "rating": 3.5,
+                        "content": "좋긴 한데 약간 아쉬운 부분도 있었어요.",
+                        "created_at": "2025-07-23T13:19:06.000Z",
+                        "updated_at": "2025-07-23T13:19:06.000Z"
+                      },
+                      {
+                        "review_id": 6,
+                        "prompt_id": 5,
+                        "prompt_title": "프롬프트 3",
+                        "rating": 4.5,
+                        "content": "이 프롬프트는 정말 유용했어요!",
+                        "created_at": "2025-07-23T13:19:06.000Z",
+                        "updated_at": "2025-07-23T13:19:06.000Z"
+                      }
+                    ],
+                    "has_more": false
+                  },
+                  "statusCode": 200
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews/received-reviews/me": {
+      "get": {
+        "summary": "내가 받은 리뷰 목록 조회",
+        "description": "### API 설명\n\n- 커서 기반 페이지네이션(cursor-based-pagination) 사용  \n- `cursor`는 이전 요청에서 받은 마지막 리뷰의 ID를 의미하며, 이를 기준으로 이후 데이터를 조회  \n- 첫 요청 시에는 `cursor`를 생략하여 최신 리뷰부터 조회  \n- `has_more` 속성으로 더 불러올 데이터가 있는지 미리 확인 가능\n\n### Query String\n| 항목    | 설명                                         | 예시                             | 필수 여부                  |\n|---------|----------------------------------------------|----------------------------------|----------------------------|\n| cursor  | 마지막으로 조회된 리뷰 ID (처음 요청 시 생략 가능) | `cursor=70`<br>(예: id=80~70이면 cursor=70) | ❌ (처음 요청 시 생략 가능) |\n| limit   | 가져올 리뷰 수                                 | `limit=7`                        | ❌ (기본값: 10)             |\n\n### Header\n```json\n{\n  \"Authorization\": \"Bearer {access_token}\"\n}\n```\n",
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "마지막으로 조회된 리뷰 ID (커서 기반 페이지네이션)"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "가져올 리뷰 수"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "내가 받은 리뷰 목록을 성공적으로 불러왔습니다.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "내가 받은 리뷰 목록을 성공적으로 불러왔습니다.",
+                  "data": {
+                    "statusCode": 200,
+                    "reviews": [
+                      {
+                        "review_id": 56,
+                        "prompt_id": 11,
+                        "prompt_title": "창의적인 아이디어 발상 프롬프트",
+                        "writer_id": 12,
+                        "writer_nickname": "최성준",
+                        "writer_profile_image_url": "uploads/1753012119706.jpg",
+                        "rating": 4.9,
+                        "content": "완성도가 높네요.",
+                        "created_at": "2025-07-27T12:11:02.000Z",
+                        "updated_at": "2025-07-27T12:11:02.000Z"
+                      },
+                      {
+                        "review_id": 55,
+                        "prompt_id": 11,
+                        "prompt_title": "창의적인 아이디어 발상 프롬프트",
+                        "writer_id": 7,
+                        "writer_nickname": "송강규",
+                        "writer_profile_image_url": "uploads/1753012119706.jpg",
+                        "rating": 3.9,
+                        "content": "조금 개선하면 더 좋을 듯.",
+                        "created_at": "2025-07-27T12:11:02.000Z",
+                        "updated_at": "2025-07-27T12:11:02.000Z"
+                      },
+                      {
+                        "review_id": 54,
+                        "prompt_id": 11,
+                        "prompt_title": "창의적인 아이디어 발상 프롬프트",
+                        "writer_id": 6,
+                        "writer_nickname": "류민주",
+                        "writer_profile_image_url": "uploads/1753012119706.jpg",
+                        "rating": 4.2,
+                        "content": "텍스트 생성 결과가 좋아요.",
+                        "created_at": "2025-07-27T12:11:02.000Z",
+                        "updated_at": "2025-07-27T12:11:02.000Z"
+                      },
+                      {
+                        "review_id": 53,
+                        "prompt_id": 11,
+                        "prompt_title": "창의적인 아이디어 발상 프롬프트",
+                        "writer_id": 5,
+                        "writer_nickname": "송강규",
+                        "writer_profile_image_url": "uploads/1753017046868.png",
+                        "rating": 4.8,
+                        "content": "문제 해결에 큰 도움이 됐습니다.",
+                        "created_at": "2025-07-27T12:11:02.000Z",
+                        "updated_at": "2025-07-27T12:11:02.000Z"
+                      },
+                      {
+                        "review_id": 52,
+                        "prompt_id": 11,
+                        "prompt_title": "창의적인 아이디어 발상 프롬프트",
+                        "writer_id": 4,
+                        "writer_nickname": "송강규",
+                        "writer_profile_image_url": "uploads/1753012119706.jpg",
+                        "rating": 3.5,
+                        "content": "괜찮지만 약간 단순해요.",
+                        "created_at": "2025-07-27T12:11:02.000Z",
+                        "updated_at": "2025-07-27T12:11:02.000Z"
+                      }
+                    ],
+                    "has_more": false
+                  },
+                  "statusCode": 200
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews/{promptId}": {
+      "get": {
+        "summary": "특정 프롬프트의 리뷰 목록 조회",
+        "description": "### API 설명\n\n- 커서 기반 페이지네이션(cursor-based-pagination) 사용  \n- `cursor`는 이전 요청에서 받은 마지막 리뷰의 ID를 의미하며, 이를 기준으로 이후 데이터를 조회  \n- 첫 요청 시에는 `cursor`를 생략하여 최신 리뷰부터 조회  \n- `has_more` 속성으로 더 불러올 데이터가 있는지 미리 확인 가능\n- `total_count` 속성으로 해당 프롬프트의 총 리뷰 개수 확인 가능(limit과 무관)\n\n### Query String\n| 항목     | 설명                                      | 예시                         | 필수 여부                |\n|----------|-------------------------------------------|------------------------------|--------------------------|\n| cursor   | 마지막으로 조회된 리뷰 ID (처음 요청 시 생략 가능) | `cursor=70`<br>(예: id=80~70까지 받았으면 다음 요청에 cursor=70) | ❌ (첫 요청 시 생략 가능) |\n| limit    | 가져올 리뷰 수                              | `limit=7`                    | ❌ (기본값: 10)           |\n\n### Path Variable\n| 항목       | 설명             | 예시        | 필수 여부 |\n|------------|------------------|-------------|-----------|\n| promptId   | 프롬프트 ID       | `42`        | ✅        |\n\n### Header\n```json\n{\n  \"Authorization\": \"Bearer {access_token}\"\n}\n```\n",
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "프롬프트 ID"
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "마지막으로 조회된 리뷰 ID (커서 기반 페이지네이션)"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "가져올 리뷰 수"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "특정 프롬프트 리뷰 목록을 성공적으로 불러왔습니다.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "프롬프트 리뷰 목록을 성공적으로 불러왔습니다.",
+                  "data": {
+                    "reviews": [
+                      {
+                        "review_id": 60,
+                        "writer_id": 10,
+                        "writer_nickname": "남아린",
+                        "writer_image_url": "uploads/sample_user10.jpg",
+                        "rating": 4.5,
+                        "content": "너무 유용했어요!",
+                        "created_at": "2025-07-27T12:32:45.789Z"
+                      },
+                      {
+                        "review_id": 59,
+                        "writer_id": 10,
+                        "writer_nickname": "남아린",
+                        "writer_image_url": "uploads/sample_user10.jpg",
+                        "rating": 4.5,
+                        "content": "너무 유용했어요!",
+                        "created_at": "2025-07-27T12:31:05.849Z"
+                      }
+                    ],
+                    "has_more": false,
+                    "total_count": 2
+                  },
+                  "statusCode": 200
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "특정 프롬프트에 리뷰 작성",
+        "description": "### API 설명\n\n- 특정 프롬프트에 리뷰를 작성합니다.  \n- 로그인한 사용자만 요청 가능하며, `Authorization` 헤더를 포함해야 합니다.  \n- 요청 바디에는 리뷰 내용(`content`)과 평점(`rating`)이 포함되어야 합니다.\n\n### Path Variable\n| 항목       | 설명                 | 예시   | 필수 여부 |\n|------------|----------------------|--------|-----------|\n| promptId   | 리뷰 작성 대상 프롬프트 ID | `5`    | ✅        |\n\n### Request Body\n| 항목     | 설명       | 예시           | 필수 여부 |\n|----------|------------|----------------|-----------|\n| content  | 리뷰 내용   | 너무 유용했어요! | ✅        |\n| rating   | 평점 (0~5) | 4.5            | ✅        |\n\n### Header\n```json\n{\n  \"Authorization\": \"Bearer {access_token}\"\n}\n```\n",
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "리뷰를 작성할 프롬프트 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "content",
+                  "rating"
+                ],
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "description": "리뷰 내용",
+                    "example": "너무 유용했어요!"
+                  },
+                  "rating": {
+                    "type": "number",
+                    "format": "float",
+                    "description": "평점 (0.0 ~ 5.0)",
+                    "example": 4.5
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "리뷰가 성공적으로 등록되었습니다.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "리뷰가 성공적으로 등록되었습니다.",
+                  "data": {
+                    "review_id": 63,
+                    "writer_id": 10,
+                    "prompt_id": 5,
+                    "rating": 4.5,
+                    "content": "너무 유용했어요!",
+                    "created_at": "2025-08-07T09:20:09.967Z"
+                  },
+                  "statusCode": 200
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews/{reviewId}": {
+      "delete": {
+        "summary": "특정 리뷰 삭제",
+        "description": "### API 설명\n\n- 작성자가 본인의 리뷰를 삭제할 수 있는 API입니다.  \n- 리뷰 작성일로부터 **30일 이내**인 경우에만 삭제가 가능합니다.  \n- `Authorization` 헤더를 포함한 로그인된 사용자만 접근할 수 있습니다.\n\n### Path Variable\n| 항목      | 설명                | 예시   | 필수 여부 |\n|-----------|---------------------|--------|-----------|\n| reviewId  | 삭제할 리뷰 ID        | `63`   | ✅        |\n\n### Header\n```json\n{\n  \"Authorization\": \"Bearer {access_token}\"\n}\n```\n",
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reviewId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "삭제할 리뷰 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "리뷰가 성공적으로 삭제되었습니다.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "리뷰가 성공적으로 삭제되었습니다.",
+                  "data": {},
+                  "statusCode": 200
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "리뷰 작성일로부터 30일이 지나 삭제할 수 없습니다.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Forbidden",
+                  "message": "리뷰 작성일로부터 30일이 지나 삭제할 수 없습니다.",
+                  "statusCode": 403
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "특정 리뷰 수정",
+        "description": "### API 설명\n\n- 사용자가 본인의 리뷰를 수정할 수 있는 API입니다.  \n- 리뷰 내용(`content`)과 평점(`rating`)을 모두 전달해야 합니다.  \n- `Authorization` 헤더를 포함한 로그인 사용자만 접근할 수 있습니다.\n\n### Path Variable\n| 항목      | 설명             | 예시   | 필수 여부 |\n|-----------|------------------|--------|-----------|\n| reviewId  | 수정할 리뷰 ID     | `59`   | ✅        |\n\n### Request Body\n| 항목     | 설명       | 예시                 | 필수 여부 |\n|----------|------------|----------------------|-----------|\n| rating   | 평점 (0~5) | `4.5`                | ✅        |\n| content  | 리뷰 내용   | 수정된 전체 내용입니다. | ✅        |\n\n### Header\n```json\n{\n  \"Authorization\": \"Bearer {access_token}\"\n}\n```\n",
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reviewId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "수정할 리뷰 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "rating",
+                  "content"
+                ],
+                "properties": {
+                  "rating": {
+                    "type": "number",
+                    "format": "float",
+                    "example": 4.5,
+                    "description": "평점 (0.0 ~ 5.0)"
+                  },
+                  "content": {
+                    "type": "string",
+                    "example": "수정된 전체 내용입니다.",
+                    "description": "리뷰 내용"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "리뷰가 성공적으로 수정되었습니다.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "리뷰가 성공적으로 수정되었습니다.",
+                  "data": {
+                    "review_id": 59,
+                    "prompt_id": 10,
+                    "writer_name": "남아린",
+                    "rating": 4.5,
+                    "content": "수정된 전체 내용입니다.",
+                    "updated_at": "2025-08-07T09:16:14.838Z"
+                  },
+                  "statusCode": 200
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews/{reviewId}/edit": {
+      "get": {
+        "summary": "리뷰 수정 화면 데이터 조회",
+        "description": "### API 설명\n\n- 해당 리뷰의 수정 화면에 필요한 정보를 조회하는 API입니다.  \n- 프롬프트 정보, 모델 정보, 작성자 정보 및 기존 리뷰 내용을 포함합니다.  \n- 로그인한 사용자만 접근할 수 있으며, `Authorization` 헤더가 필요합니다.\n\n### Path Variable\n| 항목      | 설명             | 예시   | 필수 여부 |\n|-----------|------------------|--------|-----------|\n| reviewId  | 수정할 리뷰 ID     | `63`   | ✅        |\n\n### Header\n```json\n{\n  \"Authorization\": \"Bearer {access_token}\"\n}\n```\n",
+        "tags": [
+          "Reviews"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reviewId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "수정할 리뷰 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "리뷰 수정 화면 데이터를 성공적으로 불러왔습니다.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "리뷰 수정 화면 데이터를 성공적으로 불러왔습니다.",
+                  "data": {
+                    "prompter_id": 3,
+                    "prompter_nickname": "닉네임3",
+                    "prompt_id": 5,
+                    "prompt_title": "프롬프트 3",
+                    "model_id": 3,
+                    "model_name": "모델 이름 3",
+                    "rating_avg": "4.0",
+                    "content": "너무 유용했어요!"
+                  },
+                  "statusCode": 200
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tips": {
+      "get": {
+        "summary": "팁 목록 조회",
+        "tags": [
+          "Tip"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "페이지 번호"
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "한 페이지당 항목 수"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "팁 목록 조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "요청이 성공적으로 처리되었습니다.",
+                    "data": {
+                      "data": {
+                        "tips": [
+                          {
+                            "tip_id": 13,
+                            "writer_id": 5,
+                            "title": "예시로 올려보는 프롬프트!",
+                            "content": "목적에 맞는 프롬프트를 만들려면 입력-출력 예제를 활용하세요.",
+                            "is_visible": true,
+                            "file_url": null,
+                            "created_at": "2025-07-31T12:15:59.700Z",
+                            "updated_at": "2025-07-31T12:15:59.700Z"
+                          },
+                          {
+                            "tip_id": 10,
+                            "writer_id": 5,
+                            "title": "예시로 올려보는 프롬프트!",
+                            "content": "목적에 맞는 프롬프트를 만들려면 입력-출력 예제를 활용하세요.",
+                            "is_visible": true,
+                            "file_url": null,
+                            "created_at": "2025-07-31T07:50:59.331Z",
+                            "updated_at": "2025-07-31T07:50:59.331Z"
+                          }
+                        ],
+                        "pagination": {
+                          "page": 1,
+                          "size": 10,
+                          "total_elements": 7,
+                          "total_pages": 1
+                        }
+                      }
+                    },
+                    "statusCode": 200
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "팁 생성",
+        "tags": [
+          "Tip"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "writer_id": {
+                    "type": "integer"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "팁 생성 성공"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "관리자 권한 없음"
+          }
+        }
+      }
+    },
+    "/api/tips/{tipId}": {
+      "patch": {
+        "summary": "팁 수정",
+        "tags": [
+          "Tip"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tipId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "수정할 팁 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "팁 수정 성공"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "관리자 권한 없음"
+          },
+          "404": {
+            "description": "팁을 찾을 수 없음"
+          }
+        }
+      }
+    },
+    "/api/tips/{tipId}/delete": {
+      "patch": {
+        "summary": "팁 삭제 (soft delete)",
+        "tags": [
+          "Tip"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tipId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "삭제할 팁 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "팁 삭제 성공"
+          },
+          "400": {
+            "description": "이미 삭제된 팁"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "관리자 권한 없음"
+          },
+          "404": {
+            "description": "팁을 찾을 수 없음"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PromptContent": {
+        "type": "object",
+        "properties": {
+          "prompt_id": {
+            "type": "integer",
+            "example": 123
+          },
+          "title": {
+            "type": "string",
+            "example": "챗GPT로 마케팅 자동화하기"
+          },
+          "content": {
+            "type": "string",
+            "example": "당신은 마케팅 전문가입니다. 이 프롬프트는..."
+          },
+          "download_count": {
+            "type": "integer",
+            "example": 42
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-07-29T10:00:00Z"
+          }
+        }
+      },
+      "PromptModel": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "PromptTag": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "Prompt": {
+        "type": "object",
+        "properties": {
+          "prompt_id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "model": {
+                  "$ref": "#/components/schemas/PromptModel"
+                }
+              }
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "tag": {
+                  "$ref": "#/components/schemas/PromptTag"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Account",
+      "description": "계좌 관련 API"
+    },
+    {
+      "name": "Auth",
+      "description": "인증 및 로그인 관련 API"
+    },
+    {
+      "name": "Inquiry",
+      "description": "1:1 문의 관련 API"
+    },
+    {
+      "name": "Member",
+      "description": "회원 관련 API"
+    },
+    {
+      "name": "Message",
+      "description": "사용자 메시지함 관련 API"
+    },
+    {
+      "name": "Notifications",
+      "description": "알림 관련 API"
+    },
+    {
+      "name": "PromptDownload",
+      "description": "프롬프트 다운로드 / 상세 내용 조회 API"
+    },
+    {
+      "name": "PromptLike",
+      "description": "프롬프트 찜 관련 API"
+    },
+    {
+      "name": "Prompts",
+      "description": "프롬프트 관련 API"
+    },
+    {
+      "name": "Purchase",
+      "description": "결제/구매 관련 API"
+    },
+    {
+      "name": "Report",
+      "description": "프롬프트 신고 관련 API"
+    },
+    {
+      "name": "Reviews",
+      "description": "프롬프트 리뷰 관련 API"
+    },
+    {
+      "name": "Tip",
+      "description": "팁 관련 API"
+    }
+  ]
+}
