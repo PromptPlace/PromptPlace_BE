@@ -46,6 +46,7 @@ const allowedOrigins = [
   "https://promptplace-develop.vercel.app",
   "http://52.79.208.145:3000",
   "http://52.79.208.145",
+  "http://localhost:3000",
 ];
 
 app.use(

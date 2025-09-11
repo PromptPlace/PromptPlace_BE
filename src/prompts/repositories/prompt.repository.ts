@@ -567,7 +567,7 @@ export const deletePromptRepo = async (promptId: number) => {
     await tx.promptTag.deleteMany({ where: { prompt_id: promptId } });
     await tx.promptModel.deleteMany({ where: { prompt_id: promptId } });
     await tx.promptImage.deleteMany({ where: { prompt_id: promptId } });
-
+    await tx.purchase.deleteMany({ where: { prompt_id: promptId } });
     // 프롬프트 삭제
     return await tx.prompt.delete({
       where: { prompt_id: promptId },
