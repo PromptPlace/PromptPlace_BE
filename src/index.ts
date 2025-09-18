@@ -168,6 +168,11 @@ app.get("/error", () => {
 // 4. 마지막 에러 핸들러
 app.use(errorHandler as ErrorRequestHandler);
 
+// 도커 헬스체크 라우터
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');  
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running at http://localhost:${PORT}`);
 });
