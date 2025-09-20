@@ -1,26 +1,19 @@
 {
 	# 프록시 앞단(도커 브리지 등)에서 온 X-Forwarded-* 신뢰
 	servers {
-		trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+		trusted_proxies static 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
 	}
 }
 
-# www → apex로 301 리다이렉트
-www.promptplace.kr {
-	redir https://promptplace.kr{uri} permanent
-}
-
-# 메인 도메인: 앱 컨테이너로 리버스 프록시
-promptplace.kr {
+# api 도메인
+api.promptplace.kr {
 	encode zstd gzip
 
 	# 보안 헤더
 	header {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
 		X-Content-Type-Options "nosniff"
-		X-Frame-Options "DENY"
 		Referrer-Policy "strict-origin-when-cross-origin"
-		Permissions-Policy "geolocation=(), microphone=(), camera=()"
 	}
 
 	# app 서비스로 프록시

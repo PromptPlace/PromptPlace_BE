@@ -1,16 +1,7 @@
 import multer from "multer";
 import path from "path";
-import fs from "fs";
 import { Request } from "express";
 import { AppError } from "../errors/AppError";
-
-// 업로드된 파일이 저장될 디렉토리
-const UPLOADS_DIR = "uploads/";
-
-// 디렉토리가 없으면 생성
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR);
-}
 
 // Multer 저장소 설정
 const storage = multer.memoryStorage(); // S3 업로드용으로 메모리 스토리지 사용

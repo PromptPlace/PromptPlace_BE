@@ -11,7 +11,7 @@ services:
     expose:
       - "3000"    # 내부 네트워크만 노출 (Caddy가 프록시)
     healthcheck:                    
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/health"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/health"] # 컨테이너 내부 IP로 헬스체크 확인 
       interval: 30s
       timeout: 3s
       start_period: 20s
@@ -26,7 +26,7 @@ services:
         max-file: "3"
 
   caddy: # caddy 컨테이너
-    image: caddy:2
+    image: caddy:2.8.4
     container_name: caddy
     ports:
       - "80:80"
