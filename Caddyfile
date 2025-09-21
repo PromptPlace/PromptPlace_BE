@@ -1,34 +1,46 @@
 {
-	# 프록시 앞단(도커 브리지 등)에서 온 X-Forwarded-* 신뢰
-	servers {
-		trusted_proxies static 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
-	}
+        # ALB 같은 프록시에서 온 X-Forwarded-* 헤더 신뢰
+        servers {
+                trusted_proxies static 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+        }
+        # ALB가 HTTPS 처리하므로 Caddy는 HTTP만
+        auto_https off
 }
 
-# api 도메인
-https://promptplace.kro.kr {
-	encode zstd gzip
+http://promptplace.kro.kr {
+        encode zstd gzip
 
-	# 보안 헤더
-	header {
-		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-		X-Content-Type-Options "nosniff"
-		Referrer-Policy "strict-origin-when-cross-origin"
-	}
-	
-	# /api/* 요청만 프록시
-	handle_path /api/* {
-		reverse_proxy app:3000 {
-			health_uri     /health
-			health_interval 30s
-			health_timeout  3s
-			fail_duration   10s
-		}
-	}
-	
-	# 액세스 로그
-	log {
-		output stdout
-		format console
-	}
+        # 보안 헤더 (HSTS는 HTTPS 응답에서만 의미 있으므로 여기서는 생략 가능)
+        header {
+                X-Content-Type-Options "nosniff"
+                Referrer-Policy "strict-origin-when-cross-origin"
+        }
+
+        # /api/* 요청만 app:3000으로 프록시
+        handle /api/* {
+                reverse_proxy app:3000 {
+                        # 백엔드 상태 체크용 (Caddy→app)
+                        health_uri      /health
+                        health_interval 30s
+                        health_timeout  3s
+                        fail_duration   10s
+
+                        # ALB에서 받은 원래 요청 스킴/호스트/IP 전달
+                        header_up X-Forwarded-Proto {scheme}
+                        header_up X-Forwarded-Host  {host}
+                        header_up X-Real-IP         {remote_host}
+                }
+        }
+
+        # (선택) ALB 헬스체크 편의 엔드포인트
+        @health path /health
+        handle @health {
+                respond "ok" 200
+        }
+
+        # 로그
+        log {
+                output stdout
+                format console
+        }
 }
