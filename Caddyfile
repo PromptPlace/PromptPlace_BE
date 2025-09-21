@@ -6,7 +6,7 @@
 }
 
 # api 도메인
-api.promptplace.kr {
+promptplace.kro.kr {
 	encode zstd gzip
 
 	# 보안 헤더
