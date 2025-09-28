@@ -14,6 +14,27 @@ interface Tokens {
   refreshToken: string;
 }
 
+const getCallbackUrl = (provider: 'KAKAO' | 'GOOGLE' | 'NAVER') => {
+  const isDev = process.env.NODE_ENV !== 'production';
+
+  switch (provider) {
+    case 'KAKAO':
+      return isDev
+        ? process.env.KAKAO_CALLBACK_URL_DEV
+        : process.env.KAKAO_CALLBACK_URL;
+    case 'GOOGLE':
+      return isDev
+        ? process.env.GOOGLE_CALLBACK_URL_DEV
+        : process.env.GOOGLE_CALLBACK_URL;
+    case 'NAVER':
+      return isDev
+        ? process.env.NAVER_CALLBACK_URL_DEV
+        : process.env.NAVER_CALLBACK_URL;
+    default:
+      throw new Error('Unknown provider');
+  }
+};
+
 class AuthService {
   async generateTokens(user: any): Promise<Tokens> {
     const accessToken = jwt.sign(
@@ -233,7 +254,7 @@ class AuthService {
           client_id: process.env.KAKAO_CLIENT_ID!,
           client_secret: process.env.KAKAO_CLIENT_SECRET!,
           code: code,
-          redirect_uri: process.env.KAKAO_CALLBACK_URL!,
+          redirect_uri: getCallbackUrl('KAKAO')!,
         }),
       });
 
@@ -298,7 +319,7 @@ class AuthService {
           client_id: process.env.GOOGLE_CLIENT_ID!,
           client_secret: process.env.GOOGLE_CLIENT_SECRET!,
           code: code,
-          redirect_uri: process.env.GOOGLE_CALLBACK_URL!,
+          redirect_uri: getCallbackUrl('GOOGLE')!,
         }),
       });
 
@@ -368,7 +389,7 @@ class AuthService {
             client_id: process.env.NAVER_CLIENT_ID!,
             client_secret: process.env.NAVER_CLIENT_SECRET!,
             code: code,
-            redirect_uri: process.env.NAVER_CALLBACK_URL!,
+            redirect_uri: getCallbackUrl('NAVER')!,
           }),
         }
       );
