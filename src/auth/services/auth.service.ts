@@ -132,6 +132,7 @@ class AuthService {
         },
       };
     } catch (error) {
+      if (error instanceof AppError) throw error;
       throw new AppError("카카오 인증에 실패했습니다.", 401);
     }
   }
@@ -185,6 +186,7 @@ class AuthService {
         },
       };
     } catch (error) {
+      if (error instanceof AppError) throw error;
       throw new AppError("구글 인증에 실패했습니다.", 401);
     }
   }
@@ -238,6 +240,8 @@ class AuthService {
         },
       };
     } catch (error) {
+      console.error("[AuthService Error - Naver]:", error);
+      if (error instanceof AppError) throw error;
       throw new AppError("네이버 인증에 실패했습니다.", 401);
     }
   }
