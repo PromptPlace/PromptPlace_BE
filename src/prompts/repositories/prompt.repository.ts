@@ -560,6 +560,21 @@ export const deletePromptRepo = async (promptId: number) => {
       }
     }
 
+    // 관련된 Purchase 및 Payment 기록 삭제
+    const purchases = await tx.purchase.findMany({
+      where: { prompt_id: promptId },
+      select: { purchase_id: true },
+    });
+
+    if (purchases.length > 0) {
+      const purchaseIds = purchases.map((p) => p.purchase_id);
+      await tx.payment.deleteMany({
+        where: { purchase_id: { in: purchaseIds } },
+      });
+    }
+
+    await tx.purchase.deleteMany({ where: { prompt_id: promptId } });
+
     // 관련 데이터 수동 삭제
     await tx.promptLike.deleteMany({ where: { prompt_id: promptId } });
     await tx.review.deleteMany({ where: { prompt_id: promptId } });
@@ -567,7 +582,6 @@ export const deletePromptRepo = async (promptId: number) => {
     await tx.promptTag.deleteMany({ where: { prompt_id: promptId } });
     await tx.promptModel.deleteMany({ where: { prompt_id: promptId } });
     await tx.promptImage.deleteMany({ where: { prompt_id: promptId } });
-    await tx.purchase.deleteMany({ where: { prompt_id: promptId } });
     // 프롬프트 삭제
     return await tx.prompt.delete({
       where: { prompt_id: promptId },
