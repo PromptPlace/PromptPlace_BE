@@ -1,4 +1,5 @@
 import { Service } from "typedi";
+import { CreateMessageDto } from "../dtos/message.dto";
 import { MessageRepository } from "../repositories/message.repository";
 import { AppError } from "../../errors/AppError";
 
@@ -103,6 +104,20 @@ async deleteMessage(message_id: number, currentUserId: number) {
   return {
     message: "메시지가 성공적으로 삭제되었습니다.",
     statusCode: 200,
+  };
+}
+
+async sendMessage(currentUserId: number, data: CreateMessageDto) {
+  if (currentUserId !== data.sender_id) {
+    throw new AppError("요청자 정보가 일치하지 않습니다.", 403, "Forbidden");
+  }
+
+  const message = await this.messageRepository.createMessage(data);
+
+  return {
+    message: "메시지 전송 성공",
+    message_id: message.message_id,
+    statusCode: 201,
   };
 }
 }
