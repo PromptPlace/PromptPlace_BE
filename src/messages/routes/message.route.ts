@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { Container } from "typedi";
 import { MessageController } from "../controllers/message.controller";
+import { isAdmin } from "../../middlewares/isAdmin";
 import { authenticateJwt } from "../../config/passport";
 
 const router = Router();
@@ -194,5 +195,58 @@ router.patch('/:message_id/read', authenticateJwt, messageController.markAsRead)
  *         description: 메시지 없음
  */
 router.patch("/:message_id/delete", authenticateJwt, messageController.deleteMessage);
+
+/**
+ * @swagger
+ * /api/messages:
+ *   post:
+ *     summary: 메시지 전송 (관리자 전용)
+ *     description: 관리자가 특정 사용자에게 메시지를 전송합니다.
+ *     tags: [Message]
+ *     security:
+ *       - jwt: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               sender_id:
+ *                 type: integer
+ *                 example: 1
+ *               receiver_id:
+ *                 type: integer
+ *                 example: 2
+ *               title:
+ *                 type: string
+ *                 example: "공지사항입니다"
+ *               body:
+ *                 type: string
+ *                 example: "9월 30일 점검이 예정되어 있습니다."
+ *     responses:
+ *       201:
+ *         description: 메시지 전송 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 메시지 전송 성공
+ *                 message_id:
+ *                   type: integer
+ *                   example: 100
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 201
+ *       401:
+ *         description: 인증 실패
+ *       403:
+ *         description: 관리자 권한 필요
+ */
+// 메시지 전송
+router.post("/", authenticateJwt, isAdmin, messageController.sendMessage);
 
 export default router;

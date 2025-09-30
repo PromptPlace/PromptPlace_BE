@@ -60,4 +60,17 @@ deleteMessage = async (req: Request, res: Response, next: NextFunction) => {
     next(err);
   }
 };
+
+sendMessage = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const currentUserId = (req.user as any).user_id;
+    const data = req.body;
+
+    const result = await this.messageService.sendMessage(currentUserId, data);
+
+    res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 }
