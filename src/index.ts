@@ -26,6 +26,8 @@ import announcementRouter from "./announcements/routes/announcement.route"; // �
 import notificationRouter from "./notifications/routes/notification.route"; // 알림 라우터 import
 import "./notifications/listeners/notification.listener"; // 알림 리스터 import
 import messageRouter from "./messages/routes/message.route";
+import adminPromptRouter from "./prompts/routes/admin-prompt.route";
+import adminMemberRouter from "./members/routes/admin-member.route";
 
 const PORT = 3000;
 const app = express();
@@ -134,6 +136,10 @@ app.use("/api/prompts", promptDownloadRouter);
 
 // 프롬프트 찜 라우터
 app.use("/api/prompts", promptLikeRouter);
+
+// admin
+app.use("/api/admin/prompts", adminPromptRouter);
+app.use("/api/admin", adminMemberRouter);
 
 // 팁 라우터
 app.use("/api/tips", tipRouter);

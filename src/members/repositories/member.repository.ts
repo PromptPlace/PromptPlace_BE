@@ -108,6 +108,12 @@ export class MemberRepository {
     });
   }
 
+  async adminDeleteHistory(historyId: number) {
+    return await prisma.userHistory.delete({
+      where: { history_id: historyId },
+    });
+  }
+
   async upsertProfileImage(userId: number, imageUrl: string) {
     return prisma.userImage.upsert({
       where: { userId: userId },

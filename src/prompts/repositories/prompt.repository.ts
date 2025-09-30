@@ -588,3 +588,59 @@ export const deletePromptRepo = async (promptId: number) => {
     });
   });
 };
+
+export const adminDeletePromptRepo = async (promptId: number) => {
+  return await prisma.$transaction(async (tx) => {
+    // 프롬프트 존재 여부 확인
+    const prompt = await tx.prompt.findUnique({
+      where: { prompt_id: promptId },
+      select: { prompt_id: true },
+    });
+    if (!prompt) {
+      throw new Error("프롬프트를 찾을 수 없습니다.");
+    }
+
+    // 관련된 Purchase, Payment, Settlement 기록 삭제
+    const purchases = await tx.purchase.findMany({
+      where: { prompt_id: promptId },
+      select: { purchase_id: true },
+    });
+
+    if (purchases.length > 0) {
+      const purchaseIds = purchases.map((p) => p.purchase_id);
+
+      const payments = await tx.payment.findMany({
+        where: { purchase_id: { in: purchaseIds } },
+        select: { payment_id: true },
+      });
+
+      if (payments.length > 0) {
+        const paymentIds = payments.map((p) => p.payment_id);
+        // settlement 삭제
+        await tx.settlement.deleteMany({
+          where: { payment_id: { in: paymentIds } },
+        });
+      }
+      
+      // payment 삭제
+      await tx.payment.deleteMany({
+        where: { purchase_id: { in: purchaseIds } },
+      });
+    }
+    
+    // purchase 삭제
+    await tx.purchase.deleteMany({ where: { prompt_id: promptId } });
+
+    // 관련 데이터 수동 삭제
+    await tx.promptLike.deleteMany({ where: { prompt_id: promptId } });
+    await tx.review.deleteMany({ where: { prompt_id: promptId } });
+    await tx.promptReport.deleteMany({ where: { prompt_id: promptId } });
+    await tx.promptTag.deleteMany({ where: { prompt_id: promptId } });
+    await tx.promptModel.deleteMany({ where: { prompt_id: promptId } });
+    await tx.promptImage.deleteMany({ where: { prompt_id: promptId } });
+    // 프롬프트 삭제
+    return await tx.prompt.delete({
+      where: { prompt_id: promptId },
+    });
+  });
+};

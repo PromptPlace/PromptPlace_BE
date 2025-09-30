@@ -368,6 +368,29 @@ export class MemberController {
     }
   }
 
+  public async adminDeleteHistory(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const historyId = parseInt(req.params.historyId, 10);
+
+      if (isNaN(historyId)) {
+        throw new AppError("유효하지 않은 이력 ID입니다.", 400, "BadRequest");
+      }
+
+      await this.memberService.adminDeleteHistory(historyId);
+
+      res.status(200).json({
+        message: "이력이 성공적으로 삭제되었습니다(관리자).",
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   public async getHistories(
     req: Request,
     res: Response,
