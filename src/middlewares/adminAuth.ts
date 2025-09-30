@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import AppError from "../errors/AppError";
+import { AppError } from "../errors/AppError";
 
 /**
  * 관리자 권한을 확인하는 미들웨어.
@@ -15,6 +15,5 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   }
 
   // 관리자가 아닐 경우 403 Forbidden 에러 반환
-  return next(new AppError("Forbidden", "관리자 권한이 필요합니다.", 403));
+  return next(new AppError("관리자 권한이 필요합니다.", 403, "Forbidden"));
 };
-
