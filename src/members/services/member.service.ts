@@ -227,6 +227,14 @@ export class MemberService {
     return this.memberRepository.deleteHistory(historyId);
   }
 
+  async adminDeleteHistory(historyId: number) {
+    const history = await this.memberRepository.findHistoryById(historyId);
+    if (!history) {
+      throw new AppError("해당 이력을 찾을 수 없습니다.", 404, "NotFound");
+    }
+    return this.memberRepository.adminDeleteHistory(historyId);
+  }
+
   async getHistories(requesterId: number, memberId: number) {
     const user = await this.memberRepository.findUserById(memberId);
     if (!user) {

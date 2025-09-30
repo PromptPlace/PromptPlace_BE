@@ -105,3 +105,7 @@ export const updatePrompt = async (promptId: number, dto: UpdatePromptDto) => {
 export const deletePrompt = async (promptId: number) => {
   return await promptRepository.deletePromptRepo(promptId);
 };
+
+export const adminDeletePrompt = async (promptId: number) => {
+  return await promptRepository.adminDeletePromptRepo(promptId);
+};

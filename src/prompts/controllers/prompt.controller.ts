@@ -367,3 +367,38 @@ export const deletePrompt = async (req: Request, res: Response) => {
   }
 };
 
+export const adminDeletePrompt = async (req: Request, res: Response) => {
+  try {
+    const { promptId } = req.params;
+    const promptIdNum = Number(promptId);
+
+    if (isNaN(promptIdNum)) {
+      return res.fail({
+        statusCode: 400,
+        error: "BadRequest",
+        message: "유효하지 않은 프롬프트 ID입니다.",
+      });
+    }
+
+    await promptService.adminDeletePrompt(promptIdNum);
+
+    return res.success(null, "프롬프트 삭제 성공(관리자)");
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("프롬프트를 찾을 수 없습니다")) {
+      return res.fail({
+        statusCode: 404,
+        error: "NotFound",
+        message: error.message,
+      });
+    }
+    return res.fail({
+      statusCode: 500,
+      error: "InternalServerError",
+      message:
+        error instanceof Error
+          ? error.message
+          : "알 수 없는 오류가 발생했습니다.",
+    });
+  }
+};
+
