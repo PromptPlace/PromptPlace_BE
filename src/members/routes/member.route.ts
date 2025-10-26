@@ -89,9 +89,109 @@ router.get(
 
 /**
  * @swagger
+ * /api/members/me/prompts:
+ *   get:
+ *     summary: 내가 작성한 프롬프트 목록 조회 (상세 정보 포함)
+ *     tags: [Member]
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: query
+ *         name: cursor
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: 페이징 커서
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: 한 페이지에 가져올 개수 (최대 50)
+ *     responses:
+ *       200:
+ *         description: 내 프롬프트 목록 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "회원 프롬프트 목록 조회 완료"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     prompts:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           prompt_id:
+ *                             type: integer
+ *                             example: 6
+ *                           title:
+ *                             type: string
+ *                             example: "프롬프트 4"
+ *                           image_url:
+ *                             type: string
+ *                             nullable: true
+ *                             example: "https://example.com/image.jpg"
+ *                           views:
+ *                             type: integer
+ *                             example: 1
+ *                           downloads:
+ *                             type: integer
+ *                             example: 1
+ *                           reviews:
+ *                             type: object
+ *                             properties:
+ *                               has_more:
+ *                                 type: boolean
+ *                                 example: false
+ *                               data:
+ *                                 type: array
+ *                                 items:
+ *                                   type: object
+ *                                   properties:
+ *                                     nickname:
+ *                                       type: string
+ *                                       example: "PP"
+ *                                     content:
+ *                                       type: string
+ *                                       example: "굳굳"
+ *                                     rating:
+ *                                       type: number
+ *                                       example: 3.8
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         nextCursor:
+ *                           type: integer
+ *                           nullable: true
+ *                           example: null
+ *                         has_more:
+ *                           type: boolean
+ *                           example: false
+ *                         limit:
+ *                           type: integer
+ *                           example: 10
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ */
+// 내가 작성한 프롬프트 목록 조회 API (상세 정보)
+router.get(
+  "/me/prompts",
+  authenticateJwt,
+  memberController.getMyPrompts.bind(memberController)
+);
+
+/**
+ * @swagger
  * /api/members/{memberId}/prompts:
  *   get:
- *     summary: 회원이 작성한 프롬프트 목록 조회
+ *     summary: 특정 회원이 작성한 프롬프트 목록 조회
  *     tags: [Member]
  *     parameters:
  *       - in: path

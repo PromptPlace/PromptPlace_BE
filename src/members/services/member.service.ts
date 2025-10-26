@@ -102,6 +102,14 @@ export class MemberService {
       }));
   }
 
+  async getMyPrompts(userId: number, cursor?: number, limit?: number) {
+    const DEFAULT_LIMIT = 10;
+    const actualLimit =
+      limit && limit > 0 && limit <= 50 ? limit : DEFAULT_LIMIT;
+
+    return await this.memberRepository.getMyPrompts(userId, cursor, actualLimit);
+  }
+
   async getMemberPrompts(memberId: number, cursor?: number, limit?: number) {
     const DEFAULT_LIMIT = 10;
     const actualLimit =
