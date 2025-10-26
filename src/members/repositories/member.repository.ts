@@ -459,6 +459,28 @@ export const getMemberPromptsRepo = async (
     select: {
       prompt_id: true,
       title: true,
+      created_at: true,
+      downloads: true,
+      views: true,
+      is_free: true,
+      price: true,
+      description: true,
+      images: {
+        select: {
+          image_url: true,
+          order_index: true,
+        },
+        orderBy: { order_index: "asc" },
+        take: 1,
+      },
+      reviews: {
+        select: {
+          rating: true,
+          content: true,
+        },
+        orderBy: { created_at: "desc" },
+        take: 1,
+      },
       models: {
         select: {
           model: {
@@ -484,8 +506,26 @@ export const getMemberPromptsRepo = async (
     ? resultPrompts[resultPrompts.length - 1].prompt_id
     : null;
 
+  // 응답 포맷 변환
+  const formatted = resultPrompts.map((p) => ({
+    prompt_id: p.prompt_id,
+    title: p.title,
+    image_url: p.images?.[0]?.image_url || null,
+    created_at: p.created_at,
+    downloads: p.downloads,
+    views: p.views,
+    is_free: p.is_free ? 1 : 0,
+    price: p.price,
+    description: p.description,
+    reviews: p.reviews?.[0]
+      ? { rating: p.reviews[0].rating, content: p.reviews[0].content }
+      : null,
+    models: p.models,
+    tags: p.tags,
+  }));
+
   return {
-    prompts: resultPrompts,
+    prompts: formatted,
     has_more: hasNext,
     nextCursor,
   };
