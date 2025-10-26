@@ -16,6 +16,7 @@ import {
     findNotificationsByUserId,
     getLastNotificationCheckTime,
     getLatestNotificationTime,
+    updateNotificationCheckTime,
 } from '../repositories/notification.repository';
 
 import { NotificationType } from '@prisma/client';
@@ -179,6 +180,8 @@ export const findUserNotificationsService = async (
 
     const slicedNotifications = hasMore ? rawNotifications.slice(0, limit) : rawNotifications;
     
+    await updateNotificationCheckTime(userId); //lastNotificationCheckTime을 NOW()로 update
+
     return UserNotificationListDTO(slicedNotifications, hasMore);
 }
 
