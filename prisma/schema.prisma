@@ -39,6 +39,7 @@ model User {
   withdraw_requests    WithdrawRequest[]
   PreRegisteredAccount PreRegisteredAccount[]
   UserBankAccount      UserBankAccount?
+  notificationSetting  UserNotificationSetting?
 }
 
 model UserIntro {
@@ -151,6 +152,16 @@ model Notification {
   @@index([type])
   @@index([actor_id], map: "Notification_actor_id_fkey")
 }
+
+model UserNotificationSetting {
+  setting_id                        Int       @id @default(autoincrement())
+  user_id                           Int       @unique
+  lastNotificationCheckTime         DateTime? 
+  created_at                        DateTime  @default(now())
+  updated_at                        DateTime  @updatedAt
+  user                              User      @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+}
+
 
 model Message {
   message_id  Int       @id @default(autoincrement())
