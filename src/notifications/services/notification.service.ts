@@ -14,6 +14,8 @@ import {
     findUserByUserId,
     findUsersSubscribedToPrompter,
     findNotificationsByUserId,
+    getLastNotificationCheckTime,
+    getLatestNotificationTime,
 } from '../repositories/notification.repository';
 
 import { NotificationType } from '@prisma/client';
@@ -201,4 +203,28 @@ export const getPrompterNotificationStatusService = async (
     subscribed = true;
 
   return await prompterNotificationStatusDto(userId, prompterId, subscribed);
+};
+
+
+// 알림 신규 여부 조회
+export const getNotificationHasNewStatusService = async (
+  userId: number
+) => {
+  const lastNotificationCheckTime: Date | null = await getLastNotificationCheckTime(userId);
+  const latestNotificationTime: Date | null = await getLatestNotificationTime(userId);
+
+  // 최신 알림이 아예 없는 경우
+  if (latestNotificationTime === null) {
+    return { hasNew: false };
+  }
+
+  // (알림은 있는데) 사용자가 한 번도 확인하지 않은 경우
+  if (lastNotificationCheckTime === null) {
+    return { hasNew: true };
+  }
+
+  // 최신 알림 시간이 마지막 확인 시간보다 최신인지 비교
+  const hasNew = latestNotificationTime > lastNotificationCheckTime;
+
+  return { hasNew };
 };

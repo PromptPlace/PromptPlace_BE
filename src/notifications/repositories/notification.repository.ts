@@ -123,3 +123,37 @@ export const findNotificationsByUserId = async (
   });
 };
  
+
+// 사용자 마지막 알림 확인 시간 조회
+export const getLastNotificationCheckTime = async (
+  userId: number
+) => {
+  const user = await prisma.userNotificationSetting.findUnique({
+    where: {
+      user_id: userId
+    }
+  });
+  return user?.last_notification_check_time || null; 
+};
+
+
+// 최신 알람 시간 조회
+export const getLatestNotificationTime = async (
+  userId: number
+) => {
+  const notification = await prisma.notification.findFirst({
+    where: {
+      user_id: userId
+    },
+    // 최신순으로 정렬
+    orderBy: {
+      created_at: 'desc'
+    },
+    // created_at 필드만 선택
+    select: {
+      created_at: true
+    }
+  });
+
+  return notification?.created_at || null;
+};
