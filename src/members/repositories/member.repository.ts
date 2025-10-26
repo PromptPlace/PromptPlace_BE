@@ -358,6 +358,87 @@ export class MemberRepository {
       total_pages: Math.ceil(total / limit),
     };
   }
+
+  async getMyPrompts(userId: number, cursor?: number, limit: number = 10) {
+    const whereCondition: any = { user_id: userId };
+
+    // 커서가 있으면 해당 ID보다 작은 것들만 조회 (최신순이므로)
+    if (cursor) {
+      whereCondition.prompt_id = { lt: cursor };
+    }
+
+    // limit + 1개를 가져와서 다음 페이지 존재 여부 확인
+    const prompts = await prisma.prompt.findMany({
+      where: whereCondition,
+      select: {
+        prompt_id: true,
+        title: true,
+        downloads: true,
+        views: true,
+        images: {
+          select: {
+            image_url: true,
+            order_index: true,
+          },
+          orderBy: {
+            order_index: "asc",
+          },
+          take: 1, // 첫 번째 이미지만
+        },
+        reviews: {
+          select: {
+            rating: true,
+            content: true,
+            user: {
+              select: {
+                nickname: true,
+              },
+            },
+          },
+          orderBy: {
+            created_at: "desc",
+          },
+          take: 4, // 최대 3개의 리뷰만 가져오고, 4개를 가져와서 has_more 판단
+        },
+      },
+      orderBy: { prompt_id: "desc" }, // 최신순 (ID 내림차순)
+      take: limit + 1,
+    });
+
+    const hasNext = prompts.length > limit;
+    const resultPrompts = hasNext ? prompts.slice(0, limit) : prompts;
+    const nextCursor = hasNext
+      ? resultPrompts[resultPrompts.length - 1].prompt_id
+      : null;
+
+    // 데이터 가공
+    const formattedPrompts = resultPrompts.map((prompt) => {
+      const reviewsData = prompt.reviews.slice(0, 3); // 최대 3개만
+      const hasMoreReviews = prompt.reviews.length > 3;
+
+      return {
+        prompt_id: prompt.prompt_id,
+        title: prompt.title,
+        image_url: prompt.images[0]?.image_url || null,
+        views: prompt.views,
+        downloads: prompt.downloads,
+        reviews: {
+          has_more: hasMoreReviews,
+          data: reviewsData.map((review) => ({
+            nickname: review.user.nickname,
+            content: review.content,
+            rating: review.rating,
+          })),
+        },
+      };
+    });
+
+    return {
+      prompts: formattedPrompts,
+      has_more: hasNext,
+      nextCursor,
+    };
+  }
 }
 
 export const getMemberPromptsRepo = async (
@@ -378,6 +459,28 @@ export const getMemberPromptsRepo = async (
     select: {
       prompt_id: true,
       title: true,
+      created_at: true,
+      downloads: true,
+      views: true,
+      is_free: true,
+      price: true,
+      description: true,
+      images: {
+        select: {
+          image_url: true,
+          order_index: true,
+        },
+        orderBy: { order_index: "asc" },
+        take: 1,
+      },
+      reviews: {
+        select: {
+          rating: true,
+          content: true,
+        },
+        orderBy: { created_at: "desc" },
+        take: 1,
+      },
       models: {
         select: {
           model: {
@@ -403,8 +506,26 @@ export const getMemberPromptsRepo = async (
     ? resultPrompts[resultPrompts.length - 1].prompt_id
     : null;
 
+  // 응답 포맷 변환
+  const formatted = resultPrompts.map((p) => ({
+    prompt_id: p.prompt_id,
+    title: p.title,
+    image_url: p.images?.[0]?.image_url || null,
+    created_at: p.created_at,
+    downloads: p.downloads,
+    views: p.views,
+    is_free: p.is_free ? 1 : 0,
+    price: p.price,
+    description: p.description,
+    reviews: p.reviews?.[0]
+      ? { rating: p.reviews[0].rating, content: p.reviews[0].content }
+      : null,
+    models: p.models,
+    tags: p.tags,
+  }));
+
   return {
-    prompts: resultPrompts,
+    prompts: formatted,
     has_more: hasNext,
     nextCursor,
   };
