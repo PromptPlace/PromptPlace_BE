@@ -17,11 +17,14 @@ import {
     getLastNotificationCheckTime,
     getLatestNotificationTime,
     updateNotificationCheckTime,
+    createNotificationCheckTime,
+    getUserNotificationSetting,
 } from '../repositories/notification.repository';
 
 import { NotificationType } from '@prisma/client';
 
 import eventBus from '../../config/eventBus';
+import { get } from 'http';
 
 
 
@@ -180,7 +183,12 @@ export const findUserNotificationsService = async (
 
     const slicedNotifications = hasMore ? rawNotifications.slice(0, limit) : rawNotifications;
     
-    await updateNotificationCheckTime(userId); //lastNotificationCheckTime을 NOW()로 update
+    const notificationCheckTime = await getUserNotificationSetting(userId);
+    if(notificationCheckTime === null){ // 한 번도 알림을 확인한 적이 없다면
+      await createNotificationCheckTime(userId);//lastNotificationCheckTime 생성
+    } else {
+      await updateNotificationCheckTime(userId);//lastNotificationCheckTime update
+    } 
 
     return UserNotificationListDTO(slicedNotifications, hasMore);
 }

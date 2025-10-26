@@ -158,6 +158,28 @@ export const getLatestNotificationTime = async (
   return notification?.created_at || null;
 };
 
+export const getUserNotificationSetting = async (
+  userId: number
+) => {    
+  const setting = await prisma.userNotificationSetting.findUnique({
+    where: {
+      user_id: userId
+    }
+  });
+  return setting;
+};
+
+
+export const createNotificationCheckTime = async (
+  userId: number
+) => {  
+  await prisma.userNotificationSetting.create({
+    data: {
+      user_id: userId,
+      last_notification_check_time: new Date()
+    }
+  });
+};
 
 export const updateNotificationCheckTime = async (
   userId: number

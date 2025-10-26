@@ -147,9 +147,9 @@ export const getNotificationHasNewStatus = async (
     });
     return;
   }
+
     try {
     const userId = (req.user as { user_id: number }).user_id;
-
     const hasNew = await getNotificationHasNewStatusService(userId);
 
     res.success(
