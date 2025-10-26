@@ -145,8 +145,6 @@ CREATE TABLE `Prompt` (
     `downloads` INTEGER NOT NULL,
     `views` INTEGER NOT NULL,
     `likes` INTEGER NOT NULL,
-    `review_counts` INTEGER NOT NULL,
-    `rating_avg` DOUBLE NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
     `inactive_date` DATETIME(3) NULL,
