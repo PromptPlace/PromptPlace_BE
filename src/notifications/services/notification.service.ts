@@ -14,11 +14,17 @@ import {
     findUserByUserId,
     findUsersSubscribedToPrompter,
     findNotificationsByUserId,
+    getLastNotificationCheckTime,
+    getLatestNotificationTime,
+    updateNotificationCheckTime,
+    createNotificationCheckTime,
+    getUserNotificationSetting,
 } from '../repositories/notification.repository';
 
 import { NotificationType } from '@prisma/client';
 
 import eventBus from '../../config/eventBus';
+import { get } from 'http';
 
 
 
@@ -177,6 +183,13 @@ export const findUserNotificationsService = async (
 
     const slicedNotifications = hasMore ? rawNotifications.slice(0, limit) : rawNotifications;
     
+    const notificationCheckTime = await getUserNotificationSetting(userId);
+    if(notificationCheckTime === null){ // 한 번도 알림을 확인한 적이 없다면
+      await createNotificationCheckTime(userId);//lastNotificationCheckTime 생성
+    } else {
+      await updateNotificationCheckTime(userId);//lastNotificationCheckTime update
+    } 
+
     return UserNotificationListDTO(slicedNotifications, hasMore);
 }
 
@@ -201,4 +214,28 @@ export const getPrompterNotificationStatusService = async (
     subscribed = true;
 
   return await prompterNotificationStatusDto(userId, prompterId, subscribed);
+};
+
+
+// 알림 신규 여부 조회
+export const getNotificationHasNewStatusService = async (
+  userId: number
+) => {
+  const lastNotificationCheckTime: Date | null = await getLastNotificationCheckTime(userId);
+  const latestNotificationTime: Date | null = await getLatestNotificationTime(userId);
+
+  // 최신 알림이 아예 없는 경우
+  if (latestNotificationTime === null) {
+    return { hasNew: false };
+  }
+
+  // (알림은 있는데) 사용자가 한 번도 확인하지 않은 경우
+  if (lastNotificationCheckTime === null) {
+    return { hasNew: true };
+  }
+
+  // 최신 알림 시간이 마지막 확인 시간보다 최신인지 비교
+  const hasNew = latestNotificationTime > lastNotificationCheckTime;
+
+  return { hasNew };
 };

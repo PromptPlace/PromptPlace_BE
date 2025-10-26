@@ -4,6 +4,7 @@ import {
     toggleNotificationSubscription,
     getNotificationList,
     getPrompterNotificationStatus,
+    getNotificationHasNewStatus
 } from '../controllers/notification.controller';
 
 const router = express.Router();
@@ -132,6 +133,37 @@ router.get('/me', authenticateJwt, getNotificationList); // 알림 목록 조회
  */
 
 router.post('/:prompterId', authenticateJwt, toggleNotificationSubscription); // 프롬프터 알림 설정, 취소
+
+/**
+ * @swagger
+ * /api/notifications/status/has-new:
+ *   get:
+ *     summary: 새로운 알림 존재 여부 조회
+ *     description: |
+ *       사용자의 새로운 알림 존재 여부를 조회합니다.  
+ *       `data.hasNew`가 `true`이면 새로운 알림이 존재함을 의미합니다.
+ *     tags: [Notifications]
+ *     security:
+ *       - jwt: []
+ *     responses:
+ *       200:
+ *         description: 사용자의 새 알림 상태를 성공적으로 조회했습니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 message: 사용자의 새 알림 상태를 성공적으로 조회했습니다.
+ *                 data:
+ *                   hasNew: true
+ *                 statusCode: 200
+ *       401:
+ *         description: 인증 실패 (JWT 토큰 누락 또는 만료)
+ *       500:
+ *         description: 서버 오류
+ */
+router.get('/status/has-new', authenticateJwt, getNotificationHasNewStatus); // 새로운 알림 존재 여부 조회
+
 /**
  * @swagger
  * /api/notifications/status/{prompterId}:
@@ -169,4 +201,6 @@ router.post('/:prompterId', authenticateJwt, toggleNotificationSubscription); //
  *         description: 서버 오류
  */
 router.get('/status/:prompterId', authenticateJwt, getPrompterNotificationStatus); // 프롬프터 알림 설정 여부 조회
+
+
 export default router;

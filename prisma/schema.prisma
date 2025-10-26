@@ -156,7 +156,7 @@ model Notification {
 model UserNotificationSetting {
   setting_id                        Int       @id @default(autoincrement())
   user_id                           Int       @unique
-  lastNotificationCheckTime         DateTime? 
+  last_notification_check_time      DateTime? 
   created_at                        DateTime  @default(now())
   updated_at                        DateTime  @updatedAt
   user                              User      @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
