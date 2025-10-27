@@ -115,3 +115,25 @@ export const deletePrompt = async (promptId: number) => {
 export const adminDeletePrompt = async (promptId: number) => {
   return await promptRepository.adminDeletePromptRepo(promptId);
 };
+
+export const getGroupedCategories = async () => {
+  const data = await promptRepository.getGroupedCategories();
+  const result: { [key: string]: string[] } = {};
+
+  for (const mainCategory of data) {
+    result[mainCategory.name] = mainCategory.categories.map(c => c.name);
+  }
+
+  return result;
+};
+
+export const getGroupedModels = async () => {
+  const data = await promptRepository.getGroupedModels();
+  const result: { [key: string]: string[] } = {};
+
+  for (const modelCategory of data) {
+    result[modelCategory.name] = modelCategory.models.map(m => m.name);
+  }
+
+  return result;
+};

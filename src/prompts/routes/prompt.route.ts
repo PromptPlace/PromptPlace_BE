@@ -411,4 +411,31 @@ router.patch("/:promptId", authenticateJwt, promptController.updatePrompt);
 // 프롬프트 삭제 API
 router.delete("/:promptId", authenticateJwt, promptController.deletePrompt);
 
+/**
+ * @swagger
+ * /api/prompts/categories:
+ *   get:
+ *     summary: 카테고리 목록 조회
+ *     description: 모든 카테고리를 대분류별로 그룹화하여 조회합니다.
+ *     tags: [Prompts]
+ *     responses:
+ *       200:
+ *         description: 카테고리 조회 성공
+ */
+router.get("/categories", promptController.getGroupedCategories);
+
+/**
+ * @swagger
+ * /api/prompts/models:
+ *   get:
+ *     summary: 모델 목록 조회
+ *     description: 모든 모델을 분류별로 그룹화하여 조회합니다.
+ *     tags: [Prompts]
+ *     responses:
+ *       200:
+ *         description: 모델 조회 성공
+ */
+router.get("/models", promptController.getGroupedModels);
+
+
 export default router;

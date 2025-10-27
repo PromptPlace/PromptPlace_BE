@@ -649,3 +649,27 @@ export const adminDeletePromptRepo = async (promptId: number) => {
     });
   });
 };
+
+export const getGroupedCategories = async () => {
+  return await prisma.mainCategory.findMany({
+    include: {
+      categories: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+};
+
+export const getGroupedModels = async () => {
+  return await prisma.modelCategory.findMany({
+    include: {
+      models: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+};

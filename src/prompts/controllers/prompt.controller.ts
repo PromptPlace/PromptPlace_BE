@@ -422,3 +422,21 @@ export const adminDeletePrompt = async (req: Request, res: Response) => {
   }
 };
 
+export const getGroupedCategories = async (req: Request, res: Response) => {
+  try {
+    const categories = await promptService.getGroupedCategories();
+    return res.success(categories, "카테고리 조회 성공");
+  } catch (error) {
+    return errorHandler(error, req, res, () => {});
+  }
+};
+
+export const getGroupedModels = async (req: Request, res: Response) => {
+  try {
+    const models = await promptService.getGroupedModels();
+    return res.success(models, "모델 조회 성공");
+  } catch (error) {
+    return errorHandler(error, req, res, () => {});
+  }
+};
+
