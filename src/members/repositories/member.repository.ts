@@ -497,9 +497,9 @@ export const getMemberPromptsRepo = async (
           },
         },
       },
-      tags: {
+      categories: {
         select: {
-          tag: {
+          category: {
             select: { name: true },
           },
         },
@@ -529,8 +529,8 @@ export const getMemberPromptsRepo = async (
     reviews: p.reviews?.[0]
       ? { rating: p.reviews[0].rating, content: p.reviews[0].content }
       : null,
-    models: p.models,
-    tags: p.tags,
+    models: p.models.map((m: any) => m.model.name),
+    categories: p.categories.map((c: any) => c.category.name),
   }));
 
   return {

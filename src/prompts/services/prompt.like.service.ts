@@ -21,12 +21,14 @@ export const PromptLikeService = {
 
     return likes.map((like) => {
       const prompt = like.prompt;
+      if (!prompt) return null;
 
       return {
         prompt_id: prompt.prompt_id,
         title: prompt.title,
-        models: prompt.models.map((m) => m.model.name),
-        tags: prompt.tags.map((t) => t.tag.name),
+        image_url: prompt.images?.[0]?.image_url || null,
+        models: prompt.models.map((m: any) => m.model.name),
+        categories: prompt.categories.map((c: any) => c.category.name),
       };
     });
   },

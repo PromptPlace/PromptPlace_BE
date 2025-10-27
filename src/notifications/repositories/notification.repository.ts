@@ -133,7 +133,7 @@ export const getLastNotificationCheckTime = async (
       user_id: userId
     }
   });
-  return user?.lastNotificationCheckTime || null; 
+  return user?.last_notification_check_time || null; 
 };
 
 
@@ -176,7 +176,7 @@ export const createNotificationCheckTime = async (
   await prisma.userNotificationSetting.create({
     data: {
       user_id: userId,
-      lastNotificationCheckTime: new Date()
+      last_notification_check_time: new Date()
     }
   });
 };
@@ -189,7 +189,7 @@ export const updateNotificationCheckTime = async (
       user_id: userId
     },
     data: {
-      lastNotificationCheckTime: new Date()
+      last_notification_check_time: new Date()
     }
   });
 };

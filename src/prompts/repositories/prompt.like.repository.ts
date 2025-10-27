@@ -42,12 +42,17 @@ export const getLikedPromptsByUser = async (userId: number) => {
               },
             },
           },
-          tags: {
+          categories: {
             include: {
-              tag: {
+              category: {
                 select: { name: true },
               },
             },
+          },
+          images: {
+            select: { image_url: true },
+            orderBy: { order_index: 'asc' },
+            take: 1,
           },
         },
       },
