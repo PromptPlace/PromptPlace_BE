@@ -197,6 +197,15 @@ export class MemberRepository {
       include: {
         intro: true,
         profileImage: true, // 프로필 이미지 포함
+        _count: {
+          select: {
+            receivedMessages: {
+              where: {
+                is_read: false,
+              },
+            },
+          },
+        },
       },
     });
   }
