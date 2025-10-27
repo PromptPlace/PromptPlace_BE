@@ -11,7 +11,7 @@ export const searchPrompts = async (req: Request, res: Response) => {
   try {
     const {
       model,
-      tag,
+      category,
       keyword,
       page = "1",
       size = String(DEFAULT_PROMPT_SEARCH_SIZE),
@@ -19,13 +19,13 @@ export const searchPrompts = async (req: Request, res: Response) => {
       is_free = "false",
     } = req.body;
 
-    // tag가 문자열인 경우 배열로 변환
+    // category가 문자열인 경우 배열로 변환
     const modelArray = typeof model === "string" ? [model] : (model as string[]) || [];
-    const tagArray = typeof tag === "string" ? [tag] : (tag as string[]) || [];
+    const categoryArray = typeof category === "string" ? [category] : (category as string[]) || [];
 
     const dto: SearchPromptDto = {
       model: modelArray,
-      tag: tagArray,
+      category: categoryArray,
       keyword,
       page: Number(page),
       size: Number(size),
@@ -159,8 +159,6 @@ export const createPromptImage = async (req: Request, res: Response) => {
 
 export const createPrompt = async (req: Request, res: Response) => {
   try {
-    console.log("Received Body:", req.body); // 디버깅용 로그
-
     // 1. 인증 확인
     if (!req.user) {
       return res.fail({
@@ -172,7 +170,7 @@ export const createPrompt = async (req: Request, res: Response) => {
     const userId = (req.user as { user_id: number }).user_id;
 
     // 2. DTO 유효성 검사 (값 유형별 정밀 검증: 0, false 허용)
-    const dto = req.body as any;
+    const dto = req.body as CreatePromptDto;
     const invalidFields: string[] = [];
 
     // 문자열 필수 필드: 빈 문자열 불가
@@ -180,6 +178,11 @@ export const createPrompt = async (req: Request, res: Response) => {
     for (const key of stringRequired) {
       if (typeof dto[key] !== "string" || !dto[key].trim())
         invalidFields.push(key);
+    }
+
+    // model_version: 선택적, 50자 제한
+    if (dto.model_version && (typeof dto.model_version !== 'string' || dto.model_version.length > 50)) {
+      invalidFields.push('model_version');
     }
 
     // 숫자 필수 필드: 0 허용, 숫자형이어야 함
@@ -192,8 +195,8 @@ export const createPrompt = async (req: Request, res: Response) => {
       invalidFields.push("is_free");
     }
 
+
     if (invalidFields.length > 0) {
-      console.log("Invalid or missing fields:", invalidFields);
       return res.fail({
         statusCode: 400,
         error: "BadRequest",
@@ -202,9 +205,6 @@ export const createPrompt = async (req: Request, res: Response) => {
         )})가 누락되었거나 형식이 올바르지 않습니다.`,
       });
     }
-
-    // has_image 기본값 설정
-    dto.has_image = dto.has_image ?? false;
 
     // 3. 서비스 호출
     const result = await promptService.createPromptWrite(userId, dto);
@@ -222,7 +222,17 @@ export const createPrompt = async (req: Request, res: Response) => {
         message: error.message,
       });
     }
-
+    if (
+      error instanceof Error &&
+      error.message.includes("카테고리") &&
+      error.message.includes("존재하지 않습니다")
+    ) {
+      return res.fail({
+        statusCode: 404,
+        error: "NotFound",
+        message: error.message,
+      });
+    }
     // 5. 그 외 모든 에러는 공통 핸들러로 위임
     return errorHandler(error, req, res, () => {});
   }
@@ -287,7 +297,17 @@ export const updatePrompt = async (req: Request, res: Response) => {
         message: error.message,
       });
     }
-
+    if (
+      error instanceof Error &&
+      error.message.includes("카테고리") &&
+      error.message.includes("존재하지 않습니다")
+    ) {
+      return res.fail({
+        statusCode: 404,
+        error: "NotFound",
+        message: error.message,
+      });
+    }
     return res.fail({
       statusCode: 500,
       error: "InternalServerError",
@@ -399,6 +419,24 @@ export const adminDeletePrompt = async (req: Request, res: Response) => {
           ? error.message
           : "알 수 없는 오류가 발생했습니다.",
     });
+  }
+};
+
+export const getGroupedCategories = async (req: Request, res: Response) => {
+  try {
+    const categories = await promptService.getGroupedCategories();
+    return res.success(categories, "카테고리 조회 성공");
+  } catch (error) {
+    return errorHandler(error, req, res, () => {});
+  }
+};
+
+export const getGroupedModels = async (req: Request, res: Response) => {
+  try {
+    const models = await promptService.getGroupedModels();
+    return res.success(models, "모델 조회 성공");
+  } catch (error) {
+    return errorHandler(error, req, res, () => {});
   }
 };
 

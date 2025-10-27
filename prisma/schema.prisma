@@ -248,6 +248,7 @@ model Prompt {
   downloads      Int
   views          Int
   likes          Int
+  model_version  String         @db.VarChar(50) @default("")
   created_at     DateTime       @default(now())
   updated_at     DateTime       @updatedAt
   inactive_date  DateTime?
@@ -256,7 +257,7 @@ model Prompt {
   prompt_likes   PromptLike[]
   models         PromptModel[]
   prompt_reports PromptReport[] @relation("PromptReport")
-  tags           PromptTag[]
+  categories     PromptCategory[]
   purchases      Purchase[]
   reviews        Review[]
 
@@ -275,26 +276,46 @@ model PromptModel {
 }
 
 model Model {
-  model_id      Int           @id @default(autoincrement())
-  name          String        @db.VarChar(50)
-  prompt_models PromptModel[]
+  model_id          Int           @id @default(autoincrement())
+  name              String        @db.VarChar(50)
+  model_category_id Int
+  modelCategory     ModelCategory @relation(fields: [model_category_id], references: [id])
+  prompt_models     PromptModel[]
+
+  @@index([model_category_id])
 }
 
-model PromptTag {
-  prompttag_id Int    @id @default(autoincrement())
-  prompt_id    Int
-  tag_id       Int
-  prompt       Prompt @relation(fields: [prompt_id], references: [prompt_id])
-  tag          Tag    @relation(fields: [tag_id], references: [tag_id])
+model ModelCategory {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique @db.VarChar(50)
+  models Model[]
+}
+
+model PromptCategory {
+  promptcategory_id Int      @id @default(autoincrement())
+  prompt_id         Int
+  category_id       Int
+  prompt            Prompt   @relation(fields: [prompt_id], references: [prompt_id])
+  category          Category @relation(fields: [category_id], references: [category_id])
 
   @@index([prompt_id], map: "PromptTag_prompt_id_fkey")
-  @@index([tag_id], map: "PromptTag_tag_id_fkey")
+  @@index([category_id], map: "PromptTag_tag_id_fkey")
 }
 
-model Tag {
-  tag_id      Int         @id @default(autoincrement())
-  name        String      @db.VarChar(50)
-  prompt_tags PromptTag[]
+model Category {
+  category_id       Int              @id @default(autoincrement())
+  name              String           @db.VarChar(50)
+  main_category_id  Int
+  mainCategory      MainCategory     @relation(fields: [main_category_id], references: [id])
+  prompt_categories PromptCategory[]
+
+  @@index([main_category_id])
+}
+
+model MainCategory {
+  id         Int        @id @default(autoincrement())
+  name       String     @unique @db.VarChar(50)
+  categories Category[]
 }
 
 model RefreshToken {

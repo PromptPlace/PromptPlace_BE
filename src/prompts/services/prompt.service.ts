@@ -86,6 +86,9 @@ export const createPromptWrite = async (
   user_id: number,
   dto: CreatePromptDto
 ) => {
+  if (dto.categories && dto.categories.length > 5) {
+    throw new Error("카테고리는 최대 5개까지 선택할 수 있습니다.");
+  }
   const prompt = await promptRepository.createPromptWriteRepo(user_id, dto);
   
   // 새 프롬프트 업로드 알림 이벤트 발생
@@ -99,6 +102,9 @@ export const getPromptById = async (promptId: number) => {
 };
 
 export const updatePrompt = async (promptId: number, dto: UpdatePromptDto) => {
+  if (dto.categories && dto.categories.length > 5) {
+    throw new Error("카테고리는 최대 5개까지 선택할 수 있습니다.");
+  }
   return await promptRepository.updatePromptRepo(promptId, dto);
 };
 
@@ -108,4 +114,26 @@ export const deletePrompt = async (promptId: number) => {
 
 export const adminDeletePrompt = async (promptId: number) => {
   return await promptRepository.adminDeletePromptRepo(promptId);
+};
+
+export const getGroupedCategories = async () => {
+  const data = await promptRepository.getGroupedCategories();
+  const result: { [key: string]: string[] } = {};
+
+  for (const mainCategory of data) {
+    result[mainCategory.name] = mainCategory.categories.map(c => c.name);
+  }
+
+  return result;
+};
+
+export const getGroupedModels = async () => {
+  const data = await promptRepository.getGroupedModels();
+  const result: { [key: string]: string[] } = {};
+
+  for (const modelCategory of data) {
+    result[modelCategory.name] = modelCategory.models.map(m => m.name);
+  }
+
+  return result;
 };

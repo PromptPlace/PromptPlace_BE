@@ -1,6 +1,6 @@
 export interface SearchPromptDto {
   model: string[] | null;
-  tag: string[] | null;
+  category: string[] | null;
   keyword: string | null;
   page: number;
   size: number;
