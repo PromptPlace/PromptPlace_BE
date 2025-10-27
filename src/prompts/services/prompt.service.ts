@@ -86,6 +86,9 @@ export const createPromptWrite = async (
   user_id: number,
   dto: CreatePromptDto
 ) => {
+  if (dto.categories && dto.categories.length > 5) {
+    throw new Error("카테고리는 최대 5개까지 선택할 수 있습니다.");
+  }
   const prompt = await promptRepository.createPromptWriteRepo(user_id, dto);
   
   // 새 프롬프트 업로드 알림 이벤트 발생
@@ -99,6 +102,9 @@ export const getPromptById = async (promptId: number) => {
 };
 
 export const updatePrompt = async (promptId: number, dto: UpdatePromptDto) => {
+  if (dto.categories && dto.categories.length > 5) {
+    throw new Error("카테고리는 최대 5개까지 선택할 수 있습니다.");
+  }
   return await promptRepository.updatePromptRepo(promptId, dto);
 };
 
