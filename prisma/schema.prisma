@@ -12,6 +12,7 @@ model User {
   name                 String                     @db.VarChar(50)
   nickname             String                     @db.VarChar(50)
   email                String                     @unique @db.VarChar(255)
+  password             String                     @db.VarChar(255)
   social_type          String                     @db.VarChar(50)
   status               Boolean
   inactive_date        DateTime?
@@ -40,6 +41,19 @@ model User {
   PreRegisteredAccount PreRegisteredAccount[]
   UserBankAccount      UserBankAccount?
   notificationSetting  UserNotificationSetting?
+  consents             UserConsent[]
+}
+
+model UserConsent {
+  id             Int      @id @default(autoincrement())
+  user_id        Int
+  consent_type   String   @db.VarChar(50) 
+  is_agreed      Boolean  
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  user           User     @relation(fields: [user_id], references: [user_id])
+  
+  @@unique([user_id, consent_type]) 
 }
 
 model UserIntro {
