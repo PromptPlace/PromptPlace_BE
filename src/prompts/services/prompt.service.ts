@@ -121,7 +121,7 @@ export const getGroupedCategories = async () => {
   const result: { [key: string]: string[] } = {};
 
   for (const mainCategory of data) {
-    result[mainCategory.name] = mainCategory.categories.map(c => c.name);
+    result[mainCategory.name] = mainCategory.categories.map((c: { name: string }) => c.name);
   }
 
   return result;
@@ -132,7 +132,7 @@ export const getGroupedModels = async () => {
   const result: { [key: string]: string[] } = {};
 
   for (const modelCategory of data) {
-    result[modelCategory.name] = modelCategory.models.map(m => m.name);
+    result[modelCategory.name] = modelCategory.models.map((m: { name: string }) => m.name);
   }
 
   return result;

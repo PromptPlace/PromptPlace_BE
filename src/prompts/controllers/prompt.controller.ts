@@ -174,11 +174,10 @@ export const createPrompt = async (req: Request, res: Response) => {
     const invalidFields: string[] = [];
 
     // 문자열 필수 필드: 빈 문자열 불가
-    const stringRequired = ['title', 'prompt', 'description'];
-    for (const key of stringRequired) {
-      if (typeof dto[key] !== "string" || !dto[key].trim())
-        invalidFields.push(key);
-    }
+    if (typeof dto.title !== 'string' || !dto.title.trim()) invalidFields.push('title');
+    if (typeof dto.prompt !== 'string' || !dto.prompt.trim()) invalidFields.push('prompt');
+    if (typeof dto.description !== 'string' || !dto.description.trim()) invalidFields.push('description');
+
 
     // model_version: 선택적, 50자 제한
     if (dto.model_version && (typeof dto.model_version !== 'string' || dto.model_version.length > 50)) {
