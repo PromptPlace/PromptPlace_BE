@@ -28,6 +28,7 @@ import "./notifications/listeners/notification.listener"; // 알림 리스터 im
 import messageRouter from "./messages/routes/message.route";
 import adminPromptRouter from "./prompts/routes/admin-prompt.route";
 import adminMemberRouter from "./members/routes/admin-member.route";
+import signupRouter from "./signup/routes/signup.route"
 
 const PORT = 3000;
 const app = express();
@@ -87,6 +88,10 @@ app.use(
 );
 
 // 3. 모든 라우터들
+
+// 회원가입 라우터
+app.use("/api/auth/signup", signupRouter);
+
 // 인증 라우터
 app.use("/api/auth", authRouter); // /api 접두사 추가
 
