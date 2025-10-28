@@ -60,9 +60,12 @@ jobs:
         run: |
           ssh prod 'cd /opt/app && pnpm install --frozen-lockfile && pnpm build'
 
-      - name: Prisma generate
+      - name: Install, Generate & Build on server
         run: |
-          ssh prod 'cd /opt/app && pnpm exec prisma generate'
+          ssh prod 'cd /opt/app && \
+          pnpm install --frozen-lockfile && \
+          pnpm exec prisma generate && \
+          pnpm build'
 
       - name: Prisma migrate (only when schema changed)
         if: steps.paths-filter.outputs.prisma == 'true'
