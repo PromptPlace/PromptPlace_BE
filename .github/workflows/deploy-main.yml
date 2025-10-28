@@ -56,10 +56,6 @@ jobs:
           ${{ secrets.ENV_CONTENT }}
           EOF'
 
-      - name: Install & Build on server
-        run: |
-          ssh prod 'cd /opt/app && pnpm install --frozen-lockfile && pnpm build'
-
       - name: Install, Generate & Build on server
         run: |
           ssh prod 'cd /opt/app && \
