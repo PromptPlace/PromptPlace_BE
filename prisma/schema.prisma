@@ -13,6 +13,7 @@ model User {
   nickname             String                     @db.VarChar(50)
   email                String                     @unique @db.VarChar(255)
   password             String?                    @db.VarChar(255)
+  is_initial_setup_required Boolean               @default(true)
   social_type          String                     @db.VarChar(50)
   status               Boolean
   inactive_date        DateTime?
