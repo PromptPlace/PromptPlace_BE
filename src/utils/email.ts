@@ -3,18 +3,27 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const sendVerificationEmail = async (to: string, code: string) => {
+    
+  const emailUser = process.env.EMAIL_USER;
+  const emailPass = process.env.EMAIL_APP_PASSWORD; 
+
+  if (!emailUser || !emailPass) {
+      throw new Error("SMTP 인증 정보(EMAIL_USER 또는 EMAIL_APP_PASSWORD)가 환경 변수에 설정되지 않았습니다.");
+  }
+  
   const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST, // e.g., smtp.gmail.com
-    port: Number(process.env.EMAIL_PORT),
-    secure: process.env.EMAIL_SECURE === "true", // TLS 사용 여부
+    host: "smtp.gmail.com", 
+    port: 587,
+    secure: false, 
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: emailUser, 
+      pass: emailPass, 
     },
+    requireTLS: true, 
   });
 
   const mailOptions = {
-    from: `"PromptPlace" <${process.env.EMAIL_USER}>`,
+    from: `"PromptPlace" <${emailUser}>`,
     to,
     subject: "이메일 인증번호 안내",
     html: `
@@ -27,5 +36,12 @@ export const sendVerificationEmail = async (to: string, code: string) => {
     `,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Verification email sent to ${to}`);
+  } catch (error) {
+    console.error(`Error sending email to ${to}:`, error);
+    const errorMessage = error instanceof Error ? error.message : "알 수 없는 이메일 발송 오류";
+    throw new Error(`이메일 발송에 실패했습니다: ${errorMessage}`);
+  }
 };
