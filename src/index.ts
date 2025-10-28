@@ -30,6 +30,7 @@ import adminPromptRouter from "./prompts/routes/admin-prompt.route";
 import adminMemberRouter from "./members/routes/admin-member.route";
 import signupRouter from "./signup/routes/signup.route"
 import signinRouter from "./signin/routes/signin.route";
+import passwordRouter from "./password/routes/password.route";
 
 const PORT = 3000;
 const app = express();
@@ -98,6 +99,9 @@ app.use("/api/auth/signin", signinRouter);
 
 // 회원가입 라우터
 app.use("/api/auth/signup", signupRouter);
+
+// 비밀번호 찾기 라우터
+app.use("/api/auth", passwordRouter);
 
 // 인증 라우터
 app.use("/api/auth", authRouter); // /api 접두사 추가
