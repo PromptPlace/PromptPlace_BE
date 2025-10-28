@@ -25,10 +25,10 @@ export const sendVerificationEmail = async (to: string, code: string) => {
   const mailOptions = {
     from: `"PromptPlace" <${emailUser}>`,
     to,
-    subject: "이메일 인증번호 안내",
+    subject: "프롬프트 플레이스 이메일 인증번호 안내",
     html: `
       <div style="font-family: Arial, sans-serif; padding: 20px;">
-        <h2>이메일 인증</h2>
+        <h2>프롬프트 플레이스 이메일 인증</h2>
         <p>아래 인증번호를 입력해주세요.</p>
         <h3 style="color: #0066ff;">${code}</h3>
         <p style="color: #888;">본 인증번호는 5분간 유효합니다.</p>

@@ -16,6 +16,11 @@ http://promptplace.kro.kr {
                 Referrer-Policy "strict-origin-when-cross-origin"
         }
 
+        # api-docs 요청을 앱으로 전달
+        handle /api-docs {
+                reverse_proxy app:3000
+        }
+        
         # /api/* 요청만 app:3000으로 프록시
         handle /api/* {
                 reverse_proxy app:3000 {

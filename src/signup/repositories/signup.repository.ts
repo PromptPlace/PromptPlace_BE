@@ -13,8 +13,8 @@ export const signupRepository = {
         password: hashedPassword,
         status: true,
         role: "USER",
-        name: '미정', 
-        nickname: 'temp_user_nickname'+ Date.now(),
+        name: '유저', 
+        nickname: 'user_nickname'+ Date.now(),
         social_type: 'NONE',
       },
     });
