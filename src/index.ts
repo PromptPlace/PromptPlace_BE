@@ -101,7 +101,7 @@ app.use("/api/auth/signin", signinRouter);
 app.use("/api/auth/signup", signupRouter);
 
 // 비밀번호 찾기 라우터
-app.use("/api/auth", passwordRouter);
+app.use("/api/auth/password", passwordRouter);
 
 // 인증 라우터
 app.use("/api/auth", authRouter); // /api 접두사 추가
