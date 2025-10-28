@@ -29,6 +29,7 @@ import messageRouter from "./messages/routes/message.route";
 import adminPromptRouter from "./prompts/routes/admin-prompt.route";
 import adminMemberRouter from "./members/routes/admin-member.route";
 import signupRouter from "./signup/routes/signup.route"
+import signinRouter from "./signin/routes/signin.route";
 
 const PORT = 3000;
 const app = express();
@@ -91,6 +92,9 @@ app.use(
 
 // 회원가입 라우터
 app.use("/api/auth/signup", signupRouter);
+
+// 로그인 라우터
+app.use("/api/auth/signin", signinRouter);
 
 // 인증 라우터
 app.use("/api/auth", authRouter); // /api 접두사 추가
