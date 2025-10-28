@@ -16,6 +16,7 @@ model User {
   is_initial_setup_required Boolean               @default(true)
   social_type          String                     @db.VarChar(50)
   status               Boolean
+  userstatus            userStatus                @default(active)
   inactive_date        DateTime?
   created_at           DateTime                   @default(now())
   updated_at           DateTime                   @updatedAt
@@ -504,4 +505,10 @@ enum NotificationType {
 enum Payment_provider {
   kakaopay
   tosspay
+}
+
+enum userStatus {
+  active
+  banned
+  deleted
 }

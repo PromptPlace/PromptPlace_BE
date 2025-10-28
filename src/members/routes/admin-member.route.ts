@@ -13,4 +13,12 @@ router.delete(
   memberController.adminDeleteHistory.bind(memberController)
 );
 
+
+router.patch(
+  "/admin/:memberId/ban",
+  authenticateJwt,
+  isAdmin,
+  memberController.adminBanUser.bind(memberController)
+);
+    
 export default router;

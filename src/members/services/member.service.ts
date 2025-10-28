@@ -432,4 +432,12 @@ export class MemberService {
 
     return await this.memberRepository.findAllMembers(page, limit);
   }
+
+  async adminBanUser(memberId: number) {
+    const member = await this.memberRepository.findUserById(memberId);
+    if (!member) {
+      throw new AppError("해당 회원을 찾을 수 없습니다.", 404, "NotFound");
+    }
+    return this.memberRepository.BanUser(memberId);
+  }
 }

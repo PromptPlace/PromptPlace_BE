@@ -4,7 +4,7 @@ import { UpdateHistoryDto } from "../dtos/update-history.dto";
 import prisma from "../../config/prisma";
 import { CreateSnsDto } from "../dtos/create-sns.dto";
 import { UpdateSnsDto } from "../dtos/update-sns.dto";
-import { User } from "@prisma/client";
+import { User, userStatus } from "@prisma/client";
 import { UpdateMemberDto } from "../dtos/update-member.dto";
 
 @Service()
@@ -447,6 +447,13 @@ export class MemberRepository {
       has_more: hasNext,
       nextCursor,
     };
+  }
+
+  async BanUser(memberId: number) {
+    return prisma.user.update({
+      where: { user_id: memberId },
+      data: { userstatus: userStatus.banned },
+    });
   }
 }
 
