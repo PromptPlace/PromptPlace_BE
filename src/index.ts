@@ -35,7 +35,10 @@ const PORT = 3000;
 const app = express();
 // 1. 응답 핸들러(json 파서보다 위에)
 app.use(responseHandler);
-
+app.use((req, res, next) => {
+    console.log(`[INCOMING REQUEST]: ${req.method} ${req.originalUrl}`);
+    next();
+});
 // 2. express 기본 설정들
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -90,11 +93,11 @@ app.use(
 
 // 3. 모든 라우터들
 
-// 회원가입 라우터
-app.use("/api/auth/signup", signupRouter);
-
 // 로그인 라우터
 app.use("/api/auth/signin", signinRouter);
+
+// 회원가입 라우터
+app.use("/api/auth/signup", signupRouter);
 
 // 인증 라우터
 app.use("/api/auth", authRouter); // /api 접두사 추가
