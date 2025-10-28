@@ -1,6 +1,5 @@
 import passport from "passport";
 import { Strategy as KakaoStrategy } from "passport-kakao";
-import bcrypt from 'bcrypt';
 import prisma from "../prisma";
 import dotenv from "dotenv";
 dotenv.config();
@@ -36,12 +35,6 @@ export function configureKakaoStrategy() {
             // 소셜 로그인은 단순히 인증만 처리
             return done(null, user);
           } else {
-            // 사용자가 없으면 새로 생성
-            // 1. 안전한 임시 비밀번호 생성
-const tempPassword = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-
-// 2. 임시 비밀번호를 해시 처리
-const hashedPassword = await bcrypt.hash(tempPassword, 10);
             user = await prisma.user.create({
               data: {
                 email,
@@ -50,7 +43,6 @@ const hashedPassword = await bcrypt.hash(tempPassword, 10);
                 social_type: "KAKAO",
                 status: true,
                 role: "USER",
-                password: hashedPassword,
               },
             });
           }
