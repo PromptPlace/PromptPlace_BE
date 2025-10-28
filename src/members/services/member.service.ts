@@ -13,6 +13,7 @@ import eventBus from "../../config/eventBus";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
+import { userStatus } from "@prisma/client";
 
 @Service()
 export class MemberService {
@@ -437,7 +438,21 @@ export class MemberService {
     const member = await this.memberRepository.findUserById(memberId);
     if (!member) {
       throw new AppError("해당 회원을 찾을 수 없습니다.", 404, "NotFound");
+    }  
+    if (member.userstatus === userStatus.banned) {
+      throw new AppError("해당 회원은 이미 정지 상태입니다.", 400, "BadRequest");
     }
     return this.memberRepository.BanUser(memberId);
+  }
+
+  async adminUnBanUser(memberId: number) {
+    const member = await this.memberRepository.findUserById(memberId);
+    if (!member) {
+      throw new AppError("해당 회원을 찾을 수 없습니다.", 404, "NotFound");
+    }
+    if (member.userstatus === userStatus.active) {
+      throw new AppError("해당 회원은 이미 활동 가능 상태입니다.", 400, "BadRequest");
+    }
+    return this.memberRepository.UnBanUser(memberId);
   }
 }

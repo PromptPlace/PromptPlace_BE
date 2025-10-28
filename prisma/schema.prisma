@@ -53,7 +53,7 @@ model UserConsent {
   is_agreed      Boolean  
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
-  user           User     @relation(fields: [user_id], references: [user_id])
+  user           User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   
   @@unique([user_id, consent_type]) 
 }
@@ -82,7 +82,7 @@ model UserSNS {
   description String
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
-  user        User     @relation(fields: [user_id], references: [user_id])
+  user        User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@index([user_id], map: "UserSNS_user_id_fkey")
 }
@@ -105,7 +105,7 @@ model PromptLike {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   prompt     Prompt   @relation(fields: [prompt_id], references: [prompt_id])
-  user       User     @relation(fields: [user_id], references: [user_id])
+  user       User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@unique([user_id, prompt_id])
   @@index([prompt_id], map: "PromptLike_prompt_id_fkey")
@@ -120,7 +120,7 @@ model Announcement {
   file_url        String?  @db.VarChar(255)
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
-  writer          User     @relation(fields: [writer_id], references: [user_id])
+  writer          User     @relation(fields: [writer_id], references: [user_id], onDelete: Cascade)
 
   @@index([writer_id], map: "Announcement_writer_id_fkey")
 }
@@ -134,7 +134,7 @@ model Tip {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   file_url   String?  @db.VarChar(255)
-  writer     User     @relation(fields: [writer_id], references: [user_id])
+  writer     User     @relation(fields: [writer_id], references: [user_id], onDelete: Cascade)
 
   @@index([writer_id], map: "Tip_writer_id_fkey")
 }
@@ -145,8 +145,8 @@ model NotificationSubscription {
   prompter_id Int
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
-  prompter    User     @relation("NotificationTargetPrompter", fields: [prompter_id], references: [user_id])
-  user        User     @relation("NotificationSubscriber", fields: [user_id], references: [user_id])
+  prompter    User     @relation("NotificationTargetPrompter", fields: [prompter_id], references: [user_id], onDelete: Cascade)
+  user        User     @relation("NotificationSubscriber", fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@unique([user_id, prompter_id])
   @@index([prompter_id], map: "NotificationSubscription_prompter_id_fkey")
@@ -161,8 +161,8 @@ model Notification {
   actor_id        Int?
   link_url        String?
   type            NotificationType
-  actor           User?            @relation("ActorNotifications", fields: [actor_id], references: [user_id])
-  user            User?            @relation("UserNotifications", fields: [user_id], references: [user_id])
+  actor           User?            @relation("ActorNotifications", fields: [actor_id], references: [user_id], onDelete: Cascade)
+  user            User?            @relation("UserNotifications", fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@index([user_id], map: "Notification_user_id_fkey")
   @@index([type])
@@ -190,8 +190,8 @@ model Message {
   is_deleted  Boolean   @default(false)
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
-  receiver    User      @relation("ReceivedMessages", fields: [receiver_id], references: [user_id])
-  sender      User      @relation("SentMessages", fields: [sender_id], references: [user_id])
+  receiver    User      @relation("ReceivedMessages", fields: [receiver_id], references: [user_id], onDelete: Cascade)
+  sender      User      @relation("SentMessages", fields: [sender_id], references: [user_id], onDelete: Cascade)
 
   @@index([receiver_id], map: "Message_receiver_id_fkey")
   @@index([sender_id], map: "Message_sender_id_fkey")
@@ -231,7 +231,7 @@ model WithdrawRequest {
   status              Status
   created_at          DateTime @default(now())
   updated_at          DateTime @updatedAt
-  user                User     @relation(fields: [user_id], references: [user_id])
+  user                User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@index([user_id], map: "WithdrawRequest_user_id_fkey")
 }
@@ -254,7 +254,7 @@ model Prompt {
   created_at     DateTime       @default(now())
   updated_at     DateTime       @updatedAt
   inactive_date  DateTime?
-  user           User           @relation(fields: [user_id], references: [user_id])
+  user           User           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   images         PromptImage[]
   prompt_likes   PromptLike[]
   models         PromptModel[]
@@ -361,7 +361,7 @@ model PromptReport {
   reporter_id Int
   is_read     Boolean    @default(false)
   prompt      Prompt     @relation("PromptReport", fields: [prompt_id], references: [prompt_id])
-  reporter    User       @relation("UserReport", fields: [reporter_id], references: [user_id])
+  reporter    User       @relation("UserReport", fields: [reporter_id], references: [user_id], onDelete: Cascade)
 
   @@index([prompt_id], map: "PromptReport_prompt_id_fkey")
   @@index([reporter_id], map: "PromptReport_reporter_id_fkey")
@@ -377,7 +377,7 @@ model Purchase {
   updated_at  DateTime @updatedAt
   payment     Payment?
   prompt      Prompt   @relation(fields: [prompt_id], references: [prompt_id])
-  user        User     @relation(fields: [user_id], references: [user_id])
+  user        User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@index([prompt_id], map: "Purchase_prompt_id_fkey")
   @@index([user_id], map: "Purchase_user_id_fkey")
@@ -406,7 +406,7 @@ model Settlement {
   updated_at    DateTime @updatedAt
   user_id       Int
   payment       Payment  @relation(fields: [payment_id], references: [payment_id])
-  user          User     @relation("UserSettlements", fields: [user_id], references: [user_id])
+  user          User     @relation("UserSettlements", fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@index([user_id])
 }
@@ -420,7 +420,7 @@ model Review {
   user_id    Int
   prompt_id  Int
   prompt     Prompt   @relation(fields: [prompt_id], references: [prompt_id])
-  user       User     @relation(fields: [user_id], references: [user_id])
+  user       User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@index([prompt_id], map: "Review_prompt_id_fkey")
   @@index([user_id], map: "Review_user_id_fkey")

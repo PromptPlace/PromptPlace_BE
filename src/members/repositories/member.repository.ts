@@ -150,13 +150,36 @@ export class MemberRepository {
   }
 
   async deactivateUser(userId: number) {
-    await prisma.$executeRawUnsafe(
-      "UPDATE `User` SET status = 0, inactive_date = NOW() WHERE user_id = ?",
-      userId
-    );
-    return prisma.user.findUnique({
+    const freePrompts = await prisma.prompt.findMany({
+      where: {
+        purchases: {
+          some: {
+            is_free: false,
+            payment: {
+              is: {
+                settlement: {
+                  is: {
+                    user_id: userId,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    if (freePrompts.length == 0) {
+      try {
+    const deletedUser = await prisma.user.delete({
       where: { user_id: userId },
     });
+    console.log('사용자 및 관련 데이터 삭제 성공:', deletedUser);
+    return deletedUser;
+     } catch (error) {
+    console.error('사용자 삭제 중 오류 발생:', error);
+    throw error;
+     }
+    }
   }
 
   async findPurchasesByUserId(userId: number) {
@@ -453,6 +476,13 @@ export class MemberRepository {
     return prisma.user.update({
       where: { user_id: memberId },
       data: { userstatus: userStatus.banned },
+    });
+  }
+
+  async UnBanUser(memberId: number) {
+    return prisma.user.update({
+      where: { user_id: memberId },
+      data: { userstatus: userStatus.active },
     });
   }
 }

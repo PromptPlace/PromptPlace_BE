@@ -20,5 +20,20 @@ router.patch(
   isAdmin,
   memberController.adminBanUser.bind(memberController)
 );
-    
+
+router.patch(
+  "/admin/:memberId/unban",
+  authenticateJwt,
+  isAdmin,
+  memberController.adminUnBanUser.bind(memberController)
+);
+
+router.delete(
+  "/admin/:memberId/delete",
+  authenticateJwt,
+  isAdmin,
+  memberController.adminUnBanUser.bind(memberController)
+);
+
+
 export default router;

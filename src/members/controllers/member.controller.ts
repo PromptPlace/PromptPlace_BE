@@ -713,4 +713,27 @@ export class MemberController {
       next(error);
     }
   }
+
+  public async adminUnBanUser(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const memberId = parseInt(req.params.memberId, 10);
+
+      if (isNaN(memberId)) {
+        throw new AppError("유효하지 않은 멤버 ID입니다.", 400, "BadRequest");
+      }
+
+      await this.memberService.adminUnBanUser(memberId);
+
+      res.status(200).json({
+        message: "회원 정지 취소 처리 완료",
+        statusCode: 200,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
