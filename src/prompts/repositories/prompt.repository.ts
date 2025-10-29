@@ -295,6 +295,9 @@ export const getPromptDetailRepo = async (promptId: number) => {
           user_id: true,
           nickname: true,
           profileImage: { select: { url: true } },
+          intro: {select: {description: true}},
+          sns_list: {select: {url: true}
+          },
         },
       },
       models: {
@@ -304,12 +307,21 @@ export const getPromptDetailRepo = async (promptId: number) => {
       },
       categories: {
         include: {
-          category: { select: { category_id: true, name: true } },
+          category: {
+            select: {
+              category_id: true,
+              name: true,
+              mainCategory: { 
+                select: { name: true }, 
+            },
+          },
         },
       },
+    },
       images: {
         select: { image_url: true, order_index: true },
         orderBy: { order_index: "asc" },
+        take: 3,
       },
     },
   });
