@@ -21,10 +21,10 @@ export const signinController = {
 
     async initialSetup(req: Request, res: Response) {
         try {
-            const userId = (req as any).user.user_id; 
+            const userId = req.user?.user_id; 
             const { nickname, intro } = req.body;
 
-            if (!userId) {
+            if (!req.user || !userId) {
                 return res.status(401).fail({ message: "인증된 사용자 ID가 없습니다." });
             }
 
