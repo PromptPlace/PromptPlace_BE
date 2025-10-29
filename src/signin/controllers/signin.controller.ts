@@ -24,6 +24,10 @@ export const signinController = {
             const userId = (req as any).user.user_id; 
             const { nickname, intro } = req.body;
 
+            if (!userId) {
+                return res.status(401).fail({ message: "인증된 사용자 ID가 없습니다." });
+            }
+
             const updatedUser = await signinService.completeInitialSetup({ 
                 userId, 
                 nickname, 
