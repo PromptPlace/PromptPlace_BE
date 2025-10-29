@@ -40,8 +40,7 @@ passport.use(
           return done(error, false);
         }
 
-        req.user = user;
-        return done(null, user);
+        return done(null, { user_id: user.user_id })
       } catch (err) {
         return done(err as Error, false);
       }
