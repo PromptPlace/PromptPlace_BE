@@ -41,32 +41,33 @@ jobs:
 
       - name: Prepare target dir
         run: |
-          ssh prod 'sudo mkdir -p /opt/app && sudo chown ubuntu:ubuntu /opt/app'
+          ssh prod 'sudo mkdir -p /opt/app-backup && sudo chown ubuntu:ubuntu /opt/app-backup'
 
       - name: Sync workspace (rsync --delete)
         run: |
           rsync -az --delete \
             --exclude ".git" \
             --exclude "node_modules" \
-            ./ prod:/opt/app/
+            ./ prod:/opt/app-backup/
 
       - name: Write .env on EC2
         run: |
-          ssh prod 'cat > /opt/app/.env <<EOF
+          ssh prod 'cat > /opt/app-backup/.env <<EOF
           ${{ secrets.ENV_CONTENT }}
           EOF'
 
       - name: Install, Generate & Build on server
         run: |
-          ssh prod 'cd /opt/app && \
+          ssh prod 'cd /opt/app-backup && \
           pnpm install --frozen-lockfile && \
           pnpm exec prisma generate && \
+          rm -rf dist && \
           pnpm build'
 
       - name: Prisma migrate (only when schema changed)
         if: steps.paths-filter.outputs.prisma == 'true'
         run: |
-          ssh prod 'cd /opt/app && pnpm exec prisma migrate deploy'
+          ssh prod 'cd /opt/app-backup && pnpm exec prisma migrate deploy'
 
       - name: Install/Update systemd service
         run: |
@@ -77,8 +78,8 @@ jobs:
 
           [Service]
           User=ubuntu
-          WorkingDirectory=/opt/app
-          EnvironmentFile=/opt/app/.env
+          WorkingDirectory=/opt/app-backup
+          EnvironmentFile=/opt/app-backup/.env
           Environment=NODE_ENV=production
           Environment=PNPM_HOME=/home/ubuntu/.local/share/pnpm
           Environment=PATH=/home/ubuntu/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin
@@ -98,7 +99,6 @@ jobs:
           sudo systemctl restart app
           '
 
-      # PM2를 쓰고 있었다면 서비스 충돌 방지를 위해 종료(1회 실행)
-      - name: Stop PM2 app (one-time)
-        run: |
-          ssh prod 'pm2 delete promptplace || true'
+      - name: Restart PM2 Application (promptplace-api)
+        run: |
+          ssh prod 'pm2 restart promptplace-api'
