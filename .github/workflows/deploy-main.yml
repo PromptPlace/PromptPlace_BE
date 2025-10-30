@@ -45,10 +45,7 @@ jobs:
 
       - name: Sync workspace (rsync --delete)
         run: |
-          rsync -az --delete \
-            --exclude ".git" \
-            --exclude "node_modules" \
-            ./ prod:/opt/app-backup/
+          rsync -az --delete --exclude ".git" --exclude "node_modules" ./ prod:/opt/app-backup/
 
       - name: Write .env on EC2
         run: |
@@ -58,47 +55,17 @@ jobs:
 
       - name: Install, Generate & Build on server
         run: |
-          ssh prod 'cd /opt/app-backup && \
-          pnpm install --frozen-lockfile && \
-          pnpm exec prisma generate && \
-          rm -rf dist && \
-          pnpm build'
+          ssh prod 'cd /opt/app-backup && pnpm install --frozen-lockfile && pnpm exec prisma generate && rm -rf dist && pnpm build'
 
       - name: Prisma migrate (only when schema changed)
         if: steps.paths-filter.outputs.prisma == 'true'
         run: |
           ssh prod 'cd /opt/app-backup && pnpm exec prisma migrate deploy'
 
-      - name: Install/Update systemd service
-        run: |
-          ssh prod 'cat > app.service << "UNIT"
-          [Unit]
-          Description=PromptPlace Backend
-          After=network.target
-
-          [Service]
-          User=ubuntu
-          WorkingDirectory=/opt/app-backup
-          EnvironmentFile=/opt/app-backup/.env
-          Environment=NODE_ENV=production
-          Environment=PNPM_HOME=/home/ubuntu/.local/share/pnpm
-          Environment=PATH=/home/ubuntu/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin
-          ExecStart=/bin/bash -lc '"'"'pnpm start'"'"'
-          Restart=always
-          RestartSec=3
-          # Optional: 확보/로그
-          StandardOutput=journal
-          StandardError=journal
-
-          [Install]
-          WantedBy=multi-user.target
-          UNIT
-          sudo mv app.service /etc/systemd/system/app.service
-          sudo systemctl daemon-reload
-          sudo systemctl enable app
-          sudo systemctl restart app
-          '
-
       - name: Restart PM2 Application (promptplace-api)
-        run: |
-          ssh prod 'pm2 restart promptplace-api'
+        run: |
+          ssh prod 'pm2 restart promptplace-api'
+
+      - name: Stop PM2 app (one-time)
+        run: |
+          ssh prod 'pm2 delete promptplace || true'
