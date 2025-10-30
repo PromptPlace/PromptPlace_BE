@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `UserSNS` ADD COLUMN `user_sns_id` VARCHAR(100) NOT NULL DEFAULT '';

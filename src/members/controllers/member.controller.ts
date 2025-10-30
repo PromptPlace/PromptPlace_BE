@@ -484,6 +484,7 @@ export class MemberController {
         message: "SNS가 성공적으로 작성되었습니다.",
         data: {
           sns_id: newSns.sns_id,
+          user_sns_id: newSns.user_sns_id,
           url: newSns.url,
           description: newSns.description,
           created_at: newSns.created_at,
