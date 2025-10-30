@@ -64,7 +64,7 @@ jobs:
 
       - name: Restart PM2 Application (promptplace-api)
         run: |
-          ssh prod 'pm2 restart promptplace-api'
+          ssh prod '/bin/bash -lc "pm2 restart promptplace-api"'
 
       - name: Stop PM2 app (one-time)
         run: |
