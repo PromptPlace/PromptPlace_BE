@@ -14,7 +14,10 @@ export const signinService = {
         if (user.password === null) {
         throw new Error("비밀번호 정보가 없습니다. 소셜 로그인을 이용해주세요.");
     }
-        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        const cleanPassword = password.toLowerCase();
+
+        const isPasswordValid = await bcrypt.compare(cleanPassword, user.password);
         if (!isPasswordValid) {
             throw new Error("비밀번호가 일치하지 않습니다.");
         }
