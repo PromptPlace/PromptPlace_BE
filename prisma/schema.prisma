@@ -78,7 +78,7 @@ model UserHistory {
 model UserSNS {
   sns_id      Int      @id @default(autoincrement())
   user_id     Int
-  user_sns_id String   @db.VarChar(100) @default("")
+  user_sns_id String   @db.VarChar(100) @default(" ")
   url         String
   description String
   created_at  DateTime @default(now())
