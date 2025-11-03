@@ -166,15 +166,13 @@ export class MemberController {
 
       res.status(200).json({
         message: "회원 프롬프트 목록 조회 완료",
-        data: {
-          prompts: result.prompts,
-          pagination: {
-            nextCursor: result.nextCursor,
-            has_more: result.has_more,
-            limit: limitNum,
-          },
-        },
         statusCode: 200,
+        data: result.prompts,
+        pagination: {
+          nextCursor: result.nextCursor,
+          has_more: result.has_more,
+          limit: limitNum,
+        },
       });
     } catch (error) {
       // 에러 예외 처리
