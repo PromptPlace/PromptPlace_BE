@@ -6,6 +6,9 @@ export class UpdateSnsDto {
   url?: string;
 
   @IsOptional()
+  user_sns_id?: string;
+
+  @IsOptional()
   @IsString()
   description?: string;
 } 
