@@ -17,7 +17,7 @@ import purchaseRouter from "./purchases/routes/purchase.request.route";
 import settlementRouter from "./settlements/routes/settlement.route";
 import withdrawalRouter from "./withdrawals/routes/withdrawal.route";
 import accountRouter from "./accounts/routes/account.route";
-import promptDownloadRouter from "./prompts/routes/prompt.downlaod.route";
+import promptDownloadRouter from "./prompts/routes/prompt.download.route";
 import promptLikeRouter from "./prompts/routes/prompt.like.route";
 import tipRouter from "./tips/routes/tip.route"; // 팁 라우터 import
 import inquiryRouter from "./inquiries/routes/inquiry.route";

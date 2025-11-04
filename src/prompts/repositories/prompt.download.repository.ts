@@ -32,6 +32,7 @@ export const PromptDownloadRepository = {
           select: {
             prompt_id: true,
             title: true,
+            price: true,
             user: {
             select: {
               nickname: true,
@@ -42,6 +43,10 @@ export const PromptDownloadRepository = {
                 model: { select: { name: true } },
               },
             },
+            images: {
+              select: { image_url: true },
+              orderBy: { order_index: 'asc' },
+            },
             reviews: {
               where: { user_id: userId },
               select: { created_at: true },
