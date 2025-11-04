@@ -70,6 +70,7 @@ async getPromptContent(userId: number, promptId: number): Promise<PromptDownload
     THIRTY_DAYS_AGO.setDate(THIRTY_DAYS_AGO.getDate() - 30);
 
     return downloads.map(({ prompt }) => {
+      const imageUrls = prompt.images.map(img => img.image_url);
       const review = prompt.reviews[0]; // 사용자는 프롬프트당 리뷰 하나만 작성 가능하다고 가정
       const hasReview = !!review;
       const isRecentReview = hasReview && new Date(review.created_at) >= THIRTY_DAYS_AGO;
@@ -79,6 +80,8 @@ async getPromptContent(userId: number, promptId: number): Promise<PromptDownload
         prompt_id: prompt.prompt_id,
         title: prompt.title,
         models: prompt.models.map((m) => m.model.name),
+        imageUrls: imageUrls,
+        price: prompt.price,
         has_review: hasReview,
         is_recent_review: isRecentReview,
         nickname: prompt.user.nickname,

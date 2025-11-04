@@ -12,6 +12,8 @@ export interface DownloadedPromptResponseDTO {
   prompt_id: number;
   title: string;
   models: string[];
+  imageUrls: string[];
+  price: number;
   has_review: boolean;
   is_recent_review: boolean;
   nickname: string;
