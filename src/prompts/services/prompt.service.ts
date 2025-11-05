@@ -1,6 +1,6 @@
 import { SearchPromptDto } from "../dtos/search-prompt.dto";
 import * as promptRepository from "../repositories/prompt.repository";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, DeleteObjectsCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { CreatePromptImageDto } from "../dtos/prompt-image.dto";
 import { v4 as uuidv4 } from "uuid";
@@ -108,11 +108,46 @@ export const updatePrompt = async (promptId: number, dto: UpdatePromptDto) => {
   return await promptRepository.updatePromptRepo(promptId, dto);
 };
 
+const s3 = new S3Client({
+  region: process.env.S3_REGION,
+  credentials: {
+    accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+  },
+});
+
+const deleteS3Images = async (promptId: number) => {
+  const images = await promptRepository.getPromptImages(promptId);
+  if (images.length > 0) {
+    const keys = images.map((image) => {
+      try {
+        const url = new URL(image.image_url);
+        return { Key: decodeURIComponent(url.pathname.substring(1)) };
+      } catch (error) {
+        console.error(`Invalid URL: ${image.image_url}`);
+        return null;
+      }
+    }).filter((item): item is { Key: string } => item !== null);
+
+    if (keys.length > 0) {
+      const command = new DeleteObjectsCommand({
+        Bucket: process.env.S3_BUCKET,
+        Delete: {
+          Objects: keys,
+        },
+      });
+      await s3.send(command);
+    }
+  }
+};
+
 export const deletePrompt = async (promptId: number) => {
+  await deleteS3Images(promptId);
   return await promptRepository.deletePromptRepo(promptId);
 };
 
 export const adminDeletePrompt = async (promptId: number) => {
+  await deleteS3Images(promptId);
   return await promptRepository.adminDeletePromptRepo(promptId);
 };
 

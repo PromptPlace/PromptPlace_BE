@@ -662,6 +662,15 @@ export const adminDeletePromptRepo = async (promptId: number) => {
   });
 };
 
+export const getPromptImages = async (promptId: number) => {
+  return await prisma.promptImage.findMany({
+    where: { prompt_id: promptId },
+    select: {
+      image_url: true,
+    },
+  });
+};
+
 export const getGroupedCategories = async () => {
   return await prisma.mainCategory.findMany({
     include: {
