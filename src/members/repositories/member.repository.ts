@@ -494,55 +494,61 @@ export const getMemberPromptsRepo = async (
 ) => {
   const whereCondition: any = { user_id: memberId };
 
-  // 커서가 있으면 해당 ID보다 작은 것들만 조회 (최신순이므로)
   if (cursor) {
     whereCondition.prompt_id = { lt: cursor };
   }
 
-  // limit + 1개를 가져와서 다음 페이지 존재 여부 확인
   const prompts = await prisma.prompt.findMany({
     where: whereCondition,
-    select: {
-      prompt_id: true,
-      title: true,
-      created_at: true,
-      downloads: true,
-      views: true,
-      is_free: true,
-      price: true,
-      description: true,
+    include: {
       images: {
         select: {
           image_url: true,
-          order_index: true,
         },
-        orderBy: { order_index: "asc" },
-        take: 1,
+        orderBy: {
+          order_index: "asc",
+        },
+      },
+      user: {
+        select: {
+          user_id: true,
+          nickname: true,
+          profileImage: {
+            select: {
+              url: true,
+            },
+          },
+        },
+      },
+      models: {
+        include: {
+          model: {
+            select: {
+              name: true,
+            },
+          },
+        },
       },
       reviews: {
         select: {
           rating: true,
           content: true,
         },
-        orderBy: { created_at: "desc" },
-        take: 1,
-      },
-      models: {
-        select: {
-          model: {
-            select: { name: true },
-          },
+        orderBy: {
+          created_at: "desc",
         },
       },
       categories: {
         select: {
           category: {
-            select: { name: true },
+            select: {
+              name: true,
+            },
           },
         },
       },
     },
-    orderBy: { prompt_id: "desc" }, // 최신순 (ID 내림차순)
+    orderBy: { prompt_id: "desc" },
     take: limit + 1,
   });
 
@@ -552,23 +558,29 @@ export const getMemberPromptsRepo = async (
     ? resultPrompts[resultPrompts.length - 1].prompt_id
     : null;
 
-  // 응답 포맷 변환
-  const formatted = resultPrompts.map((p) => ({
-    prompt_id: p.prompt_id,
-    title: p.title,
-    image_url: p.images?.[0]?.image_url || null,
-    created_at: p.created_at,
-    downloads: p.downloads,
-    views: p.views,
-    is_free: p.is_free ? 1 : 0,
-    price: p.price,
-    description: p.description,
-    reviews: p.reviews?.[0]
-      ? { rating: p.reviews[0].rating, content: p.reviews[0].content }
-      : null,
-    models: p.models.map((m: any) => m.model.name),
-    categories: p.categories.map((c: any) => c.category.name),
-  }));
+  const formatted = resultPrompts.map((p) => {
+    const review_count = p.reviews.length;
+    const review_rating_avg =
+      review_count > 0
+        ? p.reviews.reduce((sum, review) => sum + review.rating, 0) /
+          review_count
+        : 0;
+
+    const { user, reviews, categories, ...restOfP } = p;
+
+    return {
+      ...restOfP,
+      user: {
+        user_id: user.user_id,
+        nickname: user.nickname,
+        profileImage: user.profileImage?.url || null,
+      },
+      review_count: review_count,
+      review_rating_avg: parseFloat(review_rating_avg.toFixed(1)),
+      reviews: reviews.length > 0 ? reviews[0] : null,
+      categories: categories.map((c) => c.category.name),
+    };
+  });
 
   return {
     prompts: formatted,
