@@ -57,6 +57,13 @@ jobs:
         run: |
           ssh prod 'cd /opt/app-backup && pnpm install --frozen-lockfile && pnpm exec prisma generate && rm -rf dist && pnpm build'
 
+      - name: Stop and Remove old containers
+        run: |
+          ssh prod 'cd /opt/app-backup && 
+          # 컨테이너 이름이 myapp인 컨테이너를 중지하고 삭제합니다.
+          # || true 를 붙여 컨테이너가 없을 때도 에러 없이 지나가게 합니다.
+          sudo docker rm -f myapp || true'
+
       - name: Deploy Docker services
         run: |
           ssh prod 'cd /opt/app-backup && sudo docker compose -f docker-compose.yml up -d --build app caddy'
