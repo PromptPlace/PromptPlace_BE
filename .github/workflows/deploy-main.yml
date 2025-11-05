@@ -63,6 +63,8 @@ jobs:
           # 컨테이너 이름이 myapp인 컨테이너를 중지하고 삭제합니다.
           # || true 를 붙여 컨테이너가 없을 때도 에러 없이 지나가게 합니다.
           sudo docker rm -f myapp || true'
+          # caddy 컨테이너 정리
+          sudo docker rm -f caddy || true'
 
       - name: Deploy Docker services
         run: |
