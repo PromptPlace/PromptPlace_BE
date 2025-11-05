@@ -57,15 +57,6 @@ jobs:
         run: |
           ssh prod 'cd /opt/app-backup && pnpm install --frozen-lockfile && pnpm exec prisma generate && rm -rf dist && pnpm build'
 
-      - name: Prisma migrate (only when schema changed)
-        if: steps.paths-filter.outputs.prisma == 'true'
+      - name: Deploy Docker services
         run: |
-          ssh prod 'cd /opt/app-backup && pnpm exec prisma migrate deploy'
-
-      - name: Restart PM2 Application (promptplace-api)
-        run: |
-          ssh prod 'export PATH=$PATH:/home/ubuntu/.local/share/pnpm && pm2 restart promptplace-api'
-
-      - name: Stop PM2 app (one-time)
-        run: |
-          ssh prod 'pm2 delete promptplace || true'
+          ssh prod 'cd /opt/app-backup && sudo docker compose -f docker-compose.yml up -d --build app caddy'
