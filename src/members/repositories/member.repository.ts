@@ -540,8 +540,12 @@ export const getMemberPromptsRepo = async (
       },
       categories: {
         select: {
+          promptcategory_id: true,
+          prompt_id: true,
+          category_id: true,
           category: {
             select: {
+              category_id: true,
               name: true,
             },
           },
@@ -578,7 +582,7 @@ export const getMemberPromptsRepo = async (
       review_count: review_count,
       review_rating_avg: parseFloat(review_rating_avg.toFixed(1)),
       reviews: reviews.length > 0 ? reviews[0] : null,
-      categories: categories.map((c) => c.category.name),
+      categories: categories,
     };
   });
 
