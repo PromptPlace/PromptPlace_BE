@@ -170,8 +170,11 @@ export class MemberRepository {
     });
     if (freePrompts.length == 0) {
       try {
-    const deletedUser = await prisma.user.delete({
+    const deletedUser = await prisma.user.update({
       where: { user_id: userId },
+      data: { userstatus: "deleted",
+        inactive_date: new Date()
+       },
     });
     console.log('사용자 및 관련 데이터 삭제 성공:', deletedUser);
     return deletedUser;

@@ -14,7 +14,7 @@ class AuthController {
         throw new AppError("구글 인증에 실패했습니다.", 401, "Unauthorized");
       }
 
-      if (!isActive(user.status)) {
+      if (user.userstatus === "deleted") {
         const inactive = user.inactive_date
           ? new Date(user.inactive_date)
           : null;
@@ -24,9 +24,9 @@ class AuthController {
 
         if (!canReactivate) {
           throw new AppError(
-            "비활성화된 계정입니다. 30일 후에 다시 시도해주세요.",
+            "최근에 삭제되어 비활성화된 계정입니다. 삭제일 기준 30일 후에 다시 시도해주세요.",
             403,
-            "Forbidden"
+            "ACCOUNT_INACTIVE_LOCKED"
           );
         }
 
@@ -34,10 +34,19 @@ class AuthController {
           where: { user_id: user.user_id },
           data: {
             status: true,
+            userstatus: "active",
             inactive_date: null,
             updated_at: new Date(),
           },
         });
+      }
+
+      if(user.userstatus === "banned") {
+        throw new AppError(
+          "정지된 계정입니다. 자세한 내용은 고객센터에 문의해주세요.",
+          403,
+          "ACCOUNT_BANNED"
+        );
       }
 
       const { accessToken, refreshToken } = await AuthService.generateTokens(
@@ -87,7 +96,7 @@ class AuthController {
         throw new AppError("네이버 인증에 실패했습니다.", 401, "Unauthorized");
       }
 
-      if (!isActive(user.status)) {
+      if (user.userstatus === "deleted") {
         const inactive = user.inactive_date
           ? new Date(user.inactive_date)
           : null;
@@ -97,9 +106,9 @@ class AuthController {
 
         if (!canReactivate) {
           throw new AppError(
-            "비활성화된 계정입니다. 30일 후에 다시 시도해주세요.",
+            "최근에 삭제되어 비활성화된 계정입니다. 삭제일 기준 30일 후에 다시 시도해주세요.",
             403,
-            "Forbidden"
+            "ACCOUNT_INACTIVE_LOCKED"
           );
         }
 
@@ -107,10 +116,19 @@ class AuthController {
           where: { user_id: user.user_id },
           data: {
             status: true,
+            userstatus: "active",
             inactive_date: null,
             updated_at: new Date(),
           },
         });
+      }
+
+      if(user.userstatus === "banned") {
+        throw new AppError(
+          "정지된 계정입니다. 자세한 내용은 고객센터에 문의해주세요.",
+          403,
+          "ACCOUNT_BANNED"
+        );
       }
 
       const { accessToken, refreshToken } = await AuthService.generateTokens(
@@ -155,13 +173,44 @@ class AuthController {
 
   async kakaoCallback(req: Request, res: Response): Promise<void> {
     try {
-      const user = req.user as any;
+      let user = req.user as any;
       if (!user) {
         throw new AppError("카카오 인증에 실패했습니다.", 401, "Unauthorized");
       }
 
-      if (!isActive(user.status)) {
-        throw new AppError("비활성화된 계정입니다.", 403, "Forbidden");
+      if (user.userstatus === "deleted") {
+        const inactive = user.inactive_date
+          ? new Date(user.inactive_date)
+          : null;
+        const canReactivate =
+          inactive &&
+          Date.now() >= inactive.getTime() + 30 * 24 * 60 * 60 * 1000;
+
+        if (!canReactivate) {
+          throw new AppError(
+            "최근에 삭제되어 비활성화된 계정입니다. 삭제일 기준 30일 후에 다시 시도해주세요.",
+            403,
+            "ACCOUNT_INACTIVE_LOCKED"
+          );
+        }
+
+        user = await prisma.user.update({
+          where: { user_id: user.user_id },
+          data: {
+            status: true,
+            userstatus: "active",
+            inactive_date: null,
+            updated_at: new Date(),
+          },
+        });
+      }
+
+      if(user.userstatus === "banned") {
+        throw new AppError(
+          "정지된 계정입니다. 자세한 내용은 고객센터에 문의해주세요.",
+          403,
+          "ACCOUNT_BANNED"
+        );
       }
 
       const { accessToken, refreshToken } = await AuthService.generateTokens(
