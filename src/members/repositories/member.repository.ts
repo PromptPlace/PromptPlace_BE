@@ -424,7 +424,13 @@ export class MemberRepository {
             content: true,
             user: {
               select: {
+                user_id: true,
                 nickname: true,
+                profileImage: {
+                  select: {
+                    url: true,
+                  },
+                },
               },
             },
           },
@@ -459,6 +465,7 @@ export class MemberRepository {
           has_more: hasMoreReviews,
           data: reviewsData.map((review) => ({
             nickname: review.user.nickname,
+            profile_image_url: review.user.profileImage?.url || null,
             content: review.content,
             rating: review.rating,
           })),
