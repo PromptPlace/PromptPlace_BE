@@ -34,28 +34,55 @@ export const getLikedPromptsByUser = async (userId: number) => {
       prompt: {
         select: {
           prompt_id: true,
+          user_id: true,
           title: true,
-          views: true,
-          downloads: true,
-          price: true,
           prompt: true,
+          prompt_result: true,
+          has_image: true,
+          description: true,
+          usage_guide: true,
+          price: true,
+          is_free: true,
+          downloads: true,
+          views: true,
+          likes: true,
+          model_version: true,
           created_at: true,
+          updated_at: true,
+          inactive_date: true,
+          _count: {
+            select: {
+              reviews: true,
+            },
+          },
+         reviews: {
+            select: {
+              rating: true, 
+            },
+          },
           user: {
             select: {
+              user_id: true,
               nickname: true,
+              profileImage: true,
             },
           },
           models: {
-            include: {
+            select: {
+              promptmodel_id: true,
+              prompt_id: true,
+              model_id: true,
               model: {
                 select: { name: true },
               },
             },
           },
+          categories: true,
           images: {
-            select: { image_url: true },
+            select: { image_url: true, image_id: true, order_index: true },
             orderBy: { order_index: 'asc' },
           },
+          
         },
       },
     },
