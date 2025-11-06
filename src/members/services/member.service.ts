@@ -108,7 +108,11 @@ export class MemberService {
     const actualLimit =
       limit && limit > 0 && limit <= 50 ? limit : DEFAULT_LIMIT;
 
-    return await this.memberRepository.getMyPrompts(userId, cursor, actualLimit);
+    return await this.memberRepository.getMyPrompts(
+      userId,
+      cursor,
+      actualLimit
+    );
   }
 
   async getMemberPrompts(memberId: number, cursor?: number, limit?: number) {
@@ -438,9 +442,13 @@ export class MemberService {
     const member = await this.memberRepository.findUserById(memberId);
     if (!member) {
       throw new AppError("해당 회원을 찾을 수 없습니다.", 404, "NotFound");
-    }  
+    }
     if (member.userstatus === userStatus.banned) {
-      throw new AppError("해당 회원은 이미 정지 상태입니다.", 400, "BadRequest");
+      throw new AppError(
+        "해당 회원은 이미 정지 상태입니다.",
+        400,
+        "BadRequest"
+      );
     }
     return this.memberRepository.BanUser(memberId);
   }
@@ -451,8 +459,27 @@ export class MemberService {
       throw new AppError("해당 회원을 찾을 수 없습니다.", 404, "NotFound");
     }
     if (member.userstatus === userStatus.active) {
-      throw new AppError("해당 회원은 이미 활동 가능 상태입니다.", 400, "BadRequest");
+      throw new AppError(
+        "해당 회원은 이미 활동 가능 상태입니다.",
+        400,
+        "BadRequest"
+      );
     }
     return this.memberRepository.UnBanUser(memberId);
+  }
+
+  async adminDeleteUser(memberId: number) {
+    const member = await this.memberRepository.findUserById(memberId);
+    if (!member) {
+      throw new AppError("해당 회원을 찾을 수 없습니다.", 404, "NotFound");
+    }
+    if (member.userstatus === userStatus.deleted) {
+      throw new AppError(
+        "해당 회원은 이미 삭제된 상태입니다.",
+        400,
+        "BadRequest"
+      );
+    }
+    return this.memberRepository.deleteUser(memberId);
   }
 }
