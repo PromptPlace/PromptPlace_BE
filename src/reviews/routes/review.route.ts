@@ -24,7 +24,7 @@ const router = express.Router();
  *   get:
  *     summary: 내가 작성한 리뷰 목록 조회
  *     description: |
- *       ### API 설명(======test======)
+ *       ### API 설명
  *       
  *       - 커서 기반 페이지네이션(cursor-based-pagination) 사용  
  *       - `cursor`는 이전 요청에서 받은 마지막 리뷰의 ID를 의미하며, 이를 기준으로 이후 데이터를 조회  
