@@ -498,7 +498,7 @@ enum ReportType {
 enum NotificationType {
   FOLLOW
   NEW_PROMPT
-  INQUIRY_REPLY
+  INQUIRY
   ANNOUNCEMENT
   REPORT
 }

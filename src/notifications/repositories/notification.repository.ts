@@ -100,29 +100,77 @@ export const createNotification = async ({
   });
 };
 
-// 알림 목록 조회
+// ==========알림 목록 조회==========
+// ==========알림 목록 조회==========
 export const findNotificationsByUserId = async (
   userId: number,
   cursor?: number,
   limit: number = 10
 ) => {
-  return await prisma.notification.findMany({
-    where: {
-      user_id: userId
+  // 1. 기본 알림 + actor 정보 조회 (이미지 제외)
+  const notifications = await prisma.notification.findMany({
+    where: { user_id: userId },
+    select: {
+      notification_id: true,
+      content: true,
+      type: true,
+      created_at: true,
+      link_url: true,
+      actor: {
+        select: {
+          user_id: true,
+          nickname: true,
+        },
+      },
     },
-    orderBy: {
-      notification_id: 'desc', // 최신순
-    },
+    orderBy: { notification_id: 'desc' },
     take: limit + 1,
     ...(cursor && {
-      cursor: {
-        notification_id: cursor,
-      },
+      cursor: { notification_id: cursor },
       skip: 1,
     }),
   });
+
+  // 2. FOLLOW / NEW_PROMPT 알림에 대해 profileImage 조회
+  const actorIdsToFetch = notifications
+    .filter(n => (n.type === 'FOLLOW' || n.type === 'NEW_PROMPT') && n.actor)
+    .map(n => n.actor!.user_id);
+
+  let actorProfilesMap: Record<number, { url: string } | null> = {};
+
+  if (actorIdsToFetch.length > 0) {
+    const actorProfiles = await prisma.user.findMany({
+      where: { user_id: { in: actorIdsToFetch } },
+      select: {
+        user_id: true,
+        profileImage: { select: { url: true } },
+      },
+    });
+
+    // 배열 -> 객체로 변환
+    actorProfilesMap = Object.fromEntries(
+      actorProfiles.map(u => [u.user_id, u.profileImage ?? null])
+    );
+  }
+
+  // 3. notifications에 profileImage 병합
+  const mappedNotifications = notifications.map(n => ({
+    ...n,
+    actor: n.actor
+      ? {
+          ...n.actor,
+          profileImage:
+            n.type === 'FOLLOW' || n.type === 'NEW_PROMPT'
+              ? actorProfilesMap[n.actor.user_id] ?? null
+              : null,
+        }
+      : null,
+  }));
+
+  return mappedNotifications;
 };
- 
+
+
 
 // 사용자 마지막 알림 확인 시간 조회
 export const getLastNotificationCheckTime = async (

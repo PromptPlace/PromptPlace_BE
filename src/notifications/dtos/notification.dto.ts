@@ -29,34 +29,52 @@ export interface CreateNotificationParams {
   linkUrl?: string | null;
 }
 
-// 알림 목록 응답 dto
+// 알림 목록 응답 DTO 타입
 export interface NotificationListResponse {
   has_more: boolean;
   notifications: {
     notification_id: number;
     content: string;
+    type: string;
     created_at: string;
     link_url: string | null;
+    actor: {
+      user_id: number;
+      nickname: string;
+      profile_image: string | null;
+    } | null;
   }[];
 }
 
-
-// 알림 목록 
+// 알림 목록 반환
 export const UserNotificationListDTO = (
   rawNotifications: {
     notification_id: number;
     content: string;
+    type: string;
     created_at: Date;
     link_url: string | null;
+    actor: {
+      user_id: number;
+      nickname: string;
+      profileImage: { url: string } | null;
+    } | null;
   }[],
   hasMore: boolean
 ): NotificationListResponse => {
-
   const notifications = rawNotifications.map((n) => ({
     notification_id: n.notification_id,
     content: n.content,
+    type: n.type,
     created_at: n.created_at.toISOString(),
-    link_url: n.link_url, // null 가능
+    link_url: n.link_url,
+    actor: n.actor
+      ? {
+          user_id: n.actor.user_id,
+          nickname: n.actor.nickname,
+          profile_image: n.actor.profileImage?.url ?? null,
+        }
+      : null,
   }));
 
   return {
