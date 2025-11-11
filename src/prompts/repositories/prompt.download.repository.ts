@@ -54,6 +54,7 @@ export const PromptDownloadRepository = {
            reviews: {
               where: { user_id: userId },
               select: { 
+                review_id: true,
                 content: true, 
                 rating: true, 
                 created_at: true 

@@ -20,6 +20,7 @@ export interface DownloadedPromptResponseDTO {
   userNickname: string;
   userProfileImageUrl: string | null;
   userReview: {
+        review_id: number;
         content: string;
         rating: number;
     } | null;
