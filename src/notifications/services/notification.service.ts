@@ -23,9 +23,6 @@ import {
 
 import { NotificationType } from '@prisma/client';
 
-import eventBus from '../../config/eventBus';
-import { get } from 'http';
-
 
 
 export const createSubscriptionService = async (
@@ -178,11 +175,11 @@ export const findUserNotificationsService = async (
     if (cursor !== undefined && isNaN(cursor)) throw new Error('cursor값이 적절하지 않습니다');
     if (isNaN(limit)) throw new Error('limit값이 적절하지 않습니다');
   
-    const rawNotifications = await findNotificationsByUserId(userId, cursor, limit); 
-    const hasMore = rawNotifications.length > limit;
+    const rawNotifications = await findNotificationsByUserId(userId, cursor, limit); // 정해진 범위만큼 알림 목록 가져오기
+    const hasMore = rawNotifications.length > limit; 
 
     const slicedNotifications = hasMore ? rawNotifications.slice(0, limit) : rawNotifications;
-    
+
     const notificationCheckTime = await getUserNotificationSetting(userId);
     if(notificationCheckTime === null){ // 한 번도 알림을 확인한 적이 없다면
       await createNotificationCheckTime(userId);//lastNotificationCheckTime 생성
