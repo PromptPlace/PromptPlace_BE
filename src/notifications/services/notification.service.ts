@@ -127,7 +127,7 @@ export const createInquiryNotification = async (
 ) => {
   await createNotificationService({
     userId: receiverId, 
-    type: NotificationType.INQUIRY_REPLY,
+    type: NotificationType.INQUIRY,
     content: '프롬프트에 새로운 문의가 도착했습니다.',
     linkUrl: `/inquiries/${receiverId}`,
     actorId: senderId,
