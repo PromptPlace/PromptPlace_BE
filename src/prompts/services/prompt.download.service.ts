@@ -88,6 +88,7 @@ async getDownloadedPrompts(userId: number): Promise<DownloadedPromptResponseDTO[
         const isRecentReview = hasReview && new Date(userReviewRaw.created_at) >= THIRTY_DAYS_AGO;
 
         const userReview = userReviewRaw ? {
+            review_id: userReviewRaw.review_id,
             content: userReviewRaw.content,
             rating: userReviewRaw.rating,
         } : null;
