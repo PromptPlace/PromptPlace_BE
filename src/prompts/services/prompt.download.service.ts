@@ -63,30 +63,55 @@ async getPromptContent(userId: number, promptId: number): Promise<PromptDownload
   };
 },
 
-  async getDownloadedPrompts(userId: number): Promise<DownloadedPromptResponseDTO[]> {
-    const downloads = await PromptDownloadRepository.getDownloadedPromptsByUser(userId);
+async getDownloadedPrompts(userId: number): Promise<DownloadedPromptResponseDTO[]> {
 
+    const currentUser = await prisma.user.findUnique({
+        where: { user_id: userId },
+        select: { 
+            nickname: true, 
+            profileImage: { select: { url: true } } 
+        },
+    });
+
+    if (!currentUser) throw new Error("사용자를 찾을 수 없습니다.");
+
+    const userNickname = currentUser.nickname;
+    const userProfileImageUrl = currentUser.profileImage?.url ?? null;
+    
+    const downloads = await PromptDownloadRepository.getDownloadedPromptsByUser(userId);
     const THIRTY_DAYS_AGO = new Date();
     THIRTY_DAYS_AGO.setDate(THIRTY_DAYS_AGO.getDate() - 30);
 
     return downloads.map(({ prompt }) => {
-      const imageUrls = prompt.images.map(img => img.image_url);
-      const review = prompt.reviews[0]; // 사용자는 프롬프트당 리뷰 하나만 작성 가능하다고 가정
-      const hasReview = !!review;
-      const isRecentReview = hasReview && new Date(review.created_at) >= THIRTY_DAYS_AGO;
+        const userReviewRaw = prompt.reviews[0];
+        const hasReview = !!userReviewRaw;
+        const isRecentReview = hasReview && new Date(userReviewRaw.created_at) >= THIRTY_DAYS_AGO;
 
-      return {
-        message: "다운로드한 프롬프트 목록 조회 성공",
-        prompt_id: prompt.prompt_id,
-        title: prompt.title,
-        models: prompt.models.map((m) => m.model.name),
-        imageUrls: imageUrls,
-        price: prompt.price,
-        has_review: hasReview,
-        is_recent_review: isRecentReview,
-        nickname: prompt.user.nickname,
-        statusCode: 200,
-      };
+        const userReview = userReviewRaw ? {
+            content: userReviewRaw.content,
+            rating: userReviewRaw.rating,
+        } : null;
+
+        const imageUrls = prompt.images.map(img => img.image_url);
+
+        return {
+            message: "다운로드한 프롬프트 목록 조회 성공",
+            statusCode: 200,
+            
+            prompt_id: prompt.prompt_id,
+            title: prompt.title,
+             description: prompt.description,
+            price: prompt.price,
+            models: prompt.models.map((m) => m.model.name),
+            imageUrls: imageUrls,
+            
+            has_review: hasReview,
+            is_recent_review: isRecentReview, 
+    
+            userNickname: userNickname,
+            userProfileImageUrl: userProfileImageUrl,
+            userReview: userReview,
+        };
     });
-  }
+}
 };
