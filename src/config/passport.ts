@@ -40,7 +40,7 @@ passport.use(
           return done(error, false);
         }
 
-        return done(null, { user_id: user.user_id })
+        return done(null, user);
       } catch (err) {
         return done(err as Error, false);
       }
