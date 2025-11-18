@@ -607,8 +607,6 @@ router.delete(
  *   get:
  *     summary: 회원 SNS 목록 조회
  *     tags: [Member]
- *     security:
- *       - jwt: []
  *     parameters:
  *       - in: path
  *         name: memberId
