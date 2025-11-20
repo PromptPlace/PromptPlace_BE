@@ -57,6 +57,15 @@ jobs:
         run: |
           ssh prod 'cd /opt/app-backup && pnpm install --frozen-lockfile && pnpm exec prisma generate && rm -rf dist && pnpm build'
 
+      - name: Run Prisma migrations (deploy)
+        if: steps.paths-filter.outputs.prisma == 'true'
+        run: |
+          ssh prod << 'EOF'
+          set -euo pipefail
+          cd /opt/app-backup
+          pnpm exec prisma migrate deploy
+          EOF
+
       - name: Stop and Remove old containers
         run: |
           ssh prod 'cd /opt/app-backup && sudo docker rm -f myapp || true && sudo docker rm -f caddy || true'
