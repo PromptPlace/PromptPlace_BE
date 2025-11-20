@@ -400,49 +400,53 @@ export class MemberRepository {
       whereCondition.prompt_id = { lt: cursor };
     }
 
-    // limit + 1개를 가져와서 다음 페이지 존재 여부 확인
-    const prompts = await prisma.prompt.findMany({
-      where: whereCondition,
-      select: {
-        prompt_id: true,
-        title: true,
-        downloads: true,
-        views: true,
-        images: {
-          select: {
-            image_url: true,
-            order_index: true,
+    const [prompts, totalPrompts] = await Promise.all([
+      prisma.prompt.findMany({
+        where: whereCondition,
+        select: {
+          prompt_id: true,
+          title: true,
+          downloads: true,
+          views: true,
+          images: {
+            select: {
+              image_url: true,
+              order_index: true,
+            },
+            orderBy: {
+              order_index: "asc",
+            },
+            take: 1, // 첫 번째 이미지만
           },
-          orderBy: {
-            order_index: "asc",
-          },
-          take: 1, // 첫 번째 이미지만
-        },
-        reviews: {
-          select: {
-            rating: true,
-            content: true,
-            user: {
-              select: {
-                user_id: true,
-                nickname: true,
-                profileImage: {
-                  select: {
-                    url: true,
+          reviews: {
+            select: {
+              rating: true,
+              content: true,
+              user: {
+                select: {
+                  user_id: true,
+                  nickname: true,
+                  profileImage: {
+                    select: {
+                      url: true,
+                    },
                   },
                 },
               },
             },
+            orderBy: {
+              created_at: "desc",
+            },
+            take: 4, // 최대 3개의 리뷰만 가져오고, 4개를 가져와서 has_more 판단
           },
-          orderBy: {
-            created_at: "desc",
-          },
-          take: 4, // 최대 3개의 리뷰만 가져오고, 4개를 가져와서 has_more 판단
         },
-      },
-      orderBy: { prompt_id: "desc" }, // 최신순 (ID 내림차순)
-      take: limit + 1,
-    });
+        orderBy: { prompt_id: "desc" }, // 최신순 (ID 내림차순)
+        take: limit + 1,
+      }),
+      prisma.prompt.count({
+        where: { user_id: userId },
+      }),
+    ]);
 
     const hasNext = prompts.length > limit;
     const resultPrompts = hasNext ? prompts.slice(0, limit) : prompts;
@@ -475,6 +479,7 @@ export class MemberRepository {
 
     return {
       prompts: formattedPrompts,
+      total_prompts: totalPrompts,
       has_more: hasNext,
       nextCursor,
     };
@@ -513,63 +518,68 @@ export const getMemberPromptsRepo = async (
     whereCondition.prompt_id = { lt: cursor };
   }
 
-  const prompts = await prisma.prompt.findMany({
-    where: whereCondition,
-    include: {
-      images: {
-        select: {
-          image_url: true,
+  const [prompts, totalPrompts] = await Promise.all([
+    prisma.prompt.findMany({
+      where: whereCondition,
+      include: {
+        images: {
+          select: {
+            image_url: true,
+          },
+          orderBy: {
+            order_index: "asc",
+          },
         },
-        orderBy: {
-          order_index: "asc",
+        user: {
+          select: {
+            user_id: true,
+            nickname: true,
+            profileImage: {
+              select: {
+                url: true,
+              },
+            },
+          },
         },
-      },
-      user: {
-        select: {
-          user_id: true,
-          nickname: true,
-          profileImage: {
-            select: {
-              url: true,
+        models: {
+          include: {
+            model: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        reviews: {
+          select: {
+            rating: true,
+            content: true,
+          },
+          orderBy: {
+            created_at: "desc",
+          },
+        },
+        categories: {
+          select: {
+            promptcategory_id: true,
+            prompt_id: true,
+            category_id: true,
+            category: {
+              select: {
+                category_id: true,
+                name: true,
+              },
             },
           },
         },
       },
-      models: {
-        include: {
-          model: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      },
-      reviews: {
-        select: {
-          rating: true,
-          content: true,
-        },
-        orderBy: {
-          created_at: "desc",
-        },
-      },
-      categories: {
-        select: {
-          promptcategory_id: true,
-          prompt_id: true,
-          category_id: true,
-          category: {
-            select: {
-              category_id: true,
-              name: true,
-            },
-          },
-        },
-      },
-    },
-    orderBy: { prompt_id: "desc" },
-    take: limit + 1,
-  });
+      orderBy: { prompt_id: "desc" },
+      take: limit + 1,
+    }),
+    prisma.prompt.count({
+      where: { user_id: memberId },
+    }),
+  ]);
 
   const hasNext = prompts.length > limit;
   const resultPrompts = hasNext ? prompts.slice(0, limit) : prompts;
@@ -603,6 +613,7 @@ export const getMemberPromptsRepo = async (
 
   return {
     prompts: formatted,
+    total_prompts: totalPrompts,
     has_more: hasNext,
     nextCursor,
   };
