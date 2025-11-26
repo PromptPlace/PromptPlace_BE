@@ -31,7 +31,7 @@ import adminMemberRouter from "./members/routes/admin-member.route";
 import signupRouter from "./signup/routes/signup.route"
 import signinRouter from "./signin/routes/signin.route";
 import passwordRouter from "./password/routes/password.route";
-
+import morgan = require('morgan');
 const PORT = 3000;
 const app = express();
 // 1. 응답 핸들러(json 파서보다 위에)
@@ -194,6 +194,8 @@ app.use(errorHandler as ErrorRequestHandler);
 app.get('/health', (req, res) => {
   res.status(200).send('OK');  
 });
+
+app.use(morgan('dev')); // 사용자 요청 로그 출력
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running at http://localhost:${PORT}`);
