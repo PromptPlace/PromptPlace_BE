@@ -1,0 +1,69 @@
+name: deploy-dev
+
+on:
+  push:
+    branches: [ develop ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        env:
+          EC2_USER: ubuntu
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf "%s" "$EC2_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          cat >>~/.ssh/config <<END
+          Host prod
+            HostName $EC2_HOST
+            User $EC2_USER
+            IdentityFile ~/.ssh/id_rsa
+            StrictHostKeyChecking no
+          END
+
+      # 운영 폴더(/opt/app-backup)와 섞이지 않게 'app-dev' 폴더를 따로 사용
+      - name: Prepare target dir
+        run: |
+          ssh prod 'sudo mkdir -p /opt/app-dev && sudo chown ubuntu:ubuntu /opt/app-dev'
+
+      - name: Sync workspace
+        run: |
+          rsync -az --delete --exclude ".git" --exclude "node_modules" ./ prod:/opt/app-dev/
+
+      # .env가 아니라 .env.dev로 저장하되, 내용은 DEV용 시크릿을 사용
+      - name: Write .env on EC2
+        run: |
+          ssh prod 'cat > /opt/app-dev/.env.dev <<EOF
+          ${{ secrets.ENV_DEV_CONTENT }}
+          EOF'
+
+      - name: Install, Generate & Build on server
+        run: |
+          ssh prod 'cd /opt/app-dev && pnpm install --frozen-lockfile && pnpm exec prisma generate'
+      
+      # 테스트 DB 마이그레이션
+      - name: Run Prisma DB Push (Dev)
+        run: |
+          ssh prod << 'EOF'
+          set -euo pipefail
+          cd /opt/app-dev
+          # .env.dev 파일을 로드하여 실행
+          export $(cat .env.dev | xargs)
+          pnpm exec prisma db push
+          EOF
+
+      # app-dev 컨테이너만 재시작 (운영 컨테이너 app, caddy는 건드리지 않음)
+      - name: Deploy Docker services (Dev)
+        run: |
+          ssh prod 'cd /opt/app-dev && sudo docker compose -f docker-compose.yml up -d --build app-dev'
