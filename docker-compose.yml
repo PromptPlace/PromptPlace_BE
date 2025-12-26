@@ -25,30 +25,6 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  caddy: # caddy 컨테이너
-    image: caddy:2.8.4
-    container_name: caddy
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      app:
-        condition: service_healthy     # app이 healthy일 때만 시작
-    restart: unless-stopped
-    networks:
-      - webnet
-
-networks:
-  webnet:
-
-volumes:
-  caddy_data:
-  caddy_config:
-
   app-dev: # 서비스명
     build: .
     container_name: myapp-dev # 컨테이너명
@@ -91,3 +67,10 @@ volumes:
     restart: unless-stopped
     networks:
       - webnet
+
+networks:
+  webnet:
+
+volumes:
+  caddy_data:
+  caddy_config:
