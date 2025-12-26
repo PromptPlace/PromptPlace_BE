@@ -49,3 +49,38 @@ http://promptplace.kro.kr {
                 format console
         }
 }
+
+# 테스트 서버 (Development)
+http://promptplace-dev.kro.kr {
+    encode zstd gzip
+
+    header {
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    handle /api/* {
+        # app-dev 컨테이너(테스트용)로 연결
+        reverse_proxy app-dev:3000 {
+            health_uri      /health
+            health_interval 30s
+            health_timeout  3s
+            fail_duration   10s
+
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Forwarded-Host  {host}
+            header_up X-Real-IP         {remote_host}
+        }
+    }
+
+    # 로드밸런서 헬스체크용
+    @health path /health
+    handle @health {
+        respond "ok" 200
+    }
+
+    log {
+        output stdout
+        format console
+    }
+}

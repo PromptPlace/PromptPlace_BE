@@ -48,3 +48,46 @@ networks:
 volumes:
   caddy_data:
   caddy_config:
+
+  app-dev: # 서비스명
+    build: .
+    container_name: myapp-dev # 컨테이너명
+    command: >
+      sh -c "pnpm start"
+    env_file: # .env 가져오기
+      - .env.dev
+    environment:
+      - NODE_ENV=development
+    expose:
+      - "3000"    # 내부 네트워크만 노출 (Caddy가 프록시)
+    healthcheck:                    
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/health"] # 컨테이너 내부 IP로 헬스체크 확인 
+      interval: 30s
+      timeout: 3s
+      start_period: 20s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - webnet
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  caddy: # caddy 컨테이너
+    image: caddy:2.8.4
+    container_name: caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      app:
+        condition: service_healthy     # app이 healthy일 때만 시작
+    restart: unless-stopped
+    networks:
+      - webnet
