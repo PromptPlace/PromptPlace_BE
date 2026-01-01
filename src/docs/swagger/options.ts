@@ -21,5 +21,5 @@ export const swaggerOptions = {
       },
     ],
   },
-  apis: ['src/**/*.ts'], // JSDoc이 있는 파일 경로
+  apis: ['./src/**/*.ts', './dist/**/*.js'] // JSDoc이 있는 파일 경로
 };
