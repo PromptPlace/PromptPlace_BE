@@ -7,7 +7,7 @@
         auto_https off
 }
 
-http://promptplace.kro.kr, http://promptplace.kr, http://www.promptplace.kr {
+http://promptplace.kro.kr {
         encode zstd gzip
 
         # 보안 헤더 (HSTS는 HTTPS 응답에서만 의미 있으므로 여기서는 생략 가능)
