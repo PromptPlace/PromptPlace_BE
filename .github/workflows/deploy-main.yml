@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy: 
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -71,5 +71,5 @@ jobs:
           ssh prod 'cd /opt/app-backup && sudo docker rm -f myapp || true && sudo docker rm -f caddy || true'
 
       - name: Deploy Docker services
-        run: |
-          ssh prod 'cd /opt/app-backup && sudo docker compose -f docker-compose.yml up -d --build app caddy'
+        run: | 
+          ssh prod 'cd /opt/app-backup && sudo docker compose -p promptplace -f docker-compose.yml up -d --build app caddy'
