@@ -2,7 +2,7 @@ name: deploy-dev
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop ] 
   workflow_dispatch:
 
 jobs:
@@ -66,4 +66,4 @@ jobs:
       # app-dev 컨테이너만 재시작 (운영 컨테이너 app, caddy는 건드리지 않음)
       - name: Deploy Docker services (Dev)
         run: |
-          ssh prod 'cd /opt/app-dev && sudo docker compose -f docker-compose.yml up -d --build app-dev'
+          ssh prod 'cd /opt/app-dev && sudo docker compose -p promptplace -f docker-compose.yml up -d --build app-dev'
