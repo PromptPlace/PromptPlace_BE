@@ -30,7 +30,7 @@ export const toCreateReportResponse = ({
 
 
 
-// 신고된 프롬프트 목록 조회 응답 인터페이스
+// 개별 신고 항목 DTO
 export interface ReportedPromptDTO {
   report_id: number;
   prompt_id: number;
@@ -40,20 +40,27 @@ export interface ReportedPromptDTO {
   created_at: string;
   is_read: boolean;
 }
-// 전체 신고 목록 응답 타입
+
+
+// 전체 응답 DTO
 export interface ReportedPromptListResponse {
   reports: ReportedPromptDTO[];// 신고 목록 배열
   has_more: boolean; // 다음 페이지 여부
+  total_count: number; // 전체 신고 수
 }
-// 변환 함수(신고목록->api응답)
+
+
+// 변환 함수
 export const toReportedPromptListResponse = (
   reports: (PromptReport & {
     prompt: { prompt_id: number; title: string };// 프롬프트 정보 (프롬프트 ID & 제목)
     reporter: { user_id: number; nickname: string };// 신고자 정보 (ID & 닉네임)
   })[],
-  hasMore: boolean
+  hasMore: boolean,
+  totalCount: number
 ): ReportedPromptListResponse => {
-  // DB 원본 데이터를 ReportedPromptDTO 배열로 변환
+
+  // 개별 신고 항목 변환 
   const transformed: ReportedPromptDTO[] = reports.map((report) => ({
     report_id: report.report_id,
     prompt_id: report.prompt.prompt_id,
@@ -61,12 +68,14 @@ export const toReportedPromptListResponse = (
     reporter_id: report.reporter.user_id,
     reporter_nickname: report.reporter.nickname,
     created_at: report.created_at.toISOString(),
-    is_read: report.is_read
+    is_read: report.is_read,
   }));
+  
   // 최종 응답 객체 반환 (has_more은 페이징 기준으로 판단)
   return {
     reports: transformed,
-    has_more: hasMore
+    has_more: hasMore,
+    total_count: totalCount
   };
 };
 
