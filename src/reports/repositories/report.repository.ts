@@ -78,6 +78,11 @@ export const findAllReports = async (
   });
 };
 
+// 시스템 전체 신고 개수 조회
+export const countTotalReports = async () => {
+  return await prisma.promptReport.count();
+}
+
 // 읽음 처리
 export const markReportAsRead = async (reportId: number) => {
   return await prisma.promptReport.update({

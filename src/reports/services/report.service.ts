@@ -9,6 +9,7 @@ import {
     findAllReports,
     markReportAsRead,
     findReportById,
+    countTotalReports,
 } from '../repositories/report.repository';
 import eventBus from '../../config/eventBus';
 
@@ -36,6 +37,7 @@ export const createReportService = async (
   return toCreateReportResponse(newReport);
 };
 
+// 신고된 프롬프트 목록 조회 
 export const getReportedPromptsService = async (
   userId: number,  
   rawCursor?: string,
@@ -66,8 +68,8 @@ export const getReportedPromptsService = async (
   const rawreportedPrompts = await findAllReports(cursor, limit);
   const hasMore = rawreportedPrompts.length > limit;
   const slicedNotifications = hasMore ? rawreportedPrompts.slice(0, limit) : rawreportedPrompts;
-
-  return toReportedPromptListResponse(slicedNotifications, hasMore);
+  const totalCount = await countTotalReports();
+  return toReportedPromptListResponse(slicedNotifications, hasMore, totalCount);
 };
 
 
