@@ -71,18 +71,25 @@ router.get('/me', authenticateJwt, getNotificationList); // 알림 목록 조회
  *     description: |
  *       - 커서 기반 페이지네이션(cursor-based-pagination) 사용.
  *          - `cursor`는 이전 요청에서 받은 마지막 데이터의 ID를 의미하며, 이를 기준으로 이후 데이터를 조회.
+ * 
  *          - 첫 요청 시에는 `cursor`를 생략하여 최신 데이터부터 조회.
+ * 
  *          - `has_more` 속성으로 더 불러올 데이터가 있는지 미리 확인 가능.
  * 
  *       - type 종류:
- *         - FOLLOW: 누가 나를 팔로우 했을 때 
- *         - NEW_PROMPT: 알림 설정한 프롬프터가 새 프롬프트를 올렸을 때
- *         - INQUIRY: 나에게 문의사항이 도착했을 때
- *         - ANNOUNCEMENT: 공지사항이 등록되었을 때
- *         - REPORT: 내 신고가 접수되었을 때
+ *         - `FOLLOW`: 누가 나를 팔로우 했을 때 
  * 
- *       - actor 필드는 알림을 유발한 사용자를 뜻하며, 타입이 REPORT, ANNOUNCEMENT일 때에만 null입니다.
- *       - profile_image 필드는 타입이 FOLLOW, NEW_PROMPT일 경우에만 반환됩니다.
+ *         - `NEW_PROMPT`: 알림 설정한 프롬프터가 새 프롬프트를 올렸을 때
+ * 
+ *         - `INQUIRY`: 나에게 문의사항이 도착했을 때
+ * 
+ *         - `ANNOUNCEMENT`: 공지사항이 등록되었을 때
+ * 
+ *         - `REPORT`: 내 신고가 접수되었을 때
+ * 
+ *         - `ADMIN_MESSAGE`: 관리자 메시지가 도착했을 때
+ * 
+ *       - `actor` 필드는 알림을 유발한 사용자를 뜻하며, 타입이 `REPORT`, `ANNOUNCEMENT`일 때에는 null입니다.
 
  *     tags: [Notifications]
  *     security:
@@ -117,28 +124,31 @@ router.get('/me', authenticateJwt, getNotificationList); // 알림 목록 조회
  *                   has_more: false
  *                   notifications:
  *                     - notification_id: 600
- *                       content: 신고가 접수되었습니다.
+ *                       content: "신고가 접수되었습니다."
  *                       type: REPORT
  *                       created_at: "2025-10-26T16:58:29.743Z"
  *                       link_url: null
  *                       actor: null
  *                     - notification_id: 599
- *                       content: 신고가 접수되었습니다.
- *                       type: REPORT
+ *                       content: "`홍길동`님이 새 프롬프트를 업로드하셨습니다."
+ *                       type: NEW_PROMPT
  *                       created_at: "2025-10-26T16:57:04.162Z"
- *                       link_url: null
- *                       actor: null
+ *                       link_url: /profile/10
+ *                       actor: 
+ *                        user_id: 10
+ *                        nickname: "홍길동"
+ *                        profile_image: "https://promptplace-s3.s3.ap-northeast-2.amazonaws.com/profile-images/1a2b3c4d-5678-90ab-cdef-1234567890ab_1755892991870.png"
  *                     - notification_id: 598
- *                       content: 신고가 접수되었습니다.
- *                       type: REPORT
+ *                       content: "새로운 공지사항이 등록되었습니다."
+ *                       type: ANNOUNCEMENT
  *                       created_at: "2025-10-26T13:38:26.906Z"
  *                       link_url: null
  *                       actor: null
  *                     - notification_id: 489
- *                       content: "‘또도도잉’님이 회원님을 팔로우합니다."
- *                       type: FOLLOW
+ *                       content: "프롬프트에 새로운 문의가 도착했습니다."
+ *                       type: INQUIRY
  *                       created_at: "2025-08-21T12:26:45.288Z"
- *                       link_url: "/profile/33"
+ *                       link_url: "/inquiries/2"
  *                       actor:
  *                         user_id: 33
  *                         nickname: "또도도잉"
@@ -151,6 +161,15 @@ router.get('/me', authenticateJwt, getNotificationList); // 알림 목록 조회
  *                       actor:
  *                         user_id: 33
  *                         nickname: "또도도잉"
+ *                         profile_image: "https://promptplace-s3.s3.ap-northeast-2.amazonaws.com/profile-images/3b137096-7915-408d-ad94-b70e5aa53107_1755892991870.png"
+ *                     - notification_id: 487
+ *                       content: "안녕하세요. 프롬프트 플레이스 관리자입니다. 회원님의 원활한 서비스 이용을 위해 공지사항을 확인해주세요."
+ *                       type: ADMIN_MESSAGE
+ *                       created_at: "2025-08-21T12:26:42.522Z"
+ *                       link_url: null
+ *                       actor:
+ *                         user_id: 45
+ *                         nickname: "관리자"
  *                         profile_image: "https://promptplace-s3.s3.ap-northeast-2.amazonaws.com/profile-images/3b137096-7915-408d-ad94-b70e5aa53107_1755892991870.png"
  *                 statusCode: 200
  *       401:

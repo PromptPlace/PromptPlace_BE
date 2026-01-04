@@ -501,6 +501,7 @@ enum NotificationType {
   INQUIRY
   ANNOUNCEMENT
   REPORT
+  ADMIN_MESSAGE
 }
 
 enum Payment_provider {

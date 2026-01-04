@@ -2,6 +2,7 @@ import { Service } from "typedi";
 import { CreateMessageDto } from "../dtos/message.dto";
 import { MessageRepository } from "../repositories/message.repository";
 import { AppError } from "../../errors/AppError";
+import eventBus from "../../config/eventBus";
 
 @Service()
 export class MessageService {
@@ -113,6 +114,9 @@ async sendMessage(currentUserId: number, data: CreateMessageDto) {
   }
 
   const message = await this.messageRepository.createMessage(data);
+
+  // 새 관리자 메세지 알림 이벤트 발생
+  eventBus.emit('adminMessage.created', data.sender_id, data.receiver_id, data.body);
 
   return {
     message: "메시지 전송 성공",

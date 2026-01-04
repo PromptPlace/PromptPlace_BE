@@ -236,3 +236,15 @@ export const getNotificationHasNewStatusService = async (
 
   return { hasNew };
 };
+
+// 관리자 메세지 알림
+export const createAdminMessageNtification = async( adminId: number, userId: number, content: string) => {
+  
+  return createNotificationService({
+    userId, 
+    type: NotificationType.ADMIN_MESSAGE,
+    content: content,
+    linkUrl: null,
+    actorId: adminId,
+  });
+}
