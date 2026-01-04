@@ -57,9 +57,9 @@ eventBus.on('prompt.created', async (prompterId: number, promptId: number) => {
 
 
 // 관리자 메세지 알림 리스너
-eventBus.on('adminMessage.created', async( adminId: number, userId: number) => {
+eventBus.on('adminMessage.created', async( adminId: number, userId: number, content: string) => {
   try {
-    await createAdminMessageNtification(adminId, userId);
+    await createAdminMessageNtification(adminId, userId, content);
   } catch (err) {
     console.error("[알림 리스너 오류]: 관리자 메세지 알림 생성 실패", err);
   }
