@@ -101,7 +101,6 @@ export const createNotification = async ({
 };
 
 // ==========알림 목록 조회==========
-// ==========알림 목록 조회==========
 export const findNotificationsByUserId = async (
   userId: number,
   cursor?: number,
@@ -131,9 +130,9 @@ export const findNotificationsByUserId = async (
     }),
   });
 
-  // 2. FOLLOW / NEW_PROMPT 알림에 대해 profileImage 조회
+  // profileImage 조회
   const actorIdsToFetch = notifications
-    .filter(n => (n.type === 'FOLLOW' || n.type === 'NEW_PROMPT') && n.actor)
+    .filter(n => (n.type === 'FOLLOW' || n.type === 'NEW_PROMPT' || n.type === 'ADMIN_MESSAGE') && n.actor)
     .map(n => n.actor!.user_id);
 
   let actorProfilesMap: Record<number, { url: string } | null> = {};
@@ -160,7 +159,7 @@ export const findNotificationsByUserId = async (
       ? {
           ...n.actor,
           profileImage:
-            n.type === 'FOLLOW' || n.type === 'NEW_PROMPT'
+            n.type === 'FOLLOW' || n.type === 'NEW_PROMPT' || n.type === 'ADMIN_MESSAGE'
               ? actorProfilesMap[n.actor.user_id] ?? null
               : null,
         }
