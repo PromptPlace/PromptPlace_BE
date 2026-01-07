@@ -7,6 +7,9 @@ import { v4 as uuidv4 } from "uuid";
 import { CreatePromptDto } from "../dtos/create-prompt.dto";
 import { UpdatePromptDto } from '../dtos/update-prompt.dto';
 import eventBus from '../../config/eventBus';
+import { PatchPromptImageDto } from "../dtos/patch-prompt-image.dto";
+import { DeletePromptImageDto } from "../dtos/delete-prompt-image.dto";
+
 /**
  * 프롬프트 검색 서비스
  */
@@ -119,6 +122,12 @@ const s3 = new S3Client({
 const deleteS3Images = async (promptId: number) => {
   const images = await promptRepository.getPromptImages(promptId);
   if (images.length > 0) {
+    await deleteS3ImagesByUrl(images);
+  }
+};
+
+const deleteS3ImagesByUrl = async (images: { image_url: string }[]) => {
+  if (images.length > 0) {
     const keys = images.map((image) => {
       try {
         const url = new URL(image.image_url);
@@ -150,6 +159,51 @@ export const adminDeletePrompt = async (promptId: number) => {
   await deleteS3Images(promptId);
   return await promptRepository.adminDeletePromptRepo(promptId);
 };
+
+export const updatePromptImage = async (
+  promptId: number,
+  userId: number,
+  dto: PatchPromptImageDto
+) => {
+  const prompt = await promptRepository.getPromptByIdRepo(promptId);
+  if (!prompt) {
+    throw new Error('프롬프트를 찾을 수 없습니다.');
+  }
+  if (prompt.user_id !== userId) {
+    throw new Error('해당 프롬프트에 대한 권한이 없습니다.');
+  }
+
+  const image = await promptRepository.findPromptImageByUrl(promptId, dto.image_url);
+  if (!image) {
+    throw new Error('해당 이미지를 찾을 수 없습니다.');
+  }
+
+  return await promptRepository.updatePromptImageOrder(promptId, dto.image_url, dto.order_index);
+};
+
+export const deletePromptImage = async (
+  promptId: number,
+  userId: number,
+  dto: DeletePromptImageDto
+) => {
+  const prompt = await promptRepository.getPromptByIdRepo(promptId);
+  if (!prompt) {
+    throw new Error('프롬프트를 찾을 수 없습니다.');
+  }
+  if (prompt.user_id !== userId) {
+    throw new Error('해당 프롬프트에 대한 권한이 없습니다.');
+  }
+
+  const image = await promptRepository.findPromptImageByOrder(promptId, dto.order_index);
+  if (!image) {
+    throw new Error("삭제할 이미지를 찾을 수 없습니다.");
+  }
+
+  await deleteS3ImagesByUrl([{ image_url: image.image_url }]);
+  
+  return await promptRepository.deletePromptImageByOrder(promptId, dto.order_index);
+};
+
 
 export const getGroupedCategories = async () => {
   const data = await promptRepository.getGroupedCategories();
