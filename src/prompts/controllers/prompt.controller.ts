@@ -6,6 +6,10 @@ import { errorHandler } from "../../middlewares/errorHandler";
 import { CreatePromptImageDto } from "../dtos/prompt-image.dto";
 import { CreatePromptDto } from "../dtos/create-prompt.dto";
 import { UpdatePromptDto } from "../dtos/update-prompt.dto";
+import { PatchPromptImageDto } from "../dtos/patch-prompt-image.dto";
+import { DeletePromptImageDto } from "../dtos/delete-prompt-image.dto";
+import { validate } from "class-validator";
+import { plainToInstance } from "class-transformer";
 
 export const searchPrompts = async (req: Request, res: Response) => {
   try {
@@ -421,6 +425,74 @@ export const adminDeletePrompt = async (req: Request, res: Response) => {
   }
 };
 
+export const updatePromptImage = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.fail({ statusCode: 401, error: 'Unauthorized', message: '인증이 필요합니다.' });
+    }
+    const { promptId } = req.params;
+    const userId = (req.user as { user_id: number }).user_id;
+    const dto = plainToInstance(PatchPromptImageDto, req.body);
+
+    const errors = await validate(dto);
+    if (errors.length > 0) {
+      const message = errors.map(err => Object.values(err.constraints || {})).join(', ');
+      return res.fail({ statusCode: 400, message });
+    }
+
+    const result = await promptService.updatePromptImage(Number(promptId), userId, dto);
+    
+    return res.success(result, "프롬프트 이미지 순서 변경 성공");
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes('프롬프트를 찾을 수 없습니다')) {
+        return res.fail({ statusCode: 404, message: '해당 프롬프트를 찾을 수 없습니다.' });
+      }
+      if (error.message.includes('권한이 없습니다')) {
+        return res.fail({ statusCode: 403, message: '해당 프롬프트에 대한 권한이 없습니다.' });
+      }
+      if (error.message.includes('이미지를 찾을 수 없습니다')) {
+        return res.fail({ statusCode: 404, message: '해당 이미지를 찾을 수 없습니다.' });
+      }
+    }
+    return errorHandler(error, req, res, () => {});
+  }
+};
+
+export const deletePromptImage = async (req: Request, res: Response) => {
+    try {
+        if (!req.user) {
+            return res.fail({ statusCode: 401, error: 'Unauthorized', message: '인증이 필요합니다.' });
+        }
+        const { promptId } = req.params;
+        const userId = (req.user as { user_id: number }).user_id;
+        const dto = plainToInstance(DeletePromptImageDto, req.body);
+
+        const errors = await validate(dto);
+        if (errors.length > 0) {
+            const message = errors.map(err => Object.values(err.constraints || {})).join(', ');
+            return res.fail({ statusCode: 400, message });
+        }
+
+        await promptService.deletePromptImage(Number(promptId), userId, dto);
+        
+        return res.success(null, "프롬프트 이미지 삭제 성공");
+    } catch (error) {
+        if (error instanceof Error) {
+            if (error.message.includes('프롬프트를 찾을 수 없습니다')) {
+                return res.fail({ statusCode: 404, message: '해당 프롬프트를 찾을 수 없습니다.' });
+            }
+            if (error.message.includes('권한이 없습니다')) {
+                return res.fail({ statusCode: 403, message: '해당 프롬프트에 대한 권한이 없습니다.' });
+            }
+            if (error.message.includes('삭제할 이미지를 찾을 수 없습니다')) {
+                return res.fail({ statusCode: 404, message: '삭제할 이미지를 찾을 수 없습니다.' });
+            }
+        }
+        return errorHandler(error, req, res, () => {});
+    }
+};
+
 export const getGroupedCategories = async (req: Request, res: Response) => {
   try {
     const categories = await promptService.getGroupedCategories();
@@ -438,4 +510,3 @@ export const getGroupedModels = async (req: Request, res: Response) => {
     return errorHandler(error, req, res, () => {});
   }
 };
-

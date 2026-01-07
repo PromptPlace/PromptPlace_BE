@@ -267,6 +267,96 @@ router.post(
 
 /**
  * @swagger
+ * /api/prompts/{promptId}/images:
+ *   patch:
+ *     summary: 프롬프트 이미지 순서 변경
+ *     tags: [Prompts]
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: path
+ *         name: promptId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               image_url:
+ *                 type: string
+ *               order_index:
+ *                 type: integer
+ *             required:
+ *               - image_url
+ *               - order_index
+ *     responses:
+ *       200:
+ *         description: 이미지 순서 변경 성공
+ *       400:
+ *         description: 잘못된 요청
+ *       401:
+ *         description: 인증 실패
+ *       403:
+ *         description: 권한 없음
+ *       404:
+ *         description: 이미지를 찾을 수 없음
+ */
+router.patch(
+  "/:promptId/images",
+  authenticateJwt,
+  promptController.updatePromptImage
+);
+
+/**
+ * @swagger
+ * /api/prompts/{promptId}/images:
+ *   delete:
+ *     summary: 프롬프트 이미지 삭제
+ *     tags: [Prompts]
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: path
+ *         name: promptId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               order_index:
+ *                 type: integer
+ *             required:
+ *               - order_index
+ *     responses:
+ *       200:
+ *         description: 이미지 삭제 성공
+ *       400:
+ *         description: 잘못된 요청
+ *       401:
+ *         description: 인증 실패
+ *       403:
+ *         description: 권한 없음
+ *       404:
+ *         description: 이미지를 찾을 수 없음
+ */
+router.delete(
+  "/:promptId/images",
+  authenticateJwt,
+  promptController.deletePromptImage
+);
+
+
+/**
+ * @swagger
  * /api/prompts:
  *   post:
  *     summary: 프롬프트 작성

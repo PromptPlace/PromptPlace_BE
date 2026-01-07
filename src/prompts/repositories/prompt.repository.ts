@@ -694,3 +694,101 @@ export const getGroupedModels = async () => {
     },
   });
 };
+
+export const getPromptImagesByIds = async (imageIds: number[]) => {
+  return await prisma.promptImage.findMany({
+    where: {
+      image_id: { in: imageIds },
+    },
+    select: {
+      image_url: true,
+    },
+  });
+};
+
+export const verifyAllImagesBelongToPrompt = async (promptId: number, imageIds: number[]) => {
+  const images = await prisma.promptImage.findMany({
+    where: {
+      image_id: { in: imageIds },
+    },
+    select: {
+      prompt_id: true,
+    },
+  });
+
+  if (images.length !== imageIds.length) {
+    return false;
+  }
+
+  return images.every((image) => image.prompt_id === promptId);
+}
+
+export const deletePromptImagesRepo = async (imageIds: number[]) => {
+  return await prisma.promptImage.deleteMany({
+    where: {
+      image_id: { in: imageIds },
+    },
+  });
+};
+
+export const updatePromptImagesRepo = async (
+  images: { image_id: number; order_index: number }[]
+) => {
+  return await prisma.$transaction(
+    images.map((image) =>
+      prisma.promptImage.update({
+        where: { image_id: image.image_id },
+        data: { order_index: image.order_index },
+      })
+    )
+  );
+};
+
+export const updatePromptImageOrder = async (
+  promptId: number,
+  imageUrl: string,
+  orderIndex: number
+) => {
+  return await prisma.promptImage.updateMany({
+    where: {
+      prompt_id: promptId,
+      image_url: imageUrl,
+    },
+    data: {
+      order_index: orderIndex,
+    },
+  });
+};
+
+export const findPromptImageByUrl = async (promptId: number, imageUrl: string) => {
+  return await prisma.promptImage.findFirst({
+      where: {
+          prompt_id: promptId,
+          image_url: imageUrl,
+      }
+  })
+}
+
+export const findPromptImageByOrder = async (
+  promptId: number,
+  orderIndex: number
+) => {
+  return await prisma.promptImage.findFirst({
+    where: {
+      prompt_id: promptId,
+      order_index: orderIndex,
+    },
+  });
+};
+
+export const deletePromptImageByOrder = async (
+  promptId: number,
+  orderIndex: number
+) => {
+  return await prisma.promptImage.deleteMany({
+    where: {
+      prompt_id: promptId,
+      order_index: orderIndex,
+    },
+  });
+};
