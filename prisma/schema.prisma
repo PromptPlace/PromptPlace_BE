@@ -48,6 +48,10 @@ model User {
   chatRoomAs2          ChatRoom[]                  @relation("ChatUser2")
   sentChatMessages     ChatMessage[]               @relation("UserSentMessages")
   chatParticipants     ChatParticipant[]
+  blocks               UserBlock[]                 @relation("BlockerUser")
+  blockedBy            UserBlock[]                 @relation("BlockedUser")
+
+
 }
 
 model UserConsent {
@@ -517,6 +521,18 @@ model ChatParticipant {
   @@unique([room_id, user_id])
 }
 
+model UserBlock {
+  block_id              Int                 @id @default(autoincrement())
+  blocked_at            DateTime            @default(now())            
+  blocker_id            Int
+  blocked_id            Int 
+
+  @@unique([blocker_id, blocked_id])
+
+  blockerUser           User                @relation("BlockerUser", fields: [blocker_id], references: [user_id], onDelete: Cascade)
+  blockedUser           User                @relation("BlockedUser", fields: [blocked_id], references: [user_id], onDelete: Cascade)
+  
+}
 
 enum Status {
   Pending
