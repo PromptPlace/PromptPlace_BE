@@ -44,6 +44,14 @@ model User {
   UserBankAccount      UserBankAccount?
   notificationSetting  UserNotificationSetting?
   consents             UserConsent[]
+  chatRoomAs1          ChatRoom[]                  @relation("ChatUser1")
+  chatRoomAs2          ChatRoom[]                  @relation("ChatUser2")
+  sentChatMessages     ChatMessage[]               @relation("UserSentMessages")
+  chatParticipants     ChatParticipant[]
+  blocks               UserBlock[]                 @relation("BlockerUser")
+  blockedBy            UserBlock[]                 @relation("BlockedUser")
+
+
 }
 
 model UserConsent {
@@ -467,6 +475,81 @@ model UserBankAccount {
   @@unique([preregistered_id, user_id], map: "uniq_userbank_prereg_user")
 }
 
+model ChatRoom {
+  room_id               Int                @id @default(autoincrement())
+  created_at            DateTime           @default(now())
+  last_message_id       Int?               @unique
+  user_id1              Int
+  user_id2              Int
+
+  lastMessage           ChatMessage?        @relation("lastMessage", fields: [last_message_id], references: [message_id], onDelete: SetNull)
+  user1                 User                @relation("ChatUser1", fields: [user_id1], references: [user_id])
+  user2                 User                @relation("ChatUser2", fields: [user_id2], references: [user_id])
+
+  @@unique([user_id1, user_id2]) // 두 유저간 채팅방은 유일
+
+  messages              ChatMessage[]       @relation("RoomMessages")
+  participants          ChatParticipant[]   @relation("RoomParticipants")
+}
+
+model ChatMessage {
+  message_id            Int                 @id @default(autoincrement())
+  content               String?             @db.Text
+  sent_at               DateTime            @default(now())
+  sender_id             Int
+  room_id               Int
+
+  user                  User                @relation("UserSentMessages", fields: [sender_id], references: [user_id])
+  chatRoom              ChatRoom            @relation("RoomMessages", fields: [room_id], references: [room_id], onDelete: Cascade)          
+
+  lastMessageOf         ChatRoom?           @relation("lastMessage") 
+  readByParticipants    ChatParticipant[]   @relation("LastReadMessage")
+
+  attachments           Attachment[]        
+}
+
+model ChatParticipant {
+  chat_participant_id   Int                 @id @default(autoincrement())
+  is_pinned             Boolean             @default(false)
+  left_at               DateTime?        
+  room_id               Int
+  user_id               Int
+  last_read_message_id  Int?
+
+  chatRoom              ChatRoom            @relation("RoomParticipants", fields: [room_id], references: [room_id], onDelete: Cascade)
+  user                  User                @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  lastReadMessage       ChatMessage?        @relation("LastReadMessage", fields: [last_read_message_id], references: [message_id], onDelete: SetNull)
+
+  @@unique([room_id, user_id])
+}
+
+model UserBlock {
+  block_id              Int                 @id @default(autoincrement())
+  blocked_at            DateTime            @default(now())            
+  blocker_id            Int
+  blocked_id            Int 
+
+  @@unique([blocker_id, blocked_id])
+
+  blockerUser           User                @relation("BlockerUser", fields: [blocker_id], references: [user_id], onDelete: Cascade)
+  blockedUser           User                @relation("BlockedUser", fields: [blocked_id], references: [user_id], onDelete: Cascade)
+  
+}
+
+model Attachment {
+  attachment_id         Int                 @id @default(autoincrement())
+  message_id            Int
+  url                   String              @db.Text
+  type                  AttachmentType
+  name                  String
+  size                  Int
+  created_at            DateTime            @default(now())
+
+  attachmentMessage    ChatMessage         @relation(fields: [message_id], references: [message_id], onDelete: Cascade)
+
+  @@index([message_id]) 
+}
+
 enum Status {
   Pending
   Succeed
@@ -513,4 +596,9 @@ enum userStatus {
   active
   banned
   deleted
+}
+
+enum AttachmentType {
+  IMAGE
+  FILE
 }
