@@ -504,6 +504,8 @@ model ChatMessage {
 
   lastMessageOf         ChatRoom?           @relation("lastMessage") 
   readByParticipants    ChatParticipant[]   @relation("LastReadMessage")
+
+  attachments           Attachment[]        
 }
 
 model ChatParticipant {
@@ -532,6 +534,20 @@ model UserBlock {
   blockerUser           User                @relation("BlockerUser", fields: [blocker_id], references: [user_id], onDelete: Cascade)
   blockedUser           User                @relation("BlockedUser", fields: [blocked_id], references: [user_id], onDelete: Cascade)
   
+}
+
+model Attachment {
+  attachment_id         Int                 @id @default(autoincrement())
+  message_id            Int
+  url                   String              @db.Text
+  type                  AttachmentType
+  name                  String
+  size                  Int
+  created_at            DateTime            @default(now())
+
+  attachmentMessage    ChatMessage         @relation(fields: [message_id], references: [message_id], onDelete: Cascade)
+
+  @@index([message_id]) 
 }
 
 enum Status {
@@ -580,4 +596,9 @@ enum userStatus {
   active
   banned
   deleted
+}
+
+enum AttachmentType {
+  IMAGE, 
+  FILE
 }
