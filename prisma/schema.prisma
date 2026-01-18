@@ -599,6 +599,6 @@ enum userStatus {
 }
 
 enum AttachmentType {
-  IMAGE, 
+  IMAGE
   FILE
 }
