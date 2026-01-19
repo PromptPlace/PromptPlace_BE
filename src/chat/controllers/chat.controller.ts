@@ -23,7 +23,7 @@ export const createOrGetChatRoom = async (
     try {
         const userId = (req.user as { user_id: number }).user_id;
         const { partner_id } = req.body as CreateChatRoomRequestDto;
-        const result: ChatRoomResponseDto = await createOrGetChatRoomService(userId, partnerId);
+        const result: ChatRoomResponseDto = await createOrGetChatRoomService(userId, partner_id);
         res.success(
             {...result},
             "채팅방을 성공적으로 생성/반환했습니다.",
