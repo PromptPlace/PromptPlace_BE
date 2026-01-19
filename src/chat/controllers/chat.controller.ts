@@ -3,7 +3,10 @@ import {
   createOrGetChatRoomService,
 } from "../services/chat.service";
 
-import { CreateChatRoomRequestDto } from "../dtos/chat.dto";
+import { 
+  CreateChatRoomRequestDto,
+  ChatRoomResponseDto
+} from "../dtos/chat.dto";
 
 export const createOrGetChatRoom = async (
   req: Request, res: Response
@@ -20,7 +23,7 @@ export const createOrGetChatRoom = async (
     try {
         const userId = (req.user as { user_id: number }).user_id;
         const { partner_id } = req.body as CreateChatRoomRequestDto;
-        const result = await createOrGetChatRoomService(userId, partnerId);
+        const result: ChatRoomResponseDto = await createOrGetChatRoomService(userId, partnerId);
         res.success(
             {...result},
             "채팅방을 성공적으로 생성/반환했습니다.",
