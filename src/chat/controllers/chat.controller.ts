@@ -3,6 +3,8 @@ import {
   createOrGetChatRoomService,
 } from "../services/chat.service";
 
+import { CreateChatRoomRequestDto } from "../dtos/chat.dto";
+
 export const createOrGetChatRoom = async (
   req: Request, res: Response
 ):Promise<void> => {
@@ -17,8 +19,7 @@ export const createOrGetChatRoom = async (
   
     try {
         const userId = (req.user as { user_id: number }).user_id;
-        const partnerId = (req.body as { partner_id: number }).partner_id;
-
+        const { partnerId } = req.body as CreateChatRoomRequestDto;
         const result = await createOrGetChatRoomService(userId, partnerId);
         res.success(
             {...result},
