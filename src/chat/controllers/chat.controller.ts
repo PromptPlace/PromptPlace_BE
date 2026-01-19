@@ -19,7 +19,7 @@ export const createOrGetChatRoom = async (
   
     try {
         const userId = (req.user as { user_id: number }).user_id;
-        const { partnerId } = req.body as CreateChatRoomRequestDto;
+        const { partner_id } = req.body as CreateChatRoomRequestDto;
         const result = await createOrGetChatRoomService(userId, partnerId);
         res.success(
             {...result},
