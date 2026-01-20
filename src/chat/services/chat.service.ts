@@ -1,13 +1,13 @@
-import { Service } from "typedi";
 import { ChatRepository } from "../repositories/chat.repository";
 
 import { 
-  ChatRoomResponseDto 
+  ChatRoomResponseDto,
+  ChatRoomDetailResponseDto,
 } from "../dtos/chat.dto";
 
-@Service()
 export class ChatService {
   constructor(private readonly chatRepo: ChatRepository) {}
+
   async createOrGetChatRoomService(
     userId: number, partnerId: number
   ): Promise<ChatRoomResponseDto> {
@@ -30,4 +30,43 @@ export class ChatService {
       is_new: true,
     };
   }
+
+  // 채팅방 상세 조회
+  async getChatRoomDetailService(
+    roomId: number, userId: number, cursor: number = 0, limit: number = 20
+  ):Promise<ChatRoomDetailResponseDto> {
+    const roomDetail = await this.chatRepo.findRoomDetailWithParticipant(roomId);
+    if (!roomDetail) {
+      throw new Error("채팅방을 찾을 수 없습니다.");
+    }
+
+    // my, partner 구분
+    const isUser1Me = roomDetail.user_id1 === userId;
+    const me = isUser1Me ? roomDetail.user1 : roomDetail.user2;
+    const partner = isUser1Me ? roomDetail.user2 : roomDetail.user1;
+
+    const myId = me.user_id;
+    const partnerId = partner.user_id;
+
+    // 차단 정보 및 메세지 목록
+    const [blockInfo, messageInfo] = await Promise.all([
+      this.chatRepo.blockStatus(myId, partnerId),
+      this.chatRepo.findMessagesByRoomId(roomId, cursor, limit)
+    ]);
+    
+    // 페이지네이션 
+    const hasMore = messageInfo.length > limit;
+    const messages = hasMore ? messageInfo.slice(0, limit) : messageInfo;
+
+    return ChatRoomDetailResponseDto.from({
+      roomDetail,
+      userId,
+      blockInfo,
+      messages,
+      hasMore,
+    });
+  }
 }
+
+export const chatService = new ChatService(new ChatRepository());
+
