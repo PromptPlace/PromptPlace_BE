@@ -1,13 +1,16 @@
 import { ChatRepository } from "../repositories/chat.repository";
-
+import { AppError } from "../../errors/AppError";
 import { 
   ChatRoomResponseDto,
   ChatRoomDetailResponseDto,
+  ChatRoomListResponseDto,
+  ChatFilterType,
 } from "../dtos/chat.dto";
 
 export class ChatService {
   constructor(private readonly chatRepo: ChatRepository) {}
 
+  // == 채팅방 생성
   async createOrGetChatRoomService(
     userId: number, partnerId: number
   ): Promise<ChatRoomResponseDto> {
@@ -31,13 +34,13 @@ export class ChatService {
     };
   }
 
-  // 채팅방 상세 조회
+  // == 채팅방 상세 조회
   async getChatRoomDetailService(
-    roomId: number, userId: number, cursor: number = 0, limit: number = 20
+    roomId: number, userId: number, cursor?: number, limit: number = 20
   ):Promise<ChatRoomDetailResponseDto> {
     const roomDetail = await this.chatRepo.findRoomDetailWithParticipant(roomId);
     if (!roomDetail) {
-      throw new Error("채팅방을 찾을 수 없습니다.");
+      throw new AppError("채팅방을 찾을 수 없습니다.", 404, "NotFoundError");
     }
 
     // my, partner 구분
@@ -55,14 +58,39 @@ export class ChatService {
     ]);
     
     // 페이지네이션 
-    const hasMore = messageInfo.length > limit;
-    const messages = hasMore ? messageInfo.slice(0, limit) : messageInfo;
+    const hasMore = messageInfo.messages.length > limit;
+    const messages = hasMore ? messageInfo.messages.slice(0, limit) : messageInfo.messages;
 
     return ChatRoomDetailResponseDto.from({
       roomDetail,
       userId,
       blockInfo,
       messages,
+      hasMore,
+    });
+  }
+
+  // == 채팅방 목록 조회
+  async getChatRoomListService(
+    userId: number, cursor?: number, limit: number = 20, filter: ChatFilterType = "all", search?: string
+  ):Promise<ChatRoomListResponseDto> {
+    const roomList = await this.chatRepo.findRoomListByUserId(
+      userId, {
+        cursor, 
+        limit, 
+        filter,
+        search
+      });
+
+    
+    // 페이지네이션 
+    const hasMore = roomList.rooms.length > limit;
+    const roomsInfo = hasMore ? roomList.rooms.slice(0, limit) : roomList.rooms;
+
+    return ChatRoomListResponseDto.from({
+      userId,
+      roomsInfo,
+      totalRoom: roomList.totalRoom,
       hasMore,
     });
   }
