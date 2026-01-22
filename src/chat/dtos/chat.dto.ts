@@ -179,10 +179,8 @@ export class ChatRoomListResponseDto {
     dto.rooms = roomsInfo.map((p) => {
       const room = p.chatRoom;
       
-      // 1. partners 배열에서 '나'가 아닌 첫 번째 상대방 '하나'만 찾습니다. (find 사용)
       const partnerData = room.participants.find((part: any) => part.user_id !== userId);
 
-      // 2. 마지막 메시지 가공 (배열이 아닌 단일 객체 혹은 null)
       const lastMsg = room.lastMessage ? {
         content: room.lastMessage.content,
         sent_at: room.lastMessage.sent_at,
@@ -191,11 +189,10 @@ export class ChatRoomListResponseDto {
 
       return {
         room_id: room.room_id,
-        // partner: partners (X) -> 아래처럼 객체로 바로 넣어줍니다.
         partner: {
           user_id: partnerData?.user.user_id || 0,
           nickname: partnerData?.user.nickname || "알 수 없는 사용자",
-          profile_image_url: partnerData?.user.userstatus || null,
+          profile_image_url: partnerData?.user.profileImage || null,
         },
         last_message: lastMsg,
         unread_count: p.unreadCount,
