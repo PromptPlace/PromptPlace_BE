@@ -64,7 +64,7 @@ router.post("/rooms", authenticateJwt, createOrGetChatRoom);
 
 /**
  * @swagger
- * /api/chat/rooms/{room-id}:
+ * /api/chat/rooms/{roomId}:
  *   get:
  *     summary: 채팅방 상세 조회
  *     description: >
@@ -75,7 +75,7 @@ router.post("/rooms", authenticateJwt, createOrGetChatRoom);
  *       - jwt: []
  *     parameters:
  *       - in: path
- *         name: room_id
+ *         name: roomId
  *         required: true
  *         schema:
  *           type: integer
@@ -107,116 +107,120 @@ router.post("/rooms", authenticateJwt, createOrGetChatRoom);
  *                 message:
  *                   type: string
  *                   example: 채팅방 상세를 성공적으로 조회했습니다.
- *                 room:
+ *                 data:
  *                   type: object
  *                   properties:
- *                     room_id:
- *                       type: integer
- *                       example: 2
- *                     created_at:
- *                       type: string
- *                       format: date-time
- *                       example: 2025-08-21T12:26:42.522Z
- *                     is_pinned:
- *                       type: boolean
- *                       example: true
- *                 my:
- *                   type: object
- *                   properties:
- *                     user_id:
- *                       type: integer
- *                       example: 45
- *                     left_at:
- *                       type: string
- *                       format: date-time
- *                       nullable: true
- *                       example: 2026-01-20T10:00:00.000Z
- *                 partner:
- *                   type: object
- *                   properties:
- *                     user_id:
- *                       type: integer
- *                       example: 67
- *                     nickname:
- *                       type: string
- *                       example: 달팽이
- *                     profile_image_url:
- *                       type: string
- *                       nullable: true
- *                       example: https://...png
- *                     role:
- *                       type: string
- *                       example: USER
- *                 block_status:
- *                   type: object
- *                   properties:
- *                     i_blocked_partner:
- *                       type: boolean
- *                       example: true
- *                     partner_blocked_me:
- *                       type: boolean
- *                       example: false
- *                 messages:
- *                   type: array
- *                   description: 오래된 순(ASC)
- *                   items:
- *                     type: object
- *                     properties:
- *                       message_id:
- *                         type: integer
- *                         example: 56
- *                       sender_id:
- *                         type: integer
- *                         example: 45
- *                       content:
- *                         type: string
- *                         nullable: true
- *                         example: 혹시 이 사진이랑 파일도 프롬프트에 사용할 수 있나요?
- *                       sent_at:
- *                         type: string
- *                         format: date-time
- *                         example: 2025-08-21T12:26:42.522Z
- *                       attachments:
- *                         type: array
- *                         items:
- *                           type: object
- *                           properties:
- *                             attachment_id:
- *                               type: integer
- *                               example: 23
- *                             url:
- *                               type: string
- *                               example: https://...png
- *                             type:
- *                               type: string
- *                               enum: [IMAGE, FILE]
- *                               example: IMAGE
- *                             original_name:
- *                               type: string
- *                               example: picture.png
- *                             size:
- *                               type: integer
- *                               example: 27187
- *                             created_at:
- *                               type: string
- *                               format: date-time
- *                               example: 2025-08-21T12:26:42.522Z
- *                 page:
- *                   type: object
- *                   properties:
- *                     has_more:
- *                       type: boolean
- *                       example: false
- *                     total_count:
- *                       type: integer
- *                       example: 2
+ *                     room:
+ *                       type: object
+ *                       properties:
+ *                         room_id:
+ *                           type: integer
+ *                           example: 2
+ *                         created_at:
+ *                           type: string
+ *                           format: date-time
+ *                           example: 2025-08-21T12:26:42.522Z
+ *                         is_pinned:
+ *                           type: boolean
+ *                           example: true
+ *                     my:
+ *                       type: object
+ *                       properties:
+ *                         user_id:
+ *                           type: integer
+ *                           example: 45
+ *                         left_at:
+ *                           type: string
+ *                           format: date-time
+ *                           nullable: true
+ *                           example: 2026-01-20T10:00:00.000Z
+ *                     partner:
+ *                       type: object
+ *                       properties:
+ *                         user_id:
+ *                           type: integer
+ *                           example: 67
+ *                         nickname:
+ *                           type: string
+ *                           example: 달팽이
+ *                         profile_image_url:
+ *                           type: string
+ *                           nullable: true
+ *                           example: https://...png
+ *                         role:
+ *                           type: string
+ *                           example: USER
+ *                     block_status:
+ *                       type: object
+ *                       properties:
+ *                         i_blocked_partner:
+ *                           type: boolean
+ *                           example: true
+ *                         partner_blocked_me:
+ *                           type: boolean
+ *                           example: false
+ *                     messages:
+ *                       type: array
+ *                       description: 오래된 순(ASC)
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           message_id:
+ *                             type: integer
+ *                             example: 56
+ *                           sender_id:
+ *                             type: integer
+ *                             example: 45
+ *                           content:
+ *                             type: string
+ *                             nullable: true
+ *                             example: 혹시 이 사진이랑 파일도 프롬프트에 사용할 수 있나요?
+ *                           sent_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2025-08-21T12:26:42.522Z
+ *                           attachments:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 attachment_id:
+ *                                   type: integer
+ *                                   example: 23
+ *                                 url:
+ *                                   type: string
+ *                                   example: https://...png
+ *                                 type:
+ *                                   type: string
+ *                                   enum: [IMAGE, FILE]
+ *                                   example: IMAGE
+ *                                 original_name:
+ *                                   type: string
+ *                                   example: picture.png
+ *                                 size:
+ *                                   type: integer
+ *                                   example: 27187
+ *                                 created_at:
+ *                                   type: string
+ *                                   format: date-time
+ *                                   example: 2025-08-21T12:26:42.522Z
+ *                     page:
+ *                       type: object
+ *                       properties:
+ *                         has_more:
+ *                           type: boolean
+ *                           example: false
+ *                         total_count:
+ *                           type: integer
+ *                           example: 2
  *       401:
  *         description: 인증 실패 (토큰 없음/만료/유효하지 않음)
  *       404:
  *         description: 채팅방을 찾을 수 없음
  */
 
-router.get("/rooms/:room-id", authenticateJwt, getChatRoomDetail);
+
+router.get("/rooms/:roomId", authenticateJwt, getChatRoomDetail);
 
 /**
  * @swagger
@@ -272,73 +276,78 @@ router.get("/rooms/:room-id", authenticateJwt, getChatRoomDetail);
  *                 message:
  *                   type: string
  *                   example: 채팅방 목록을 성공적으로 조회했습니다.
- *                 rooms:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       room_id:
- *                         type: integer
- *                         example: 12
- *                       partner:
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     rooms:
+ *                       type: array
+ *                       items:
  *                         type: object
  *                         properties:
- *                           user_id:
+ *                           room_id:
  *                             type: integer
- *                             example: 67
- *                           nickname:
- *                             type: string
- *                             example: 달팽이
- *                           profile_image_url:
- *                             type: string
- *                             nullable: true
- *                             example: https://...png
- *                       last_message:
- *                         type: object
- *                         nullable: true
- *                         properties:
- *                           content:
- *                             type: string
- *                             nullable: true
- *                             example: 안녕하세요 너무 신기하네요
- *                           sent_at:
- *                             type: string
- *                             format: date-time
- *                             nullable: true
- *                             example: 2025-10-18T10:15:00Z
- *                           has_attachments:
- *                             type: boolean
- *                             example: false
- *                           attachment_summary:
+ *                             example: 12
+ *                           partner:
+ *                             type: object
+ *                             properties:
+ *                               user_id:
+ *                                 type: integer
+ *                                 example: 67
+ *                               nickname:
+ *                                 type: string
+ *                                 example: 달팽이
+ *                               profile_image_url:
+ *                                 type: string
+ *                                 nullable: true
+ *                                 example: https://...png
+ *                           last_message:
  *                             type: object
  *                             nullable: true
  *                             properties:
- *                               image_count:
- *                                 type: integer
- *                                 example: 2
- *                               file_count:
- *                                 type: integer
- *                                 example: 0
- *                       unread_count:
- *                         type: integer
- *                         example: 0
- *                       is_pinned:
- *                         type: boolean
- *                         example: true
- *                 page:
- *                   type: object
- *                   properties:
- *                     has_more:
- *                       type: boolean
- *                       example: false
- *                     total_count:
- *                       type: integer
- *                       example: 3
+ *                               content:
+ *                                 type: string
+ *                                 nullable: true
+ *                                 example: 안녕하세요 너무 신기하네요
+ *                               sent_at:
+ *                                 type: string
+ *                                 format: date-time
+ *                                 nullable: true
+ *                                 example: 2025-10-18T10:15:00Z
+ *                               has_attachments:
+ *                                 type: boolean
+ *                                 example: false
+ *                               attachment_summary:
+ *                                 type: object
+ *                                 nullable: true
+ *                                 properties:
+ *                                   image_count:
+ *                                     type: integer
+ *                                     example: 2
+ *                                   file_count:
+ *                                     type: integer
+ *                                     example: 0
+ *                           unread_count:
+ *                             type: integer
+ *                             example: 0
+ *                           is_pinned:
+ *                             type: boolean
+ *                             example: true
+ *                     page:
+ *                       type: object
+ *                       properties:
+ *                         has_more:
+ *                           type: boolean
+ *                           example: false
+ *                         total_count:
+ *                           type: integer
+ *                           example: 3
  *                 statusCode:
  *                   type: integer
  *                   example: 200
  *       401:
  *         description: 인증 실패 (토큰 없음/만료/유효하지 않음)
+ *       400:
+ *         description: 잘못된 요청 (유효하지 않은 filter 값)
  */
 
 router.get("/rooms", authenticateJwt, getChatRoomList);
