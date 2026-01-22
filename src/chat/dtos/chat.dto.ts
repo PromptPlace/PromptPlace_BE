@@ -65,7 +65,6 @@ export interface GetChatDetailRequestDto {
 }
 
 export class ChatRoomDetailResponseDto {
-  message!: string;
   room!: ChatRoomDto;
   my!: MyChatInfoDto;
   partner!: ChatPartnerDto;
@@ -87,8 +86,6 @@ export class ChatRoomDetailResponseDto {
     const partnerUser = isUser1Me ? roomDetail.user2 : roomDetail.user1;
 
     const dto = new ChatRoomDetailResponseDto();
-
-    dto.message = "채팅방 상세를 성공적으로 조회했습니다.";
 
     dto.room = {
       room_id: roomDetail.room_id,
@@ -167,7 +164,6 @@ export interface GetChatRoomListRequestDto {
 }
 
 export class ChatRoomListResponseDto {
-  message!: string;
   rooms!: ChatRoomListItemDto[];
   page!: ChatPageDto;
 
@@ -179,8 +175,6 @@ export class ChatRoomListResponseDto {
   }): ChatRoomListResponseDto {
     const { userId, roomsInfo, totalRoom, hasMore } = params;    
     const dto = new ChatRoomListResponseDto();
-
-    dto.message = "채팅방 목록을 성공적으로 조회했습니다.";
 
     dto.rooms = roomsInfo.map((p) => {
       const room = p.chatRoom;
