@@ -33,13 +33,31 @@ export class ChatRepository {
     });
   }
 
-  async findMessagesByRoomId(roomId: number, cursor?: number, limit: number = 20) {
+  async findMessagesByRoomId(roomId: number, cursor?: number, limit: number = 20, userId?: number) {
+    const leftInfo = await prisma.chatParticipant.findFirst({
+      where: {
+        room_id: roomId,
+        user_id: userId,
+      },
+      select: { left_at: true }
+    });
+
+    const leftAt = leftInfo?.left_at;
     const hasCursor = cursor !== undefined && cursor !== null && cursor !== 0;
+    
+    const whereConditions: any = {
+      room_id: roomId,
+    }
+
+    // 채팅방을 나갔으면 그 이후의 메세지만 조회
+    if (leftAt) {
+      whereConditions.created_at = { gt: leftAt };
+    }
 
     const [messages, totalCount] = await Promise.all([
       //  메시지 목록 조회
       prisma.chatMessage.findMany({
-        where: { room_id: roomId },
+        where: whereConditions,
         take: limit + 1,
         ...(hasCursor
           ? {
@@ -52,7 +70,7 @@ export class ChatRepository {
       }),
       // 해당 방의 전체 메시지 개수 조회
       prisma.chatMessage.count({
-        where: { room_id: roomId },
+        where: whereConditions,
       }),
     ]);
 

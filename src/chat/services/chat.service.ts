@@ -54,7 +54,7 @@ export class ChatService {
     // 차단 정보 및 메세지 목록
     const [blockInfo, messageInfo] = await Promise.all([
       this.chatRepo.blockStatus(myId, partnerId),
-      this.chatRepo.findMessagesByRoomId(roomId, cursor, limit)
+      this.chatRepo.findMessagesByRoomId(roomId, cursor, limit, myId),
     ]);
     
     // 페이지네이션 
