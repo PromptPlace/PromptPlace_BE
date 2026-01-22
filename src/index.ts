@@ -1,4 +1,3 @@
-import "dotenv/config";
 import express, { ErrorRequestHandler } from "express";
 import { responseHandler } from "./middlewares/responseHandler";
 import { errorHandler } from "./middlewares/errorHandler";
