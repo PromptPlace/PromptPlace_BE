@@ -1,4 +1,3 @@
-import "dotenv/config";
 import express, { ErrorRequestHandler } from "express";
 import { responseHandler } from "./middlewares/responseHandler";
 import { errorHandler } from "./middlewares/errorHandler";
@@ -31,6 +30,7 @@ import adminMemberRouter from "./members/routes/admin-member.route";
 import signupRouter from "./signup/routes/signup.route"
 import signinRouter from "./signin/routes/signin.route";
 import passwordRouter from "./password/routes/password.route";
+import chatRouter from "./chat/routes/chat.route";
 import morgan = require('morgan');
 const PORT = 3000;
 const app = express();
@@ -146,6 +146,9 @@ app.use(
   },
   purchaseRouter
 );
+
+// 채팅 라우터
+app.use("/api/chat", chatRouter);
 
 // 프롬프트 다운로드 라우터
 app.use("/api/prompts", promptDownloadRouter);
