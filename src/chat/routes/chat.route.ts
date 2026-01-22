@@ -132,7 +132,6 @@ router.post("/rooms", authenticateJwt, createOrGetChatRoom);
  *                         left_at:
  *                           type: string
  *                           format: date-time
- *                           nullable: true
  *                           example: 2026-01-20T10:00:00.000Z
  *                     partner:
  *                       type: object
@@ -145,7 +144,6 @@ router.post("/rooms", authenticateJwt, createOrGetChatRoom);
  *                           example: 달팽이
  *                         profile_image_url:
  *                           type: string
- *                           nullable: true
  *                           example: https://...png
  *                         role:
  *                           type: string
@@ -161,7 +159,6 @@ router.post("/rooms", authenticateJwt, createOrGetChatRoom);
  *                           example: false
  *                     messages:
  *                       type: array
- *                       description: 오래된 순(ASC)
  *                       items:
  *                         type: object
  *                         properties:
@@ -173,7 +170,6 @@ router.post("/rooms", authenticateJwt, createOrGetChatRoom);
  *                             example: 45
  *                           content:
  *                             type: string
- *                             nullable: true
  *                             example: 혹시 이 사진이랑 파일도 프롬프트에 사용할 수 있나요?
  *                           sent_at:
  *                             type: string
@@ -213,6 +209,9 @@ router.post("/rooms", authenticateJwt, createOrGetChatRoom);
  *                         total_count:
  *                           type: integer
  *                           example: 2
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
  *       401:
  *         description: 인증 실패 (토큰 없음/만료/유효하지 않음)
  *       404:
@@ -298,7 +297,6 @@ router.get("/rooms/:roomId", authenticateJwt, getChatRoomDetail);
  *                                 example: 달팽이
  *                               profile_image_url:
  *                                 type: string
- *                                 nullable: true
  *                                 example: https://...png
  *                           last_message:
  *                             type: object
@@ -328,10 +326,10 @@ router.get("/rooms/:roomId", authenticateJwt, getChatRoomDetail);
  *                                     example: 0
  *                           unread_count:
  *                             type: integer
- *                             example: 0
+ *                             example: 123
  *                           is_pinned:
  *                             type: boolean
- *                             example: true
+ *                             example: false
  *                     page:
  *                       type: object
  *                       properties:
@@ -344,10 +342,10 @@ router.get("/rooms/:roomId", authenticateJwt, getChatRoomDetail);
  *                 statusCode:
  *                   type: integer
  *                   example: 200
- *       401:
- *         description: 인증 실패 (토큰 없음/만료/유효하지 않음)
  *       400:
  *         description: 잘못된 요청 (유효하지 않은 filter 값)
+ *       401:
+ *         description: 인증 실패 (토큰 없음/만료/유효하지 않음)
  */
 
 router.get("/rooms", authenticateJwt, getChatRoomList);
