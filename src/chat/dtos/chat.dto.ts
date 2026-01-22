@@ -195,7 +195,7 @@ export class ChatRoomListResponseDto {
           profile_image_url: partnerData?.user.profileImage || null,
         },
         last_message: lastMsg,
-        unread_count: p.unreadCount,
+        unread_count: p.unread_count,
         is_pinned: p.is_pinned
       };
     });
