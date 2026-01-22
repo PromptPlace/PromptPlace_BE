@@ -515,11 +515,12 @@ model ChatParticipant {
   room_id               Int
   user_id               Int
   last_read_message_id  Int?
+  unread_count           Int                 @default(0)
 
   chatRoom              ChatRoom            @relation("RoomParticipants", fields: [room_id], references: [room_id], onDelete: Cascade)
   user                  User                @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   lastReadMessage       ChatMessage?        @relation("LastReadMessage", fields: [last_read_message_id], references: [message_id], onDelete: SetNull)
-
+           
   @@unique([room_id, user_id])
 }
 
