@@ -5,6 +5,7 @@ import {
   ChatRoomDetailResponseDto,
   ChatRoomListResponseDto,
   ChatFilterType,
+  TogglePinResponseDto,
 } from "../dtos/chat.dto";
 import { getPresignedUrl } from "../../middlewares/s3.util";
 
@@ -135,6 +136,20 @@ export class ChatService {
       })
     );
     return { attatchments };
+  }
+
+  // == 채팅방 고정 토글
+  async togglePinChatRoomService(
+    roomId: number, userId: number
+  ): Promise<TogglePinResponseDto> {
+    const roomDetail = await this.chatRepo.findRoomDetailWithParticipant(roomId);
+    if (!roomDetail) {
+      throw new AppError("채팅방을 찾을 수 없습니다.", 404, "NotFoundError");
+    }
+
+    const isPinned = roomDetail.participants.some((p) => p.user_id === userId && p.is_pinned); // 현재 고정 상태
+    const togglePinned = (await this.chatRepo.togglePinChatRoom(roomId, userId, isPinned)).is_pinned
+    return {is_pinned: togglePinned};
   }
 }
 

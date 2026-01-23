@@ -207,5 +207,35 @@ export const getPresignedUrl = async(req: Request, res: Response) => {
       message: err.message || "presigned URL 생성 중 오류가 발생했습니다.",
       statusCode: err.statusCode || 500,
     });
-  } 
+  }
 };
+
+// == 채팅방 고정 토글
+export const togglePinChatRoom = async(req: Request, res: Response) => {
+    if (!req.user) {
+      res.fail({  
+        statusCode: 401,
+        error: "no user",
+        message: "로그인이 필요합니다.",
+      });
+      return;
+    }
+    try {
+      const userId = (req.user as { user_id: number }).user_id;
+      const roomId = Number(req.params.roomId);
+      if (isNaN(roomId)) {
+        res.fail({ statusCode: 400, error: "BadRequest", message: "올바른 roomId가 필요합니다." });
+        return;
+      }
+      const isPinned = await chatService.togglePinChatRoomService(roomId, userId);
+      res.success(isPinned, "채팅방 고정을 성공적으로 토글했습니다.");
+    }
+    catch (err: any) {
+      console.error(err);
+      res.fail({
+        error: err.error || "InternalServerError",
+        message: err.message || "채팅방 고정 토글 중 오류가 발생했습니다.",
+        statusCode: err.statusCode || 500,
+      });
+    }
+  }

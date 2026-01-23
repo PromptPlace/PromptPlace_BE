@@ -237,5 +237,21 @@ export class ChatRepository {
       },
     }); 
   };
+
+
+  // == 채팅방 고정 토글
+  async togglePinChatRoom(roomId: number, userId: number, isPinned: boolean) {
+    return prisma.chatParticipant.update({
+      where: {
+        room_id_user_id: {
+          room_id: roomId,
+          user_id: userId,
+        },
+      },
+      data: {
+        is_pinned: !isPinned, // 토글
+      },
+    });
+  }
 }
 

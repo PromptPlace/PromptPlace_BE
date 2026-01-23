@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createOrGetChatRoom, getChatRoomDetail, getChatRoomList, blockUser, leaveChatRoom, getPresignedUrl} from "../controllers/chat.controller";
+import { createOrGetChatRoom, getChatRoomDetail, getChatRoomList, blockUser, leaveChatRoom, getPresignedUrl, togglePinChatRoom} from "../controllers/chat.controller";
 import { authenticateJwt } from "../../config/passport";
 
 const router = Router();
@@ -538,5 +538,60 @@ router.patch("/rooms/:roomId/leave", authenticateJwt, leaveChatRoom);
  */
 
 router.post("/presigned-url", authenticateJwt, getPresignedUrl);
+
+/**
+ * @swagger
+ * /api/chat/rooms/{roomId}/pin:
+ *   patch:
+ *     summary: 채팅방 고정 토글
+ *     description: >
+ *       채팅방 고정을 토글합니다.<br/><br/>
+ *       `isPinned`:<br/>
+ *         - false → 토글 결과 = 고정 해제<br/>
+ *         - true → 토글 결과 = 고정
+ *     tags: [Chat]
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 채팅방 ID
+ *         example: 2
+ *     responses:
+ *       200:
+ *         description: 채팅방 고정 토글 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 채팅방 고정을 성공적으로 토글했습니다.
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     isPinned:
+ *                       type: boolean
+ *                       example: true
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *             example:
+ *               message: 채팅방 고정을 성공적으로 토글했습니다.
+ *               data:
+ *                 isPinned: true
+ *               statusCode: 200
+ *       400:
+ *         description: 잘못된 요청
+ *       401:
+ *         description: 인증 실패 (토큰 없음/만료/유효하지 않음)
+ *       404:
+ *         description: 채팅방을 찾을 수 없음
+ */
+router.patch("/rooms/:roomId/pin", authenticateJwt, togglePinChatRoom);
 
 export default router;
