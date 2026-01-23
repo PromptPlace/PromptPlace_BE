@@ -129,7 +129,7 @@ export const blockUser = async(req: Request, res: Response) => {
       res.fail({ statusCode: 400, error: "BadRequest", message: "자기 자신을 차단할 수 없습니다." });
       return;
     }
-    
+
     await chatService.blockUserService(blockerId, blocked_user_id);
     
     res.success(null, "상대방을 성공적으로 차단했습니다.");
@@ -141,4 +141,36 @@ export const blockUser = async(req: Request, res: Response) => {
       statusCode: err.statusCode || 500,
     });
   }
+};
+
+// == 채팅방 나가기
+export const leaveChatRoom = async(req: Request, res: Response) => {
+    if (!req.user) {
+      res.fail({  
+        statusCode: 401,
+        error: "no user",
+        message: "로그인이 필요합니다.",
+      });
+      return;
+    } 
+    try {
+      const userId = (req.user as { user_id: number }).user_id;
+      const roomId = Number(req.params.roomId);
+      console.log("🍀roomId:", roomId);
+      
+      if (isNaN(roomId)) {
+        res.fail({ statusCode: 400, error: "BadRequest", message: "올바른 roomId가 필요합니다." });
+        return;
+      }
+      await chatService.leaveChatRoomService(roomId, userId);
+      
+      res.success(null, "채팅방을 성공적으로 나갔습니다.");
+    } catch (err: any) {
+      console.error(err);
+      res.fail({
+        error: err.error || "InternalServerError",
+        message: err.message || "채팅방 나가기 중 오류가 발생했습니다.",
+        statusCode: err.statusCode || 500,
+      });
+    }
 };

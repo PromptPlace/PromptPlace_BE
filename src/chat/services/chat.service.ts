@@ -108,6 +108,17 @@ export class ChatService {
     }
     await this.chatRepo.blockUser(blockerId, blockedId);
   }
+
+  // == 채팅방 나가기
+  async leaveChatRoomService(
+    roomId: number, userId: number
+  ): Promise<void> {
+    const roomDetail = await this.chatRepo.findRoomDetailWithParticipant(roomId);
+    if (!roomDetail) {
+      throw new AppError("채팅방을 찾을 수 없습니다.", 404, "NotFoundError");
+    }
+    await this.chatRepo.leaveChatRoom(roomId, userId);
+  }
 }
 
 export const chatService = new ChatService(new ChatRepository());

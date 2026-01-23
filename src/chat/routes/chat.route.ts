@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createOrGetChatRoom, getChatRoomDetail, getChatRoomList, blockUser } from "../controllers/chat.controller";
+import { createOrGetChatRoom, getChatRoomDetail, getChatRoomList, blockUser, leaveChatRoom, } from "../controllers/chat.controller";
 import { authenticateJwt } from "../../config/passport";
 
 const router = Router();
@@ -396,4 +396,49 @@ router.get("/rooms", authenticateJwt, getChatRoomList);
  */
 
 router.post("/block", authenticateJwt, blockUser);
+/**
+ * @swagger
+ * /api/chat/rooms/{roomId}/leave:
+ *   patch:
+ *     summary: 채팅방 나가기
+ *     description: >
+ *       채팅방을 나갑니다.<br/>
+ *       채팅방을 나가면 채팅방 목록 조회 리스트에서 제외됩니다. <br/>
+ *       나갔더라도 채팅방은 유지되며 계속적으로 수신이 가능합니다. 다시 입장할 수 있지만 나가기 전 메시지들은 볼 수 없습니다.
+ *       
+ *     tags: [Chat]
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 채팅방 ID
+ *         example: 2
+ *     responses:
+ *       200:
+ *         description: 채팅방 나가기 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 채팅방을 성공적으로 나갔습니다.
+ *                 data:
+ *                   nullable: true
+ *                   example: null
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *       400:
+ *         description: 잘못된 요청
+ *       401:
+ *         description: 인증 실패 (토큰 없음/만료/유효하지 않음)
+ */
+
+router.patch("/rooms/:roomId/leave", authenticateJwt, leaveChatRoom);
 export default router;

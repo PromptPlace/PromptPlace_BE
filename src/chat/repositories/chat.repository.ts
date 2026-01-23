@@ -222,5 +222,20 @@ export class ChatRepository {
       },
     });
   }
+
+  // == 채팅방 나가기
+  async leaveChatRoom(roomId: number, userId: number) {
+    return prisma.chatParticipant.update({
+      where: {
+        room_id_user_id: {
+          room_id: roomId,
+          user_id: userId,  
+        },
+      },
+      data: {
+        left_at: new Date(),
+      },
+    }); 
+  };
 }
 
