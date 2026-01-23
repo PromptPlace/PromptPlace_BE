@@ -18,27 +18,16 @@ export class ChatRepository {
         user_id1: userId1,
         user_id2: userId2,
         last_message_id: null,
+        // 참여자 생성 
+        participants: {
+          create: [
+            { user_id: userId1}, 
+            { user_id: userId2},
+          ],
+        }
       },
     });
   }
-
-  async createChatParticipant(roomId: number, userId1: number, userId2: number) {
-    return Promise.all([
-      prisma.chatParticipant.create({
-        data: {
-          room_id: roomId,
-          user_id: userId1,
-        },  
-      }),
-      prisma.chatParticipant.create({
-        data: {
-          room_id: roomId,  
-          user_id: userId2,
-        },
-      }),
-    ]);
-  }
-
 
   async findRoomDetailWithParticipant(roomId: number) {
     return prisma.chatRoom.findUnique({
