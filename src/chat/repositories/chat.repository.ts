@@ -194,6 +194,15 @@ export class ChatRepository {
     ]);
     return {rooms, totalRoom}
   };
-}
 
+  // == 상대방 차단
+  async blockUser(blockerId: number, blockedId: number) {
+    return prisma.userBlock.create({
+      data: {
+        blocker_id: blockerId,
+        blocked_id: blockedId,
+      },
+    });
+  }
+}
 

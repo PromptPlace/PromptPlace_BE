@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createOrGetChatRoom, getChatRoomDetail, getChatRoomList } from "../controllers/chat.controller";
+import { createOrGetChatRoom, getChatRoomDetail, getChatRoomList, blockUser } from "../controllers/chat.controller";
 import { authenticateJwt } from "../../config/passport";
 
 const router = Router();
@@ -350,4 +350,6 @@ router.get("/rooms/:roomId", authenticateJwt, getChatRoomDetail);
  */
 
 router.get("/rooms", authenticateJwt, getChatRoomList);
+
+router.post("/block", authenticateJwt, blockUser);
 export default router;

@@ -94,6 +94,17 @@ export class ChatService {
       hasMore,
     });
   }
+
+  // == 상대방 차단
+  async blockUserService(
+    blockerId: number, blockedId: number
+  ): Promise<void> {
+    const blockStatus = await this.chatRepo.blockStatus(blockerId, blockedId);
+    if (blockStatus.iBlockedPartner) {
+      throw new AppError("이미 차단한 사용자입니다.", 400, "BadRequest");
+    }
+    await this.chatRepo.blockUser(blockerId, blockedId);
+  }
 }
 
 export const chatService = new ChatService(new ChatRepository());

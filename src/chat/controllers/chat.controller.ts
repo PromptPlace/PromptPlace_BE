@@ -105,3 +105,30 @@ export const getChatRoomList = async(req: Request, res: Response) => {
     });
   }
 } 
+
+// == 상대방 차단
+export const blockUser = async(req: Request, res: Response) => {
+  if (!req.user) {
+    res.fail({  
+      statusCode: 401,
+      error: "no user",
+      message: "로그인이 필요합니다.",
+    });
+    return;
+  } 
+  try {
+    const blockerId = (req.user as { user_id: number }).user_id;
+    const { blocked_user_id } = req.body as { blocked_user_id: number };
+    
+    await chatService.blockUserService(blockerId, blocked_user_id);
+    
+    res.success(null, "상대방을 성공적으로 차단했습니다.");
+  } catch (err: any) {
+    console.error(err);
+    res.fail({
+      error: err.error || "InternalServerError",
+      message: err.message || "상대방 차단 중 오류가 발생했습니다.",
+      statusCode: err.statusCode || 500,
+    });
+  }
+};
