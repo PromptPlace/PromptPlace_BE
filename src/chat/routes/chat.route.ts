@@ -68,7 +68,7 @@ router.post("/rooms", authenticateJwt, createOrGetChatRoom);
  *   get:
  *     summary: 채팅방 상세 조회
  *     description: >
- *       채팅방 상세 정보(상대 정보/차단 상태/메시지 목록/페이지 정보)를 조회합니다.
+ *       채팅방 상세 정보(상대 정보/차단 상태/메시지 목록/페이지 정보)를 조회합니다.<br/>
  *       메시지는 오래된 순(ASC)으로 반환되며, cursor 기반으로 과거 메시지를 추가로 불러올 수 있습니다.
  *     tags: [Chat]
  *     security:
@@ -227,7 +227,8 @@ router.get("/rooms/:roomId", authenticateJwt, getChatRoomDetail);
  *   get:
  *     summary: 채팅방 목록 조회
  *     description: >
- *       내 채팅방 목록을 조회합니다.
+ *       내 채팅방 목록을 조회합니다.<br/>
+ *       메세지가 존재하지 않으면 해당 채팅방은 목록에서 제외됩니다.<br/>
  *       filter(전체/안읽음/고정), search(상대 닉네임 검색), cursor 기반 페이징을 지원합니다.
  *     tags: [Chat]
  *     security:
