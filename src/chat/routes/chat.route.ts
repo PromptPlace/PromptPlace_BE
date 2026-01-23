@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createOrGetChatRoom, getChatRoomDetail, getChatRoomList, blockUser, leaveChatRoom, } from "../controllers/chat.controller";
+import { createOrGetChatRoom, getChatRoomDetail, getChatRoomList, blockUser, leaveChatRoom, getPresignedUrl} from "../controllers/chat.controller";
 import { authenticateJwt } from "../../config/passport";
 
 const router = Router();
@@ -441,4 +441,102 @@ router.post("/block", authenticateJwt, blockUser);
  */
 
 router.patch("/rooms/:roomId/leave", authenticateJwt, leaveChatRoom);
+/**
+ * @swagger
+ * /api/chat/presigned-url:
+ *   post:
+ *     summary: Presigned URL 발급
+ *     description: >
+ *       파일 업로드를 위한 presigned url을 발급합니다.<br/><br/>
+ *       **업로드 프로세스:**<br/>
+ *       1) 본 API를 호출하여 파일별 url 과 key 를 받습니다.<br/>
+ *       2) 받은 url 로 PUT 요청을 보내 실제 파일을 업로드합니다.<br/>
+ *       3) 업로드가 모두 성공하면, 채팅 메시지 전송 API 호출 시 서버로부터 받은 key 값들을 함께 보냅니다.
+ *     tags: [Chat]
+ *     security:
+ *       - jwt: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - files
+ *             properties:
+ *               files:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - name
+ *                     - content_type
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                       example: cat.jpg
+ *                     content_type:
+ *                       type: string
+ *                       example: image/jpg
+ *           example:
+ *             files:
+ *               - name: cat.jpg
+ *                 content_type: image/jpg
+ *               - name: dog.png
+ *                 content_type: image/png
+ *               - name: info.pdf
+ *                 content_type: application/pdf
+ *     responses:
+ *       200:
+ *         description: presign 발급 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: presign을 성공적으로 발급했습니다.
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     attachments:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           name:
+ *                             type: string
+ *                             example: cat.jpg
+ *                           url:
+ *                             type: string
+ *                             example: https://s3.aws.com/bucket/random-key-1?signature=...
+ *                           key:
+ *                             type: string
+ *                             example: uploads/random-key-1.jpg
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *             example:
+ *               message: presign을 성공적으로 발급했습니다.
+ *               data:
+ *                 attachments:
+ *                   - name: cat.jpg
+ *                     url: https://s3.aws.com/bucket/random-key-1?signature=...
+ *                     key: uploads/random-key-1.jpg
+ *                   - name: dog.jpg
+ *                     url: https://s3.aws.com/bucket/random-key-2?signature=...
+ *                     key: uploads/random-key-2.png
+ *                   - name: info.pdf
+ *                     url: https://s3.aws.com/bucket/random-key-3?signature=...
+ *                     key: uploads/random-key-3.pdf
+ *               statusCode: 200
+ *       400:
+ *         description: 잘못된 요청
+ *       401:
+ *         description: 인증 실패 (토큰 없음/만료/유효하지 않음)
+ */
+
+router.post("/presigned-url", authenticateJwt, getPresignedUrl);
+
 export default router;

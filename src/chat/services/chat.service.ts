@@ -6,6 +6,7 @@ import {
   ChatRoomListResponseDto,
   ChatFilterType,
 } from "../dtos/chat.dto";
+import { getPresignedUrl } from "../../middlewares/s3.util";
 
 export class ChatService {
   constructor(private readonly chatRepo: ChatRepository) {}
@@ -118,6 +119,22 @@ export class ChatService {
       throw new AppError("채팅방을 찾을 수 없습니다.", 404, "NotFoundError");
     }
     await this.chatRepo.leaveChatRoom(roomId, userId);
+  }
+
+  // == S3 presigned URL 발급
+  async getPresignedUrlService(files: { fileName: string; contentType: string}[]) {
+    const attatchments = await Promise.all(
+      files.map(async (f) => {
+        const {url, key} = await getPresignedUrl(f.fileName, f.contentType);
+
+        return {
+          name: f.fileName,
+          url: url,
+          key: key,
+        };
+      })
+    );
+    return { attatchments };
   }
 }
 
