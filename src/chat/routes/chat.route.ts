@@ -350,6 +350,50 @@ router.get("/rooms/:roomId", authenticateJwt, getChatRoomDetail);
  */
 
 router.get("/rooms", authenticateJwt, getChatRoomList);
+/**
+ * @swagger
+ * /api/chat/block:
+ *   post:
+ *     summary: 사용자 차단
+ *     description: >
+ *       상대방을 차단합니다.
+ *     tags: [Chat]
+ *     security:
+ *       - jwt: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - blocked_user_id
+ *             properties:
+ *               blocked_user_id:
+ *                 type: integer
+ *                 example: 5
+ *     responses:
+ *       200:
+ *         description: 차단 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 상대방을 성공적으로 차단했습니다.
+ *                 data:
+ *                   nullable: true
+ *                   example: null
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *       400:
+ *        description: 잘못된 요청
+ *       401:
+ *         description: 인증 실패 (토큰 없음/만료/유효하지 않음)
+ */
 
 router.post("/block", authenticateJwt, blockUser);
 export default router;
