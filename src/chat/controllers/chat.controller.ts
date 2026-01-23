@@ -120,6 +120,16 @@ export const blockUser = async(req: Request, res: Response) => {
     const blockerId = (req.user as { user_id: number }).user_id;
     const { blocked_user_id } = req.body as { blocked_user_id: number };
     
+    if (!blocked_user_id || isNaN(blocked_user_id)) {
+      res.fail({ statusCode: 400, error: "BadRequest", message: "올바른 blocked_user_id가 필요합니다." });
+      return;
+    }
+
+    if (blockerId === blocked_user_id) {
+      res.fail({ statusCode: 400, error: "BadRequest", message: "자기 자신을 차단할 수 없습니다." });
+      return;
+    }
+    
     await chatService.blockUserService(blockerId, blocked_user_id);
     
     res.success(null, "상대방을 성공적으로 차단했습니다.");
