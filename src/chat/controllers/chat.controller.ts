@@ -26,7 +26,7 @@ export const createOrGetChatRoom = async (req: Request, res: Response): Promise<
   } catch (err: any) {
     console.error(err);
     res.fail({
-      error: err.name || "InternalServerError",
+      error: err.error || "InternalServerError",
       message: err.message || "채팅방 생성/반환 중 오류가 발생했습니다.",
       statusCode: err.statusCode || 500,
     });
@@ -61,7 +61,7 @@ export const getChatRoomDetail = async (req: Request, res: Response): Promise<vo
   } catch (err: any) {  
     console.error(err);
     res.fail({
-      error: err.name || "InternalServerError",
+      error: err.error || "InternalServerError",
       message: err.message || "채팅방 상세 조회 중 오류가 발생했습니다.",
       statusCode: err.statusCode || 500,
     });
@@ -99,7 +99,7 @@ export const getChatRoomList = async(req: Request, res: Response) => {
   } catch (err: any) {  
     console.error(err);
     res.fail({
-      error: err.name || "InternalServerError",
+      error: err.error || "InternalServerError",
       message: err.message || "채팅방 목록 조회 중 오류가 발생했습니다.",
       statusCode: err.statusCode || 500,
     });
