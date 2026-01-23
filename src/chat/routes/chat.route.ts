@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createOrGetChatRoom, getChatRoomDetail, getChatRoomList } from "../controllers/chat.controller";
+import { createOrGetChatRoom, getChatRoomDetail, getChatRoomList, blockUser, leaveChatRoom, getPresignedUrl, togglePinChatRoom} from "../controllers/chat.controller";
 import { authenticateJwt } from "../../config/passport";
 
 const router = Router();
@@ -350,4 +350,248 @@ router.get("/rooms/:roomId", authenticateJwt, getChatRoomDetail);
  */
 
 router.get("/rooms", authenticateJwt, getChatRoomList);
+/**
+ * @swagger
+ * /api/chat/block:
+ *   post:
+ *     summary: 사용자 차단
+ *     description: >
+ *       상대방을 차단합니다.
+ *     tags: [Chat]
+ *     security:
+ *       - jwt: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - blocked_user_id
+ *             properties:
+ *               blocked_user_id:
+ *                 type: integer
+ *                 example: 5
+ *     responses:
+ *       200:
+ *         description: 차단 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 상대방을 성공적으로 차단했습니다.
+ *                 data:
+ *                   nullable: true
+ *                   example: null
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *       400:
+ *        description: 잘못된 요청
+ *       401:
+ *         description: 인증 실패 (토큰 없음/만료/유효하지 않음)
+ */
+
+router.post("/block", authenticateJwt, blockUser);
+/**
+ * @swagger
+ * /api/chat/rooms/{roomId}/leave:
+ *   patch:
+ *     summary: 채팅방 나가기
+ *     description: >
+ *       채팅방을 나갑니다.<br/>
+ *       채팅방을 나가면 채팅방 목록 조회 리스트에서 제외됩니다. <br/>
+ *       나갔더라도 채팅방은 유지되며 계속적으로 수신이 가능합니다. 다시 입장할 수 있지만 나가기 전 메시지들은 볼 수 없습니다.
+ *       
+ *     tags: [Chat]
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 채팅방 ID
+ *         example: 2
+ *     responses:
+ *       200:
+ *         description: 채팅방 나가기 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 채팅방을 성공적으로 나갔습니다.
+ *                 data:
+ *                   nullable: true
+ *                   example: null
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *       400:
+ *         description: 잘못된 요청
+ *       401:
+ *         description: 인증 실패 (토큰 없음/만료/유효하지 않음)
+ */
+
+router.patch("/rooms/:roomId/leave", authenticateJwt, leaveChatRoom);
+/**
+ * @swagger
+ * /api/chat/presigned-url:
+ *   post:
+ *     summary: Presigned URL 발급
+ *     description: >
+ *       파일 업로드를 위한 presigned url을 발급합니다.<br/><br/>
+ *       **업로드 프로세스:**<br/>
+ *       1) 본 API를 호출하여 파일별 url 과 key 를 받습니다.<br/>
+ *       2) 받은 url 로 PUT 요청을 보내 실제 파일을 업로드합니다.<br/>
+ *       3) 업로드가 모두 성공하면, 채팅 메시지 전송 API 호출 시 서버로부터 받은 key 값들을 함께 보냅니다.
+ *     tags: [Chat]
+ *     security:
+ *       - jwt: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - files
+ *             properties:
+ *               files:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - name
+ *                     - content_type
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                       example: cat.jpg
+ *                     content_type:
+ *                       type: string
+ *                       example: image/jpg
+ *           example:
+ *             files:
+ *               - name: cat.jpg
+ *                 content_type: image/jpg
+ *               - name: dog.png
+ *                 content_type: image/png
+ *               - name: info.pdf
+ *                 content_type: application/pdf
+ *     responses:
+ *       200:
+ *         description: presign 발급 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: presign을 성공적으로 발급했습니다.
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     attachments:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           name:
+ *                             type: string
+ *                             example: cat.jpg
+ *                           url:
+ *                             type: string
+ *                             example: https://s3.aws.com/bucket/random-key-1?signature=...
+ *                           key:
+ *                             type: string
+ *                             example: uploads/random-key-1.jpg
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *             example:
+ *               message: presign을 성공적으로 발급했습니다.
+ *               data:
+ *                 attachments:
+ *                   - name: cat.jpg
+ *                     url: https://s3.aws.com/bucket/random-key-1?signature=...
+ *                     key: uploads/random-key-1.jpg
+ *                   - name: dog.jpg
+ *                     url: https://s3.aws.com/bucket/random-key-2?signature=...
+ *                     key: uploads/random-key-2.png
+ *                   - name: info.pdf
+ *                     url: https://s3.aws.com/bucket/random-key-3?signature=...
+ *                     key: uploads/random-key-3.pdf
+ *               statusCode: 200
+ *       400:
+ *         description: 잘못된 요청
+ *       401:
+ *         description: 인증 실패 (토큰 없음/만료/유효하지 않음)
+ */
+
+router.post("/presigned-url", authenticateJwt, getPresignedUrl);
+
+/**
+ * @swagger
+ * /api/chat/rooms/{roomId}/pin:
+ *   patch:
+ *     summary: 채팅방 고정 토글
+ *     description: >
+ *       채팅방 고정을 토글합니다.<br/><br/>
+ *       `isPinned`:<br/>
+ *         - false → 토글 결과 = 고정 해제<br/>
+ *         - true → 토글 결과 = 고정
+ *     tags: [Chat]
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 채팅방 ID
+ *         example: 2
+ *     responses:
+ *       200:
+ *         description: 채팅방 고정 토글 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 채팅방 고정을 성공적으로 토글했습니다.
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     isPinned:
+ *                       type: boolean
+ *                       example: true
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *             example:
+ *               message: 채팅방 고정을 성공적으로 토글했습니다.
+ *               data:
+ *                 isPinned: true
+ *               statusCode: 200
+ *       400:
+ *         description: 잘못된 요청
+ *       401:
+ *         description: 인증 실패 (토큰 없음/만료/유효하지 않음)
+ *       404:
+ *         description: 채팅방을 찾을 수 없음
+ */
+router.patch("/rooms/:roomId/pin", authenticateJwt, togglePinChatRoom);
+
 export default router;

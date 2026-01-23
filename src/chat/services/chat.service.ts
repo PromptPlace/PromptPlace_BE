@@ -5,7 +5,9 @@ import {
   ChatRoomDetailResponseDto,
   ChatRoomListResponseDto,
   ChatFilterType,
+  TogglePinResponseDto,
 } from "../dtos/chat.dto";
+import { getPresignedUrl } from "../../middlewares/s3.util";
 
 export class ChatService {
   constructor(private readonly chatRepo: ChatRepository) {}
@@ -51,10 +53,13 @@ export class ChatService {
     const myId = me.user_id;
     const partnerId = partner.user_id;
 
-    // 차단 정보 및 메세지 목록
+    const updateReadStatus = !cursor ? this.chatRepo.resetUnreadCount(roomId, myId, roomDetail.last_message_id) :  Promise.resolve();
+
+    // 1. 차단 정보 조회 2. 메세지 목록 조회 3. 안읽은 메세지 초기화
     const [blockInfo, messageInfo] = await Promise.all([
       this.chatRepo.blockStatus(myId, partnerId),
       this.chatRepo.findMessagesByRoomId(roomId, cursor, limit, myId),
+      updateReadStatus
     ]);
     
     // 페이지네이션 
@@ -93,6 +98,58 @@ export class ChatService {
       totalRoom: roomList.totalRoom,
       hasMore,
     });
+  }
+
+  // == 상대방 차단
+  async blockUserService(
+    blockerId: number, blockedId: number
+  ): Promise<void> {
+    const blockStatus = await this.chatRepo.blockStatus(blockerId, blockedId);
+    if (blockStatus.iBlockedPartner) {
+      throw new AppError("이미 차단한 사용자입니다.", 400, "BadRequest");
+    }
+    await this.chatRepo.blockUser(blockerId, blockedId);
+  }
+
+  // == 채팅방 나가기
+  async leaveChatRoomService(
+    roomId: number, userId: number
+  ): Promise<void> {
+    const roomDetail = await this.chatRepo.findRoomDetailWithParticipant(roomId);
+    if (!roomDetail) {
+      throw new AppError("채팅방을 찾을 수 없습니다.", 404, "NotFoundError");
+    }
+    await this.chatRepo.leaveChatRoom(roomId, userId);
+  }
+
+  // == S3 presigned URL 발급
+  async getPresignedUrlService(files: { fileName: string; contentType: string}[]) {
+    const attatchments = await Promise.all(
+      files.map(async (f) => {
+        const {url, key} = await getPresignedUrl(f.fileName, f.contentType);
+
+        return {
+          name: f.fileName,
+          url: url,
+          key: key,
+        };
+      })
+    );
+    return { attatchments };
+  }
+
+  // == 채팅방 고정 토글
+  async togglePinChatRoomService(
+    roomId: number, userId: number
+  ): Promise<TogglePinResponseDto> {
+    const roomDetail = await this.chatRepo.findRoomDetailWithParticipant(roomId);
+    if (!roomDetail) {
+      throw new AppError("채팅방을 찾을 수 없습니다.", 404, "NotFoundError");
+    }
+
+    const isPinned = roomDetail.participants.some((p) => p.user_id === userId && p.is_pinned); // 현재 고정 상태
+    const togglePinned = (await this.chatRepo.togglePinChatRoom(roomId, userId, isPinned)).is_pinned
+    return {is_pinned: togglePinned};
   }
 }
 

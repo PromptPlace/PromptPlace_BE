@@ -29,6 +29,7 @@ export class ChatRepository {
     });
   }
 
+  // == 채팅방 상세 조회 (참여자 정보 포함)
   async findRoomDetailWithParticipant(roomId: number) {
     return prisma.chatRoom.findUnique({
       where: { room_id: roomId },
@@ -40,6 +41,23 @@ export class ChatRepository {
     });
   }
 
+  // == 안읽은 메세지 초기화
+  async resetUnreadCount(roomId: number, userId: number, lastMessageId?: number | null) {
+    return prisma.chatParticipant.update({
+      where: {
+        room_id_user_id: {
+          room_id: roomId,
+          user_id: userId,
+        },
+      },
+      data: {
+        unread_count: 0,
+        last_read_message_id: lastMessageId,
+      },
+    });
+  }
+
+  // == 메시지 목록 조회
   async findMessagesByRoomId(roomId: number, cursor?: number, limit: number = 20, userId?: number) {
     const leftInfo = await prisma.chatParticipant.findFirst({
       where: {
@@ -194,6 +212,46 @@ export class ChatRepository {
     ]);
     return {rooms, totalRoom}
   };
-}
 
+  // == 상대방 차단
+  async blockUser(blockerId: number, blockedId: number) {
+    return prisma.userBlock.create({
+      data: {
+        blocker_id: blockerId,
+        blocked_id: blockedId,
+      },
+    });
+  }
+
+  // == 채팅방 나가기
+  async leaveChatRoom(roomId: number, userId: number) {
+    return prisma.chatParticipant.update({
+      where: {
+        room_id_user_id: {
+          room_id: roomId,
+          user_id: userId,  
+        },
+      },
+      data: {
+        left_at: new Date(),
+      },
+    }); 
+  };
+
+
+  // == 채팅방 고정 토글
+  async togglePinChatRoom(roomId: number, userId: number, isPinned: boolean) {
+    return prisma.chatParticipant.update({
+      where: {
+        room_id_user_id: {
+          room_id: roomId,
+          user_id: userId,
+        },
+      },
+      data: {
+        is_pinned: !isPinned, // 토글
+      },
+    });
+  }
+}
 
