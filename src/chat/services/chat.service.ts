@@ -51,10 +51,13 @@ export class ChatService {
     const myId = me.user_id;
     const partnerId = partner.user_id;
 
-    // 차단 정보 및 메세지 목록
+    const updateReadStatus = !cursor ? this.chatRepo.resetUnreadCount(roomId, myId, roomDetail.last_message_id) :  Promise.resolve();
+
+    // 1. 차단 정보 조회 2. 메세지 목록 조회 3. 안읽은 메세지 초기화
     const [blockInfo, messageInfo] = await Promise.all([
       this.chatRepo.blockStatus(myId, partnerId),
       this.chatRepo.findMessagesByRoomId(roomId, cursor, limit, myId),
+      updateReadStatus
     ]);
     
     // 페이지네이션 
