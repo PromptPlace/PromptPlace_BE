@@ -118,6 +118,8 @@ export class ChatRepository {
     const where: Prisma.ChatParticipantWhereInput = {
       user_id: userId,
       left_at: null, // 나가지 않은 방
+      chatRoom: { 
+        is: { last_message_id: { not: null } } }, // 메시지가 있는 방
     };
 
     if (filter === "pinned") {
@@ -130,16 +132,17 @@ export class ChatRepository {
 
     if (search && search.trim().length > 0) {
       where.chatRoom = {
-        participants: {
-          some: {
-            user_id: { not: userId },
-            user: {
-              nickname: {
-                contains: search.trim(),
+        is: {
+          ...(where.chatRoom as any)?.is,
+          participants: {
+            some: {
+              user_id: { not: userId },
+              user: {
+                nickname: {contains: search.trim()},
               },
             },
           },
-        },
+        }
       };
     }
 
