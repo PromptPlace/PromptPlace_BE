@@ -22,6 +22,24 @@ export class ChatRepository {
     });
   }
 
+  async createChatParticipant(roomId: number, userId1: number, userId2: number) {
+    return Promise.all([
+      prisma.chatParticipant.create({
+        data: {
+          room_id: roomId,
+          user_id: userId1,
+        },  
+      }),
+      prisma.chatParticipant.create({
+        data: {
+          room_id: roomId,  
+          user_id: userId2,
+        },
+      }),
+    ]);
+  }
+
+
   async findRoomDetailWithParticipant(roomId: number) {
     return prisma.chatRoom.findUnique({
       where: { room_id: roomId },
