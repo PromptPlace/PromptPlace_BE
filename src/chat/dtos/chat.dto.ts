@@ -208,3 +208,8 @@ export class ChatRoomListResponseDto {
     return dto;
   }
 }
+
+// == 채팅방 고정 토글 
+export interface TogglePinResponseDto {
+  is_pinned: boolean;
+}
