@@ -1,7 +1,7 @@
 import { io } from "socket.io-client"; // 클라이언트
 console.log("🔥 test-client started");
 const socket = io("http://localhost:3000", { // 서버 연결 시도
-  auth: { token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MzYsImlhdCI6MTc2OTMzNjAxNiwiZXhwIjoxNzY5NDIyNDE2fQ.sAqJi77BNE2gXoH4F_gtqojxhaV8Vuu6g3AmJC3ASbQ" },
+  auth: { token: "" },
 });
 
 socket.on("connect", () => { // 서버가 연결을 받아줬을 때 실행
