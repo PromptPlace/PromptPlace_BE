@@ -6,6 +6,7 @@ import {
   ChatRoomListResponseDto,
   ChatFilterType,
   TogglePinResponseDto,
+  SocketReceivedMessageDTO
 } from "../dtos/chat.dto";
 import { getPresignedUrl } from "../../middlewares/s3.util";
 import { mapMimeTypeToEnum } from "../../utils/map";
@@ -176,7 +177,8 @@ export class ChatService {
       contentType: mapMimeTypeToEnum(f.contentType)
     }))
 
-    return this.chatRepo.saveMessage(roomId, senderId, content, formattedFiles);
+    const savedMessage = await this.chatRepo.saveMessage(roomId, senderId, content, formattedFiles);
+    return SocketReceivedMessageDTO.from(savedMessage);
   }
 }
 

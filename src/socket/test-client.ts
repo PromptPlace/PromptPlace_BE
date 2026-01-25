@@ -21,7 +21,7 @@ socket.on("connect", () => { // 서버가 연결을 받아줬을 때 실행
 
   // 메세지 수신
   socket.on("receiveMessage", (data) => {
-    console.log(`[on]- receiveMessage 성공: 유저 ${data.sender_id}님이 "${data.content}"를 보냈습니다.`);
+    console.log(`[on]- receiveMessage 성공: 유저 ${data.sender.user_id}님이 "${data.content}"를 보냈습니다.`);
   });
 });
 

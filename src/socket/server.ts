@@ -48,10 +48,10 @@ const setupSocketEvents = (io: SocketIOServer, socket: Socket) => {
         files: files || []
       });
       console.log(`[on]- sendMessage 성공: 유저 ${userId}님이 "${content}"를 보냈습니다.`);
-      // 같은 방에 있는 전체 참여자가 메세지 수신
-      io.to(room_id.toString()).emit("receiveMessage", savedMessage);
-      
       ack?.({ok: true, message: savedMessage});
+
+      // 메세지 수신(broadcast)
+      io.to(room_id.toString()).emit("receiveMessage", savedMessage);
     
     } catch (err: any) {
       console.error("Error:", err);
@@ -60,8 +60,8 @@ const setupSocketEvents = (io: SocketIOServer, socket: Socket) => {
   });
 
   // 방 나가기 (뒤로가기)
-  socket.on("leaveRoom", (roomId: string) => {
-    socket.leave(roomId);
+  socket.on("leaveRoom", (roomId: Number) => {
+    socket.leave(String(roomId));
     console.log(`유저 ${userId}님이 방 ${roomId}을 나갔습니다.`);
   });
 
