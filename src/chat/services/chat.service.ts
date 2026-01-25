@@ -8,6 +8,7 @@ import {
   TogglePinResponseDto,
 } from "../dtos/chat.dto";
 import { getPresignedUrl } from "../../middlewares/s3.util";
+import { mapMimeTypeToEnum } from "../../utils/map";
 
 export class ChatService {
   constructor(private readonly chatRepo: ChatRepository) {}
@@ -150,6 +151,32 @@ export class ChatService {
     const isPinned = roomDetail.participants.some((p) => p.user_id === userId && p.is_pinned); // 현재 고정 상태
     const togglePinned = (await this.chatRepo.togglePinChatRoom(roomId, userId, isPinned)).is_pinned
     return {is_pinned: togglePinned};
+  }
+
+  // == 읽음 처리
+  async resetUnreadCountService(roomId: number, userId: number): Promise<void> {
+    await this.chatRepo.resetUnreadCount(roomId, userId);
+  }
+
+  // == 메세지 저장
+  async saveMessageService(
+    params: {
+      roomId: number;
+      senderId: number;
+      content: string;
+      files: { key: string; contentType: string; name: string; size: number }[]
+    }
+  ) {
+    const { roomId, senderId, content, files } = params;
+    const s3BaseUrl = `https://${process.env.S3_BUCKET}.s3.${process.env.S3_REGION}.amazonaws.com/`;
+    const formattedFiles = files.map((f) => ({
+      url: `${s3BaseUrl}${f.key}`, // URL 생성
+      name: f.name,               
+      size: f.size,               
+      contentType: mapMimeTypeToEnum(f.contentType)
+    }))
+
+    return this.chatRepo.saveMessage(roomId, senderId, content, formattedFiles);
   }
 }
 

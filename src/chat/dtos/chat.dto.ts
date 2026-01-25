@@ -1,3 +1,5 @@
+import { AttachmentType } from "@prisma/client";
+
 export type ChatFilterType = "all" | "unread" | "pinned";
 
 // == 채팅방 생성

@@ -1,4 +1,6 @@
 import express, { ErrorRequestHandler } from "express";
+import http from "http";
+import { Server } from "socket.io"
 import { responseHandler } from "./middlewares/responseHandler";
 import { errorHandler } from "./middlewares/errorHandler";
 import "reflect-metadata";
@@ -31,9 +33,15 @@ import signupRouter from "./signup/routes/signup.route"
 import signinRouter from "./signin/routes/signin.route";
 import passwordRouter from "./password/routes/password.route";
 import chatRouter from "./chat/routes/chat.route";
+import { initSocket } from "./socket/server";
 import morgan = require('morgan');
 const PORT = 3000;
 const app = express();
+
+// Express 앱을 http 서버로 감싸기
+const server = http.createServer(app); 
+
+initSocket(server)
 // 1. 응답 핸들러(json 파서보다 위에)
 app.use(responseHandler);
 app.use((req, res, next) => {
@@ -200,6 +208,6 @@ app.get('/health', (req, res) => {
 
 app.use(morgan('dev')); // 사용자 요청 로그 출력
 
-app.listen(PORT, "0.0.0.0", () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running at http://localhost:${PORT}`);
 });
