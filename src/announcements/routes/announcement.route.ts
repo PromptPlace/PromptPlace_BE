@@ -13,7 +13,7 @@ const router = express.Router({ mergeParams: true });
 
 // 모두 접근 가능
 router.get("/", getAnnouncementList);
-router.get("/:announcementId/details", authenticateJwt, getAnnouncement);
+router.get("/:announcementId/details", getAnnouncement);
 
 // 관리자만 접근 가능
 router.post("/", authenticateJwt, isAdmin, createAnnouncement);
