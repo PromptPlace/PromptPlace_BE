@@ -22,7 +22,7 @@ const setupSocketEvents = (io: SocketIOServer, socket: Socket) => {
 
       socket.join(String(roomId)); 
 
-      ack(({ok: true, room_id: roomId}));
+      ack(({ok: true, room_id: roomId, message: "사용자가 방을 입장했습니다."}));
       
       console.log(`[on]-joinRoom 성공: 유저 ${userId}님이 ${roomId}번 방에 입장했습니다.`);
       
@@ -48,26 +48,27 @@ const setupSocketEvents = (io: SocketIOServer, socket: Socket) => {
         files: files || []
       });
       console.log(`[on]- sendMessage 성공: 유저 ${userId}님이 "${content}"를 보냈습니다.`);
-      ack?.({ok: true, message: savedMessage});
+      ack?.({ok: true, message: "메세지가 성공적으로 전송되었습니다."});
 
       // 메세지 수신(broadcast)
       io.to(room_id.toString()).emit("receiveMessage", savedMessage);
     
     } catch (err: any) {
       console.error("Error:", err);
-      ack?.({ok: false, message: err.message});
+      ack?.({ok: false, message: "메세지 전송/수신 중 오류가 발생했습니다."});
     }
   });
 
   // 방 나가기 (뒤로가기)
-  socket.on("leaveRoom", (roomId: Number) => {
-    socket.leave(String(roomId));
-    console.log(`유저 ${userId}님이 방 ${roomId}을 나갔습니다.`);
-  });
+  socket.on("leaveRoom", (roomId: number, ack: any) => {
+    try {
+      socket.leave(String(roomId));
+      console.log(`유저 ${userId}님이 방 ${roomId}을 나갔습니다.`);
+      ack?.({ok: true, message: "방을 성공적으로 나갔습니다."});
+    } catch(err: any) {
+      ack?.({ok: false, message: "방 나가기 중 오류가 발생했습니다."});
 
-  // 연결 해제 (Disconnect)
-  socket.on("disconnect", () => {
-    console.log("소켓 연결 해제:", socket.id);
+    }
   });
 };
 
