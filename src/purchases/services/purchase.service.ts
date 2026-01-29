@@ -1,12 +1,6 @@
-import { PurchaseRepository } from "../repositories/purchase.request.repository";
+import { PurchaseRepository } from "../repositories/purchase.repository";
 import { PurchaseHistoryItemDTO, PurchaseHistoryResponseDTO } from "../dtos/purchase.dto";
-
-function mapPgProvider(pg: string | undefined): 'kakaopay' | 'tosspay' {
-  const src = (pg || '').toLowerCase();
-  if (src.includes('kakaopay')) return 'kakaopay';
-  if (src.includes('tosspay')) return 'tosspay';
-  return 'tosspay';
-}
+import { mapPgProvider } from "../utils/payment.util";
 
 export const PurchaseHistoryService = {
     async list(userId: number): Promise<PurchaseHistoryResponseDTO> {

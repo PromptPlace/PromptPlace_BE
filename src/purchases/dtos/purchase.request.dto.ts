@@ -7,5 +7,6 @@ export interface PromptPurchaseRequestDTO {
   redirect_url: string;
    custom_data: {
     prompt_id: number;
+    user_id: number;
   };
 }
