@@ -1,5 +1,5 @@
 import prisma from "../../config/prisma";
-import { Prisma } from "@prisma/client";
+import { Prisma, AttachmentType } from "@prisma/client";
 import { ChatFilterType } from "../dtos/chat.dto";
 
 export class ChatRepository {
@@ -253,5 +253,42 @@ export class ChatRepository {
       },
     });
   }
+
+  // == 메세지 저장
+  async saveMessage(
+    roomId: number,
+    senderId: number,
+    content: string,
+    files: { url: string; contentType: AttachmentType; name: string; size: number }[]
+  ) {
+
+    return prisma.chatMessage.create({
+      data: {
+        room_id: roomId,
+        sender_id: senderId,
+        content: content,
+        attachments: {
+          create: files?.map((f) => ({ 
+            url: f.url,
+            name: f.name,
+            size: f.size,
+            type: f.contentType 
+          })) || [] 
+        },
+      },
+      include: {
+        user: {
+          select: {
+            user_id: true,
+            nickname: true,
+            profileImage: true,
+          },
+        },
+        attachments: true,
+      },
+    });
+  }
+
+  
 }
 
