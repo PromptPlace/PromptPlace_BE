@@ -1,3 +1,5 @@
+import { AttachmentType } from "@prisma/client";
+
 export type ChatFilterType = "all" | "unread" | "pinned";
 
 // == 채팅방 생성
@@ -212,4 +214,48 @@ export class ChatRoomListResponseDto {
 // == 채팅방 고정 토글 
 export interface TogglePinResponseDto {
   is_pinned: boolean;
+}
+
+// == 소켓 메세지 수신
+export class SocketReceivedMessageDTO {
+  message_id!: number;
+
+  sender!: {
+    user_id: number;
+    nickname: string;
+    profile_img: string | null;
+  };
+
+  content!: string;
+  sent_at!: string;
+
+  attachments!: {
+    type: string;
+    url: string;
+    name: string;
+    size: number;
+  }[];
+
+  static from(prismaMessage: any): SocketReceivedMessageDTO {
+    const dto = new SocketReceivedMessageDTO();
+
+    dto.message_id = prismaMessage.message_id;
+    dto.content = prismaMessage.content;
+    dto.sent_at = prismaMessage.sent_at.toISOString();
+
+    dto.sender = {
+      user_id: prismaMessage.user.user_id,
+      nickname: prismaMessage.user.nickname,
+      profile_img: prismaMessage.user.profileImage?.url ?? null,
+    };
+
+    dto.attachments = prismaMessage.attachments.map((a: any) => ({
+      type: a.type,
+      url: a.url,
+      name: a.name,
+      size: a.size,
+    }));
+
+    return dto;
+  }
 }
