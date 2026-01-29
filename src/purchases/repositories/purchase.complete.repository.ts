@@ -1,4 +1,3 @@
-import prisma from '../../config/prisma';
 import { Prisma } from '@prisma/client';
 
 type Tx = Prisma.TransactionClient;
@@ -34,7 +33,7 @@ export const PurchaseCompleteRepository = {
 
   upsertSettlementForPaymentTx(tx: Tx, input: {
     sellerId: number;
-    paymentId: string;
+    paymentId: number;
     amount: number;
     fee: number;
     status: 'Succeed' | 'Failed' | 'Pending';

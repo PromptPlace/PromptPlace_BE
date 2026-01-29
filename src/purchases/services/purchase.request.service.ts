@@ -19,6 +19,7 @@ export const PurchaseRequestService = {
       redirect_url: dto.redirect_url, // 클라이언트가 넘긴 값 사용
        custom_data: {
         prompt_id: dto.prompt_id, 
+        user_id: userId,
       },
       statusCode: 200,
     };

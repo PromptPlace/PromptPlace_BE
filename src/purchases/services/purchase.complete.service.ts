@@ -46,7 +46,7 @@ export const PurchaseCompleteService = {
         });
 
         // 결제 기록 생성
-        await PurchaseCompleteRepository.createPaymentTx(tx, {
+        const payment = await PurchaseCompleteRepository.createPaymentTx(tx, {
             purchase_id: purchase.purchase_id,
             merchant_uid: paymentId,
             pg: pgProvider,
@@ -60,7 +60,7 @@ export const PurchaseCompleteService = {
 
         await PurchaseCompleteRepository.upsertSettlementForPaymentTx(tx, {
             sellerId: prompt.user_id,
-            paymentId: paymentId, 
+            paymentId: payment.payment_id, 
             amount: serverPrice - fee, 
             fee: fee,
             status: 'Pending' 
