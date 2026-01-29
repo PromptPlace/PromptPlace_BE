@@ -1,13 +1,10 @@
 import prisma from '../../config/prisma';
-import { Prisma } from '@prisma/client';
 
-type Tx = Prisma.TransactionClient;
-
-export const PurchaseRepository = {
+export const PurchaseRequestRepository = {
   findPromptWithSeller(prompt_id: number) {
     return prisma.prompt.findUnique({
       where: { prompt_id },
-      include: { user: true }, // 판매자 user
+      include: { user: true },
     });
   },
 
@@ -19,81 +16,5 @@ export const PurchaseRepository = {
         payment: { is: { status: 'Succeed' } },
       },
     });
-  },
-
-   createPurchaseTx(tx: Tx, data: {
-    user_id: number;
-    prompt_id: number;
-    seller_id?: number;
-    amount: number;
-    is_free: false;
-  }) {
-    return tx.purchase.create({ data });
-  },
-
-  createPaymentTx(tx: Tx, data: {
-    purchase_id: number;
-    merchant_uid: string;
-    pg: 'kakaopay' | 'tosspay';
-    status: 'Succeed' | 'Failed' | 'Pending';
-    imp_uid: string;
-  }) {
-    return tx.payment.create({
-      data: {
-        purchase: { connect: { purchase_id: data.purchase_id } },
-        merchant_uid: data.merchant_uid,
-        provider: data.pg,
-        status: data.status,
-        imp_uid: data.imp_uid,
-      },
-    });
-  },
-
-  upsertSettlementForPaymentTx(tx: Tx, input: {
-    sellerId: number;
-    paymentId: number;
-    amount: number;
-    fee: number;
-    status: 'Succeed' | 'Failed' | 'Pending';
-  }) {
-    return tx.settlement.upsert({
-      where: { payment_id: input.paymentId },
-      create: {
-        user_id: input.sellerId,
-        payment_id: input.paymentId,
-        amount: input.amount,
-        fee: input.fee,
-        status: input.status,
-      },
-      update: {
-        amount: input.amount,
-        fee: input.fee,
-        status: input.status,
-      },
-    });
-  },
-
-  findSucceededByUser(userId: number) {
-    return prisma.purchase.findMany({
-      where: {
-        user_id: userId,
-        payment: { is: { status: 'Succeed'}},
-      },
-      include: {
-        prompt: {
-          select: {
-            prompt_id: true,
-            title: true,
-            user: { select: { nickname: true}},
-          },
-        },
-        payment: {
-          select: {
-            provider: true,
-          },
-        },
-      },
-      orderBy: { created_at: 'desc'},
-    })
   }
 };

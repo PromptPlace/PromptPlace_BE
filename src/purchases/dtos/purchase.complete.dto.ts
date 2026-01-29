@@ -1,6 +1,5 @@
 export interface PromptPurchaseCompleteRequestDTO {
-  imp_uid: string;        // 포트원 결제 UID
-  merchant_uid: string;   // 주문번호
+  paymentId: string;
 }
 
 export interface PromptPurchaseCompleteResponseDTO {
