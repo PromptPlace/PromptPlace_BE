@@ -1,4 +1,4 @@
-import { PromptPurchaseCompleteRequestDTO, PromptPurchaseCompleteResponseDTO } from '../dtos/purchase.complete.dto';
+import { PurchaseCompleteRequestDTO, PurchaseCompleteResponseDTO } from '../dtos/purchase.complete.dto';
 import { PurchaseRequestRepository } from '../repositories/purchase.request.repository';
 import { PurchaseCompleteRepository } from '../repositories/purchase.complete.repository';
 import { AppError } from '../../errors/AppError';
@@ -6,7 +6,7 @@ import prisma from '../../config/prisma';
 import { fetchAndVerifyPortonePayment } from '../utils/portone';
 
 export const PurchaseCompleteService = {
-  async completePurchase(userId: number, dto: PromptPurchaseCompleteRequestDTO): Promise<PromptPurchaseCompleteResponseDTO> {
+  async completePurchase(userId: number, dto: PurchaseCompleteRequestDTO): Promise<PurchaseCompleteResponseDTO> {
     const { paymentId } = dto; 
     
     // 1. 포트원 조회 (검증 전 단계)
