@@ -17,8 +17,8 @@ const router = Router();
  * @swagger
  * /api/prompts/purchases/requests:
  *   post:
- *     summary: 결제 요청 생성
- *     description: 결제 시작을 위한 요청을 생성합니다.
+ *     summary: 결제 요청 생성 (사전 검증)
+ *     description: 프론트엔드에서 결제창을 띄우기 전, 주문 번호 생성 및 사전 검증을 수행합니다.
  *     tags: [Purchase]
  *     security:
  *       - jwt: []
@@ -28,23 +28,28 @@ const router = Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - prompt_id
+ *               - merchant_uid
+ *               - amount
+ *               - buyer_name
+ *               - redirect_url
  *             properties:
  *               prompt_id:
  *                 type: integer
- *               pg:
- *                 type: string
- *                 enum: [kakaopay, tosspayments]
  *               merchant_uid:
  *                 type: string
+ *                 description: 가맹점 주문 번호
  *               amount:
  *                 type: integer
+ *                 description: 결제 예정 금액
  *               buyer_name:
  *                 type: string
  *               redirect_url:
  *                 type: string
  *     responses:
  *       200:
- *         description: 결제 요청 생성 성공
+ *         description: 요청 성공
  *         content:
  *           application/json:
  *             schema:
@@ -52,22 +57,10 @@ const router = Router();
  *               properties:
  *                 message:
  *                   type: string
- *                 payment_gateway:
- *                   type: string
  *                 merchant_uid:
- *                   type: string
- *                 redirect_url:
  *                   type: string
  *                 statusCode:
  *                   type: integer
- *       400:
- *         description: 잘못된 요청
- *       401:
- *         description: 인증 실패
- *       404:
- *         description: 리소스 없음
- *       409:
- *         description: 중복/상태 충돌
  */
 router.post('/requests', authenticateJwt, PurchaseRequestController.requestPurchase);
 
@@ -75,8 +68,8 @@ router.post('/requests', authenticateJwt, PurchaseRequestController.requestPurch
  * @swagger
  * /api/prompts/purchases/complete:
  *   post:
- *     summary: 결제 완료 처리(Webhook/리다이렉트 후 서버 검증)
- *     description: 포트원 imp_uid 기반으로 서버에서 결제 검증 후 구매/결제/정산을 기록합니다.
+ *     summary: 결제 완료 처리 (검증 및 저장)
+ *     description: 포트원 결제 완료 후, paymentId를 서버로 보내 검증하고 구매를 확정합니다.
  *     tags: [Purchase]
  *     security:
  *       - jwt: []
@@ -86,14 +79,18 @@ router.post('/requests', authenticateJwt, PurchaseRequestController.requestPurch
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - paymentId
  *             properties:
- *               imp_uid:
+ *               paymentId:
  *                 type: string
+ *                 description: 포트원 V2 결제 ID
  *               merchant_uid:
  *                 type: string
+ *                 description: 가맹점 주문 번호
  *     responses:
  *       200:
- *         description: 결제 완료 처리 성공
+ *         description: 결제 성공 및 저장 완료
  *         content:
  *           application/json:
  *             schema:
@@ -106,19 +103,8 @@ router.post('/requests', authenticateJwt, PurchaseRequestController.requestPurch
  *                   enum: [Succeed, Failed, Pending]
  *                 purchase_id:
  *                   type: integer
- *                   nullable: true
  *                 statusCode:
  *                   type: integer
- *       400:
- *         description: 검증 실패/유효하지 않은 요청
- *       401:
- *         description: 인증 실패
- *       404:
- *         description: 리소스 없음
- *       409:
- *         description: 충돌
- *       500:
- *         description: 서버 오류
  */
 router.post('/complete', authenticateJwt, PurchaseCompleteController.completePurchase);
 
@@ -126,34 +112,14 @@ router.post('/complete', authenticateJwt, PurchaseCompleteController.completePur
  * @swagger
  * /api/prompts/purchases:
  *   get:
- *     summary: 내 결제 내역 조회
- *     description: 인증된 사용자의 결제(구매) 내역을 조회합니다.
+ *     summary: 결제 내역 조회
+ *     description: 인증된 사용자의 결제 내역을 최신순으로 조회합니다.
  *     tags: [Purchase]
  *     security:
  *       - jwt: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *         required: false
- *         description: 페이지 번호 (옵션)
- *       - in: query
- *         name: pageSize
- *         schema:
- *           type: integer
- *         required: false
- *         description: 페이지 크기 (옵션)
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [Succeed, Failed, Pending]
- *         required: false
- *         description: 결제 상태 필터 (옵션)
  *     responses:
  *       200:
- *         description: 결제 내역 조회 성공
+ *         description: 조회 성공
  *         content:
  *           application/json:
  *             schema:
@@ -172,21 +138,18 @@ router.post('/complete', authenticateJwt, PurchaseCompleteController.completePur
  *                         type: string
  *                       price:
  *                         type: integer
+ *                       seller_nickname:
+ *                         type: string
  *                       purchased_at:
  *                         type: string
  *                         format: date-time
- *                       seller_nickname:
- *                         type: string
- *                         nullable: true
  *                       pg:
  *                         type: string
- *                         enum: [kakaopay, tosspay, null]
+ *                         description: 결제 제공자 (DB Enum)
+ *                         enum: [TOSSPAYMENTS, KAKAOPAY, TOSSPAY, NAVERPAY, SAMSUNGPAY, APPLEPAY, LPAY, PAYCO, SSG, PINPAY]
+ *                         nullable: true
  *                 statusCode:
  *                   type: integer
- *       401:
- *         description: 인증 실패
- *       500:
- *         description: 서버 오류
  */
 router.get('/', authenticateJwt, PurchaseHistoryController.list);
 

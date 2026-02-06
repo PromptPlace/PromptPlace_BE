@@ -4,7 +4,6 @@ import { PurchaseCompleteRepository } from '../repositories/purchase.complete.re
 import { AppError } from '../../errors/AppError';
 import prisma from '../../config/prisma';
 import { fetchAndVerifyPortonePayment } from '../utils/portone';
-import { mapPgProvider } from '../utils/payment.util';
 
 export const PurchaseCompleteService = {
   async completePurchase(userId: number, dto: PromptPurchaseCompleteRequestDTO): Promise<PromptPurchaseCompleteResponseDTO> {
@@ -32,9 +31,6 @@ export const PurchaseCompleteService = {
       throw new AppError('이미 구매한 프롬프트입니다.', 409, 'AlreadyPurchased');
     }
 
-    // 5. 트랜잭션 처리
-    const pgProvider = mapPgProvider(verifiedPayment.method_provider);
-    
     const { purchase_id } = await prisma.$transaction(async (tx) => {
         // 구매 기록 생성
         const purchase = await PurchaseCompleteRepository.createPurchaseTx(tx, {
@@ -49,9 +45,12 @@ export const PurchaseCompleteService = {
         const payment = await PurchaseCompleteRepository.createPaymentTx(tx, {
             purchase_id: purchase.purchase_id,
             merchant_uid: paymentId,
-            pg: pgProvider,
+            paymentId: paymentId,
             status: 'Succeed',
-            paymentId: paymentId
+            method: verifiedPayment.method,     
+            provider: verifiedPayment.provider, 
+            cash_receipt_url: verifiedPayment.cashReceipt?.url,
+            cash_receipt_type: verifiedPayment.cashReceipt?.type,
         });
         
         // 정산 데이터 생성

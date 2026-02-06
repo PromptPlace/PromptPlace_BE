@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { PromptPurchaseRequestDTO } from '../dtos/purchase.request.dto';
 import { PurchaseRequestRepository } from '../repositories/purchase.request.repository';
 import { AppError } from '../../errors/AppError';
@@ -12,16 +13,18 @@ export const PurchaseRequestService = {
     const existing = await PurchaseRequestRepository.findExistingPurchase(userId, dto.prompt_id);
     if (existing) throw new AppError('이미 구매한 프롬프트입니다.', 409, 'AlreadyPurchased');
 
+    const paymentId = `payment-${uuidv4()}`;
+
     return {
-      message: '결제 요청이 정상 처리되었습니다.',
-      payment_gateway: dto.pg,
-      merchant_uid: dto.merchant_uid,
-      redirect_url: dto.redirect_url, // 클라이언트가 넘긴 값 사용
-       custom_data: {
+      message: '주문서가 생성되었습니다.',
+      statusCode: 200,
+      merchant_uid: paymentId,
+      amount: prompt.price,
+      prompt_title: prompt.title,
+      custom_data: {
         prompt_id: dto.prompt_id, 
         user_id: userId,
       },
-      statusCode: 200,
     };
   },
 };

@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { AppError } from '../../errors/AppError';
+import { PaymentMethod, PaymentProvider } from '@prisma/client'
+import { normalizePaymentMethod, normalizePaymentProvider } from "./payment.util"
 
 interface PortOnePaymentResponse {
   id: string; // paymentId
@@ -13,13 +15,23 @@ interface PortOnePaymentResponse {
   };
   orderName: string;
   method?: {
-    type: "CARD" | "VIRTUAL_ACCOUNT" | "EASY_PAY" | "TRANSFER" | "MOBILE";
+    type: "PaymentMethodCard" | "PaymentMethodVirtualAccount" | "PaymentMethodEasyPay" | "PaymentMethodTransfer" | "PaymentMethodMobile"
     easyPay?: {
       provider: string; 
     };
     card?: {
       publisher: string;
     };
+    transfer?: { bank: string; };
+    virtualAccount?: { bank: string; };
+    mobile?: { carrier?: string; };
+  };
+  cashReceipt?: {
+    type: "DEDUCTION" | "PROOF" | "NONE";
+    url: string;
+    issueNumber: string;
+    currency: string;
+    amount: number;
   };
   customData?: string; 
   requestedAt: string;
@@ -30,9 +42,14 @@ export type PortonePaymentVerified = {
   paymentId: string;
   amount: number;
   status: string;
-  method_provider?: string;
-  paidAt?: Date;
+  method: PaymentMethod;      
+  provider: PaymentProvider;  
+  paidAt: Date;
   customData: any;
+  cashReceipt?: {
+    type: string;
+    url: string;
+  } | null;
 };
 
 export async function fetchAndVerifyPortonePayment(
@@ -85,20 +102,42 @@ export async function fetchAndVerifyPortonePayment(
     }
 
     // 5. PG Provider 추출
-    let provider = '';
-    if (payment.method?.type === 'EASY_PAY') {
-      provider = payment.method.easyPay?.provider || '';
-    } else if (payment.method?.type === 'CARD') {
-      provider = payment.method.card?.publisher || 'CARD';
+    const rawMethodType = payment.method?.type || '';
+    const method = normalizePaymentMethod(rawMethodType);
+    let rawProvider = '';
+    
+    if (method === 'EASY_PAY') {
+      rawProvider = payment.method?.easyPay?.provider || '';
+    } else if (method === 'CARD') {
+      rawProvider = payment.method?.card?.publisher || '';
+    } else if (method === 'TRANSFER') {
+      rawProvider = payment.method?.transfer?.bank || '';
+    } else if (method === 'VIRTUAL_ACCOUNT') {
+      rawProvider = payment.method?.virtualAccount?.bank || '';
+    } else if (method === 'MOBILE') {
+      rawProvider = payment.method?.mobile?.carrier || 'MOBILE';
+    }
+    
+    const provider = normalizePaymentProvider(rawProvider, method);
+
+    // 6. 현금영수증 데이터 추출
+    let cashReceiptInfo = null;
+    if (payment.cashReceipt) {
+        cashReceiptInfo = {
+            type: payment.cashReceipt.type,
+            url: payment.cashReceipt.url
+        };
     }
 
     return {
       paymentId: payment.id,
       amount: payment.amount.total,
       status: payment.status,
-      method_provider: provider,
+      method: method,       
+      provider: provider,  
       paidAt: payment.paidAt ? new Date(payment.paidAt) : new Date(),
       customData: parsedCustomData,
+      cashReceipt: cashReceiptInfo
     };
 
   } catch (err: any) {

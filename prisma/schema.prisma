@@ -392,17 +392,44 @@ model Purchase {
   @@index([user_id], map: "Purchase_user_id_fkey")
 }
 
+// 결제 수단
+enum PaymentMethod {
+  CARD              // 카드
+  VIRTUAL_ACCOUNT   // 가상계좌
+  TRANSFER          // 계좌이체
+  MOBILE            // 휴대폰
+  EASY_PAY          // 간편결제
+}
+
+// 구체적인 PG사 또는 간편결제사
+enum PaymentProvider {
+  TOSSPAYMENTS      // 일반 토스 PG (카드, 가상계좌 등)
+  KAKAOPAY          // 카카오페이
+  NAVERPAY          // 네이버페이
+  TOSSPAY           // 토스페이
+  SAMSUNGPAY        // 삼성페이
+  APPLEPAY          // 애플페이
+  LPAY              // 엘페이
+  PAYCO             // 페이코
+  SSG               // SSG페이
+  PINPAY            // 핀페이
+}
+
 model Payment {
   payment_id   Int              @id @default(autoincrement())
   purchase_id  Int              @unique
   status       Status
-  provider     Payment_provider
+  method       PaymentMethod    
+  provider     PaymentProvider
   merchant_uid String           @unique
   created_at   DateTime         @default(now())
   updated_at   DateTime         @updatedAt
   imp_uid      String           @unique
   purchase     Purchase         @relation(fields: [purchase_id], references: [purchase_id], onDelete: Cascade)
   settlement   Settlement?
+  // 현금영수증 정보 (가상계좌/계좌이체 시)
+  cash_receipt_url  String?      // 영수증 조회 URL
+  cash_receipt_type String?      // 소득공제(DEDUCTION), 지출증빙(PROOF) 등
 }
 
 model Settlement {
@@ -586,11 +613,6 @@ enum NotificationType {
   ANNOUNCEMENT
   REPORT
   ADMIN_MESSAGE
-}
-
-enum Payment_provider {
-  kakaopay
-  tosspay
 }
 
 enum userStatus {
