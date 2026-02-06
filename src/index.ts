@@ -14,7 +14,7 @@ import authRouter from "./auth/routes/auth.route"; // auth 라우터 경로 수�
 import membersRouter from "./members/routes/member.route"; // members 라우터 import
 import promptRoutes from "./prompts/routes/prompt.route"; // 프롬프트 관련 라우터
 import ReviewRouter from "./reviews/routes/review.route";
-import purchaseRouter from "./purchases/routes/purchase.request.route";
+import purchaseRouter from "./purchases/routes/purchase.route";
 import settlementRouter from "./settlements/routes/settlement.route";
 import withdrawalRouter from "./withdrawals/routes/withdrawal.route";
 import accountRouter from "./accounts/routes/account.route";
