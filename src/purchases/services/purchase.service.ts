@@ -1,6 +1,5 @@
 import { PurchaseRepository } from "../repositories/purchase.repository";
 import { PurchaseHistoryItemDTO, PurchaseHistoryResponseDTO } from "../dtos/purchase.dto";
-import { mapPgProvider } from "../utils/payment.util";
 
 export const PurchaseHistoryService = {
     async list(userId: number): Promise<PurchaseHistoryResponseDTO> {
@@ -12,7 +11,7 @@ export const PurchaseHistoryService = {
             price:  r.amount,
             purchased_at: r.created_at.toISOString(),
             seller_nickname: r.prompt.user.nickname,
-            pg: mapPgProvider(r.payment?.provider),
+            pg: r.payment?.provider ?? null,
         }));
 
         return {

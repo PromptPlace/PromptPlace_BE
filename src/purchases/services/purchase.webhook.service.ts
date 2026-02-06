@@ -2,7 +2,6 @@ import { PurchaseRequestRepository } from '../repositories/purchase.request.repo
 import { PurchaseCompleteRepository } from '../repositories/purchase.complete.repository';
 import prisma from '../../config/prisma';
 import { fetchAndVerifyPortonePayment } from '../utils/portone';
-import { mapPgProvider } from '../utils/payment.util';
 
 export const WebhookService = {
   async handleTransactionPaid(paymentId: string, storeId: string) {
@@ -47,8 +46,6 @@ export const WebhookService = {
          return;
       }
 
-      const pgProvider = mapPgProvider(verifiedPayment.method_provider);
-
       await prisma.$transaction(async (tx) => {
         // 구매 생성
         const purchase = await PurchaseCompleteRepository.createPurchaseTx(tx, {
@@ -63,7 +60,10 @@ export const WebhookService = {
         const payment = await PurchaseCompleteRepository.createPaymentTx(tx, {
           purchase_id: purchase.purchase_id,
           merchant_uid: paymentId,
-          pg: pgProvider,
+          method: verifiedPayment.method,     
+          provider: verifiedPayment.provider, 
+          cash_receipt_url: verifiedPayment.cashReceipt?.url,
+          cash_receipt_type: verifiedPayment.cashReceipt?.type,
           status: 'Succeed',
           paymentId: paymentId
         });
