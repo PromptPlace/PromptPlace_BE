@@ -1,8 +1,8 @@
-export interface PromptPurchaseCompleteRequestDTO {
+export interface PurchaseCompleteRequestDTO {
   paymentId: string;
 }
 
-export interface PromptPurchaseCompleteResponseDTO {
+export interface PurchaseCompleteResponseDTO {
   message: string;
   status: 'Succeed' | 'Failed' | 'Pending';
   purchase_id?: number;

@@ -1,10 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
-import { PromptPurchaseRequestDTO } from '../dtos/purchase.request.dto';
+import { PurchaseRequestDTO } from '../dtos/purchase.request.dto';
+import { PurchaseRequestResponseDTO } from '../dtos/purchase.request.dto';
 import { PurchaseRequestRepository } from '../repositories/purchase.request.repository';
 import { AppError } from '../../errors/AppError';
 
 export const PurchaseRequestService = {
-  async createPurchaseRequest(userId: number, dto: PromptPurchaseRequestDTO) {
+  async createPurchaseRequest(userId: number, dto: PurchaseRequestDTO): Promise<PurchaseRequestResponseDTO> {
     const prompt = await PurchaseRequestRepository.findPromptWithSeller(dto.prompt_id);
     if (!prompt) throw new AppError('프롬프트를 찾을 수 없습니다.', 404, 'NotFound');
 
@@ -18,10 +19,12 @@ export const PurchaseRequestService = {
     return {
       message: '주문서가 생성되었습니다.',
       statusCode: 200,
-      merchant_uid: paymentId,
-      amount: prompt.price,
-      prompt_title: prompt.title,
-      custom_data: {
+      storeId: process.env.PORTONE_STORE_ID || '',
+      paymentId: paymentId,
+      orderName: prompt.title,
+      totalAmount: prompt.price,
+      channelKey: process.env.PORTONE_CHANNEL_KEY || '',
+      customData: {
         prompt_id: dto.prompt_id, 
         user_id: userId,
       },
