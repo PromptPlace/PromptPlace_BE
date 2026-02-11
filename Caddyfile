@@ -16,6 +16,11 @@ http://promptplace.kro.kr {
                 Referrer-Policy "strict-origin-when-cross-origin"
         }
 
+        # Socket.IO 요청을 백엔드로 전달
+        handle /socket.io/* {
+                reverse_proxy app:3000
+        }
+
         # api-docs 요청을 앱으로 전달
         handle /api-docs* {
                 reverse_proxy app:3000
@@ -57,6 +62,11 @@ http://promptplace-dev.kro.kr {
     header {
         X-Content-Type-Options "nosniff"
         Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    # Socket.IO 요청을 백엔드로 전달
+    handle /socket.io/* {
+        reverse_proxy app-dev:3000
     }
 
     handle /api/* {
