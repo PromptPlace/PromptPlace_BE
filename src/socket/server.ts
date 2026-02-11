@@ -83,6 +83,7 @@ export const initSocket = (httpServer: HttpServer) => {
         "https://promptplace-develop.vercel.app",
       ],
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Authorization", "Content-Type"],
       credentials: true
     }
   });
