@@ -1,12 +1,12 @@
 import { chatService } from "../chat/services/chat.service"; 
 import { AppError } from "../errors/AppError";
-import { Server as SocketIOServer, Socket } from "socket.io";
+import { Server as SocketIOServer, Socket, Namespace } from "socket.io";
 import { Server as HttpServer } from "http";
 import jwt from "jsonwebtoken";
 import prisma from "../config/prisma";
 import e from "express";
 
-const setupSocketEvents = (io: SocketIOServer, socket: Socket) => {
+const setupSocketEvents = (io: Namespace | SocketIOServer, socket: Socket) => {
   const userId = socket.data.userId; // 미들웨어에서 설정한 id
 
   // 방 입장
@@ -88,8 +88,11 @@ export const initSocket = (httpServer: HttpServer) => {
     }
   });
 
+  // 채팅 전용 네임스페이스 생성
+  const chatNamespace = io.of("/ws/chat");
+
   // 인증 미들웨어
-  io.use(async (socket, next) => {
+  chatNamespace.use(async (socket, next) => {
 
     try {
       const token = socket.handshake.auth?.token as string | undefined;
@@ -127,8 +130,8 @@ export const initSocket = (httpServer: HttpServer) => {
   });
 
   // 연결 시작
-  io.on("connection", (socket: Socket) => {
-    console.log("새로운 소켓 연결:", socket.id);
-    setupSocketEvents(io, socket);
+  chatNamespace.on("connection", (socket: Socket) => {
+    console.log("채팅 네임스페이스 연결 성공:", socket.id);
+    setupSocketEvents(chatNamespace, socket);
   });
 };
