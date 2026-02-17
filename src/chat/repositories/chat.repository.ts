@@ -90,7 +90,7 @@ export class ChatRepository {
               cursor: { message_id: cursor },
             }
           : {}),
-        orderBy: { message_id: "asc" },
+        orderBy: { message_id: "desc" },
         include: { attachments: true },
       }),
       // 해당 방의 전체 메시지 개수 조회
@@ -99,8 +99,11 @@ export class ChatRepository {
       }),
     ]);
 
+    const hasNextPage = messages.length > limit;
+    const actualMessages = hasNextPage ? messages.slice(0, -1) : messages;
+
     return {
-      messages,
+      messages: actualMessages,
       totalCount,
     };
   }
