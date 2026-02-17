@@ -69,7 +69,7 @@ router.post("/rooms", authenticateJwt, createOrGetChatRoom);
  *     summary: 채팅방 상세 조회
  *     description: >
  *       채팅방 상세 정보(상대 정보/차단 상태/메시지 목록/페이지 정보)를 조회합니다.<br/>
- *       메시지는 오래된 순(ASC)으로 반환되며, cursor 기반으로 과거 메시지를 추가로 불러올 수 있습니다.
+ *       메시지는 최신순(DESC)으로 반환되며, cursor 기반으로 과거 메시지를 추가로 불러올 수 있습니다.
  *     tags: [Chat]
  *     security:
  *       - jwt: []
