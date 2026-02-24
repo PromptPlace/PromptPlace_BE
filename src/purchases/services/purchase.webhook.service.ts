@@ -59,8 +59,7 @@ export const WebhookService = {
         // 결제 생성
         const payment = await PurchaseCompleteRepository.createPaymentTx(tx, {
           purchase_id: purchase.purchase_id,
-          merchant_uid: paymentId,
-          method: verifiedPayment.method,     
+          merchant_uid: paymentId,   
           cash_receipt_url: verifiedPayment.cashReceipt?.url,
           cash_receipt_type: verifiedPayment.cashReceipt?.type,
           status: 'Succeed',
