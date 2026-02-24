@@ -1,7 +1,5 @@
 import axios from 'axios';
 import { AppError } from '../../errors/AppError';
-import { PaymentMethod } from '@prisma/client'
-import { normalizePaymentMethod } from "./payment.util"
 
 interface PortOnePaymentResponse {
   id: string; // paymentId
@@ -14,18 +12,6 @@ interface PortOnePaymentResponse {
     cancelled: number;
   };
   orderName: string;
-  method?: {
-    type: "PaymentMethodCard" | "PaymentMethodVirtualAccount" | "PaymentMethodEasyPay" | "PaymentMethodTransfer" | "PaymentMethodMobile"
-    easyPay?: {
-      provider: string; 
-    };
-    card?: {
-      publisher: string;
-    };
-    transfer?: { bank: string; };
-    virtualAccount?: { bank: string; };
-    mobile?: { carrier?: string; };
-  };
   cashReceipt?: {
     type: "DEDUCTION" | "PROOF" | "NONE";
     url: string;
@@ -41,8 +27,7 @@ interface PortOnePaymentResponse {
 export type PortonePaymentVerified = {
   paymentId: string;
   amount: number;
-  status: string;
-  method: PaymentMethod;      
+  status: string;  
   paidAt: Date;
   customData: any;
   cashReceipt?: {
@@ -100,11 +85,7 @@ export async function fetchAndVerifyPortonePayment(
       }
     }
 
-    // 5. 결제 수단 추출
-    const rawMethodType = payment.method?.type || '';
-    const method = normalizePaymentMethod(rawMethodType);
-
-    // 6. 현금영수증 데이터 추출
+    // 5. 현금영수증 데이터 추출
     let cashReceiptInfo = null;
     if (payment.cashReceipt) {
         cashReceiptInfo = {
@@ -116,8 +97,7 @@ export async function fetchAndVerifyPortonePayment(
     return {
       paymentId: payment.id,
       amount: payment.amount.total,
-      status: payment.status,
-      method: method,       
+      status: payment.status,     
       paidAt: payment.paidAt ? new Date(payment.paidAt) : new Date(),
       customData: parsedCustomData,
       cashReceipt: cashReceiptInfo

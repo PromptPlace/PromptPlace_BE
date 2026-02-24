@@ -419,7 +419,6 @@ model Payment {
   payment_id   Int              @id @default(autoincrement())
   purchase_id  Int              @unique
   status       Status
-  method       PaymentMethod    
   merchant_uid String           @unique
   created_at   DateTime         @default(now())
   updated_at   DateTime         @updatedAt
