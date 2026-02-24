@@ -15,11 +15,6 @@ export const PurchaseRepository = {
             user: { select: { nickname: true}},
           },
         },
-        payment: {
-          select: {
-            provider: true,
-          },
-        },
       },
       orderBy: { created_at: 'desc'},
     })

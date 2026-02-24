@@ -420,7 +420,6 @@ model Payment {
   purchase_id  Int              @unique
   status       Status
   method       PaymentMethod    
-  provider     PaymentProvider
   merchant_uid String           @unique
   created_at   DateTime         @default(now())
   updated_at   DateTime         @updatedAt
