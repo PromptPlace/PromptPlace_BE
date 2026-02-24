@@ -48,7 +48,6 @@ export const PurchaseCompleteService = {
             paymentId: paymentId,
             status: 'Succeed',
             method: verifiedPayment.method,     
-            provider: verifiedPayment.provider, 
             cash_receipt_url: verifiedPayment.cashReceipt?.url,
             cash_receipt_type: verifiedPayment.cashReceipt?.type,
         });
