@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { AppError } from '../../errors/AppError';
-import { PaymentMethod, PaymentProvider } from '@prisma/client'
-import { normalizePaymentMethod, normalizePaymentProvider } from "./payment.util"
+import { PaymentMethod } from '@prisma/client'
+import { normalizePaymentMethod } from "./payment.util"
 
 interface PortOnePaymentResponse {
   id: string; // paymentId
@@ -43,7 +43,6 @@ export type PortonePaymentVerified = {
   amount: number;
   status: string;
   method: PaymentMethod;      
-  provider: PaymentProvider;  
   paidAt: Date;
   customData: any;
   cashReceipt?: {
@@ -101,24 +100,9 @@ export async function fetchAndVerifyPortonePayment(
       }
     }
 
-    // 5. PG Provider 추출
+    // 5. 결제 수단 추출
     const rawMethodType = payment.method?.type || '';
     const method = normalizePaymentMethod(rawMethodType);
-    let rawProvider = '';
-    
-    if (method === 'EASY_PAY') {
-      rawProvider = payment.method?.easyPay?.provider || '';
-    } else if (method === 'CARD') {
-      rawProvider = payment.method?.card?.publisher || '';
-    } else if (method === 'TRANSFER') {
-      rawProvider = payment.method?.transfer?.bank || '';
-    } else if (method === 'VIRTUAL_ACCOUNT') {
-      rawProvider = payment.method?.virtualAccount?.bank || '';
-    } else if (method === 'MOBILE') {
-      rawProvider = payment.method?.mobile?.carrier || 'MOBILE';
-    }
-    
-    const provider = normalizePaymentProvider(rawProvider, method);
 
     // 6. 현금영수증 데이터 추출
     let cashReceiptInfo = null;
@@ -134,7 +118,6 @@ export async function fetchAndVerifyPortonePayment(
       amount: payment.amount.total,
       status: payment.status,
       method: method,       
-      provider: provider,  
       paidAt: payment.paidAt ? new Date(payment.paidAt) : new Date(),
       customData: parsedCustomData,
       cashReceipt: cashReceiptInfo

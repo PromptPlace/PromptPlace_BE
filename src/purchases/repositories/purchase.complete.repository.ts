@@ -1,4 +1,4 @@
-import { Prisma, PaymentMethod, PaymentProvider, Status } from '@prisma/client';
+import { Prisma, PaymentMethod, Status } from '@prisma/client';
 
 type Tx = Prisma.TransactionClient;
 
@@ -17,7 +17,6 @@ export const PurchaseCompleteRepository = {
     purchase_id: number;
     merchant_uid: string;
     method: PaymentMethod;      
-    provider: PaymentProvider;       
     status: Status; 
     paymentId: string;
     cash_receipt_url?: string | null;
@@ -29,7 +28,6 @@ export const PurchaseCompleteRepository = {
         merchant_uid: data.merchant_uid,
         imp_uid: data.paymentId,
         method: data.method,
-        provider: data.provider,
         status: data.status,
         cash_receipt_url: data.cash_receipt_url,
         cash_receipt_type: data.cash_receipt_type,
