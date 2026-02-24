@@ -50,7 +50,7 @@ jobs:
 
       - name: Install, Generate & Build on server
         run: |
-          ssh prod 'cd /opt/app-dev && pnpm install --frozen-lockfile && pnpm exec prisma generate'
+          ssh prod 'cd /opt/app-dev && pnpm install --frozen-lockfile && pnpm exec prisma generate && rm -rf dist && pnpm build'
       
       # 테스트 DB 마이그레이션
       - name: Run Prisma DB Push (Dev)
@@ -62,6 +62,11 @@ jobs:
           export $(cat .env.dev | xargs)
           pnpm exec prisma db push
           EOF
+
+      # 도커 빌드 전 디스크 용량 확보
+      - name: Clean up unused Docker data on EC2
+        run: |
+          ssh prod 'sudo docker system prune -af'
 
       # app-dev 컨테이너만 재시작 (운영 컨테이너 app, caddy는 건드리지 않음)
       - name: Deploy Docker services (Dev)

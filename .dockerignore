@@ -1,0 +1,30 @@
+# 의존성 및 빌드 결과물
+node_modules
+dist
+build
+coverage
+
+# 깃 관련 파일
+.git
+.gitignore
+
+# 환경 변수
+.env
+.env.dev
+
+# 로그 파일
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# 불필요한 OS 생성 파일
+.DS_Store
+Thumbs.db
+
+# 도커 관련 파일
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# 빌드에 필요 없는 파일
+README.md
