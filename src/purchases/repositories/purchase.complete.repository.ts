@@ -6,7 +6,6 @@ export const PurchaseCompleteRepository = {
   createPurchaseTx(tx: Tx, data: {
     user_id: number;
     prompt_id: number;
-    seller_id?: number;
     amount: number;
     is_free: false;
   }) {
