@@ -36,7 +36,6 @@ export const PurchaseCompleteService = {
         const purchase = await PurchaseCompleteRepository.createPurchaseTx(tx, {
             user_id: userId,
             prompt_id: prompt.prompt_id,
-            seller_id: prompt.user_id,
             amount: serverPrice,
             is_free: false
         });
