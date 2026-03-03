@@ -40,9 +40,8 @@ model User {
   intro                UserIntro?
   sns_list             UserSNS[]
   withdraw_requests    WithdrawRequest[]
-  PreRegisteredAccount PreRegisteredAccount[]
-  UserBankAccount      UserBankAccount?
   notificationSetting  UserNotificationSetting?
+  settlementAccount    SettlementAccount?
   consents             UserConsent[]
   chatRoomAs1          ChatRoom[]                  @relation("ChatUser1")
   chatRoomAs2          ChatRoom[]                  @relation("ChatUser2")
@@ -50,8 +49,6 @@ model User {
   chatParticipants     ChatParticipant[]
   blocks               UserBlock[]                 @relation("BlockerUser")
   blockedBy            UserBlock[]                 @relation("BlockedUser")
-
-
 }
 
 model UserConsent {
@@ -445,6 +442,22 @@ model Settlement {
   @@index([user_id])
 }
 
+model SettlementAccount {
+  id             Int      @id @default(autoincrement())
+  user_id        Int      @unique // 한 유저당 하나의 계좌만 가질 수 있도록 강제 (1:1 관계)
+  bank_code      String   @db.VarChar(50)
+  account_number String   @db.VarChar(30)
+  account_holder String   @db.VarChar(100)
+  is_active      Boolean  @default(true)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  user           User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([bank_code])
+  @@index([account_number])
+}
+
 model Review {
   review_id  Int      @id @default(autoincrement())
   rating     Float
@@ -458,46 +471,6 @@ model Review {
 
   @@index([prompt_id], map: "Review_prompt_id_fkey")
   @@index([user_id], map: "Review_user_id_fkey")
-}
-
-model Bank {
-  code   String                 @id @db.Char(3)
-  name   String                 @db.VarChar(50)
-  prereg PreRegisteredAccount[]
-}
-
-model PreRegisteredAccount {
-  id             Int     @id @default(autoincrement())
-  bank_code      String  @db.Char(3)
-  account_number String  @db.VarChar(30)
-  account_holder String  @db.VarChar(100)
-  owner_user_id  Int // ← 계좌 소유자(필수)
-  is_active      Boolean @default(true)
-
-  bank        Bank             @relation(fields: [bank_code], references: [code], onDelete: Restrict)
-  owner       User             @relation(fields: [owner_user_id], references: [user_id], onDelete: Cascade)
-  userAccount UserBankAccount?
-
-  // 한 유저에게 같은 계좌가 중복 등록되지 않도록
-  @@unique([owner_user_id, bank_code, account_number, account_holder], map: "uniq_user_prereg_account")
-  // 복합 FK를 위한 유니크(참조 대상은 PK/UNIQUE 여야 함)
-  @@unique([id, owner_user_id], map: "uniq_prereg_id_owner")
-  @@index([bank_code])
-  @@index([account_number])
-}
-
-model UserBankAccount {
-  account_id       Int      @id @default(autoincrement())
-  user_id          Int      @unique // 유저당 1개
-  preregistered_id Int      @unique // 같은 계좌 재사용 금지(여러 유저 공유 허용 안함)
-  created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
-
-  user          User                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  // (preregistered_id, user_id) -> (id, owner_user_id) 로 복합 FK (본인만 등록 가능)
-  preregistered PreRegisteredAccount @relation(fields: [preregistered_id, user_id], references: [id, owner_user_id], onDelete: Restrict)
-
-  @@unique([preregistered_id, user_id], map: "uniq_userbank_prereg_user")
 }
 
 model ChatRoom {

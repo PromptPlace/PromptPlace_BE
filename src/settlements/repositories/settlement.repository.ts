@@ -1,22 +1,26 @@
-import prisma from "../../config/prisma";
+import prisma from '../../config/prisma';
 
 export const SettlementRepository = {
-  async findSalesByUserId(userId: number) {
-    return prisma.settlement.findMany({
+  upsertSettlementAccount: async (
+    userId: number,
+    bankCode: string,
+    accountNumber: string,
+    accountHolder: string
+  ) => {
+    return await prisma.settlementAccount.upsert({
       where: { user_id: userId },
-      include: {
-        payment: {
-          include: {
-            purchase: {
-              include: {
-                prompt: true,
-                user: true, // 구매자
-              }
-            }
-          }
-        }
+      update: {
+        bank_code: bankCode,
+        account_number: accountNumber,
+        account_holder: accountHolder,
+        is_active: true,
       },
-      orderBy: { created_at: 'desc' },
+      create: {
+        user_id: userId,
+        bank_code: bankCode,
+        account_number: accountNumber,
+        account_holder: accountHolder,
+      },
     });
   }
 };
