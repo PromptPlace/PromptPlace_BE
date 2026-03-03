@@ -1,4 +1,5 @@
 import prisma from '../../config/prisma';
+import { SettlementAccount } from '@prisma/client';
 
 export const SettlementRepository = {
   upsertSettlementAccount: async (
@@ -21,6 +22,12 @@ export const SettlementRepository = {
         account_number: accountNumber,
         account_holder: accountHolder,
       },
+    });
+  },
+
+  findAccountByUserId: async(userId: number): Promise<SettlementAccount | null> => {
+    return await prisma.settlementAccount.findUnique({
+      where: { user_id: userId},
     });
   }
 };

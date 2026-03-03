@@ -1,5 +1,3 @@
-// src/constants/bank.ts
-
 export const PORTONE_BANKS: Record<string, string> = {
   "BANK_OF_KOREA": "한국은행",
   "KDB": "산업은행",

@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { PORTONE_BANKS } from '../constants/bank';
-import { VerifyAccountDto } from '../dtos/settlement.dto';
+import { VerifyAccountRequestDto, AccountDataDto } from '../dtos/settlement.dto';
 import { SettlementRepository}  from '../repositories/settlement.repository';
 
-export const verifyAndSaveAccount = async (userId: number, dto: VerifyAccountDto) => {
+export const verifyAndSaveAccount = async (userId: number, dto: VerifyAccountRequestDto) => {
   const { name, bank, accountNumber, holderName } = dto;
 
   // 1. 필수 입력값 검증 (400)
@@ -53,4 +53,21 @@ export const verifyAndSaveAccount = async (userId: number, dto: VerifyAccountDto
   await SettlementRepository.upsertSettlementAccount(userId, bank, accountNumber, holderName);
 
   return { message: "계좌 인증이 완료되었습니다." };
+};
+
+export const getAccountInfo = async (userId: number): Promise<AccountDataDto> => {
+  const account = await SettlementRepository.findAccountByUserId(userId);
+
+  if (!account) {
+    const error: any = new Error("등록된 계좌 정보가 존재하지 않습니다.");
+    error.statusCode = 404;
+    error.code = "AccountNotFound";
+    throw error;
+  }
+
+  return {
+    bank: account.bank_code,           
+    accountNumber: account.account_number, 
+    holderName: account.account_holder,   
+  };
 };

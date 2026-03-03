@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { verifyAccount } from "../controllers/settlement.controller";
+import { verifyAccount, ViewAccount } from "../controllers/settlement.controller";
 import { authenticateJwt } from "../../config/passport";
 
 const router = Router();
@@ -146,5 +146,92 @@ const router = Router();
  *                   example: 500
  */
 router.post("/verify-account", authenticateJwt, verifyAccount);
+
+/**
+ * @swagger
+ * /api/settlements/accounts:
+ *   get:
+ *     summary: 등록된 정산 계좌 정보 조회
+ *     description: 현재 로그인한 사용자의 정산용 계좌 정보(은행, 계좌번호, 예금주명)를 조회합니다.
+ *     tags:
+ *       - Settlement
+ *     security:
+ *       - jwt: []
+ *     responses:
+ *       200:
+ *         description: 계좌 정보 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 계좌 정보 조회가 완료되었습니다.
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     bank:
+ *                       type: string
+ *                       example: KOOKMIN
+ *                     accountNumber:
+ *                       type: string
+ *                       example: "1234567890"
+ *                     holderName:
+ *                       type: string
+ *                       example: 홍길동
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *       401:
+ *         description: 인증 실패 - 로그인하지 않은 사용자
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Unauthorized
+ *                 message:
+ *                   type: string
+ *                   example: 로그인이 필요합니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 401
+ *       404:
+ *         description: 계좌 정보 없음 - 등록된 계좌가 없는 경우
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: AccountNotFound
+ *                 message:
+ *                   type: string
+ *                   example: 등록된 계좌 정보가 존재하지 않습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 404
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: InternalServerError
+ *                 message:
+ *                   type: string
+ *                   example: 알 수 없는 오류가 발생했습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 500
+ */
+router.get("/accounts", authenticateJwt, ViewAccount);
 
 export default router;
