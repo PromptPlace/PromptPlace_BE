@@ -19,7 +19,7 @@ export const verifyAndSaveAccount = async (userId: number, dto: VerifyAccountReq
   }
 
   // 3. 실명과 예금주명 일치 여부 1차 검증 (400)
-  if (name !== holderName) {
+  if (name !== holderName) { 
     throw { status: 400, type: "NameMismatch", message: "입력하신 실명/대표자명과 예금주명이 일치하지 않습니다." };
   }
 
