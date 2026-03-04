@@ -17,7 +17,6 @@ import ReviewRouter from "./reviews/routes/review.route";
 import purchaseRouter from "./purchases/routes/purchase.route";
 import settlementRouter from "./settlements/routes/settlement.route";
 import withdrawalRouter from "./withdrawals/routes/withdrawal.route";
-import accountRouter from "./accounts/routes/account.route";
 import promptDownloadRouter from "./prompts/routes/prompt.download.route";
 import promptLikeRouter from "./prompts/routes/prompt.like.route";
 import tipRouter from "./tips/routes/tip.route"; // 팁 라우터 import
@@ -116,22 +115,6 @@ app.use("/api/auth", authRouter); // /api 접두사 추가
 
 // 회원 라우터
 app.use("/api/members", membersRouter);
-
-// 계좌 라우터
-
-app.use(
-  "/api/members/me",
-  express.text({ type: "text/plain" }),
-  (req, _res, next) => {
-    if (typeof req.body === "string") {
-      try {
-        req.body = JSON.parse(req.body);
-      } catch {}
-    }
-    next();
-  },
-  accountRouter
-);
 
 // 리뷰 라우터
 app.use("/api/reviews", ReviewRouter);
