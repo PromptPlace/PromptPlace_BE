@@ -1,13 +1,25 @@
-export interface SaleHistoryItemDto {
-  prompt_id: number;
-  title: string;
-  price: number;
-  sold_at: string;
-  buyer_nickname: string;
+export interface VerifyAccountRequestDto {
+  name: string;
+  bank: string;
+  accountNumber: string;
+  holderName: string;
 }
 
-export interface SaleHistoryResponseDto {
+export interface AccountDataDto {
+  bank: string;         
+  accountNumber: string;
+  holderName: string;    
+}
+
+export interface ViewAccountResponseDto {
   message: string;
-  sales: SaleHistoryItemDto[];
+  data: AccountDataDto;
   statusCode: number;
+}
+
+export interface UpdateAccountRequestDto {
+  name: string;          
+  bank: string;          
+  accountNumber: string; 
+  holderName: string;    
 }
