@@ -6,6 +6,8 @@ import { SettlementRepository}  from '../repositories/settlement.repository';
 export const verifyAndSaveAccount = async (userId: number, dto: VerifyAccountRequestDto) => {
   const { name, bank, accountNumber, holderName } = dto;
 
+  const existingAccount = await SettlementRepository.findAccountByUserId(userId);
+
   // 1. 필수 입력값 검증 (400)
   if (!name || !bank || !accountNumber || !holderName) {
     throw { status: 400, type: "ValidationError", message: "필수 입력값(은행, 계좌번호, 실명/대표자명, 예금주명)이 모두 입력되지 않았습니다." };
@@ -50,7 +52,7 @@ export const verifyAndSaveAccount = async (userId: number, dto: VerifyAccountReq
   }
 
   // 6. 모든 검증을 통과했다면 DB에 저장
-  await SettlementRepository.upsertSettlementAccount(userId, bank, accountNumber, holderName);
+  await SettlementRepository.upsertSettlementAccount(userId, dto);
 
   return { message: "계좌 인증이 완료되었습니다." };
 };

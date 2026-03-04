@@ -16,3 +16,10 @@ export interface ViewAccountResponseDto {
   data: AccountDataDto;
   statusCode: number;
 }
+
+export interface UpdateAccountRequestDto {
+  name: string;          
+  bank: string;          
+  accountNumber: string; 
+  holderName: string;    
+}
