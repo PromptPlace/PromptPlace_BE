@@ -1,7 +1,7 @@
 import path from "path";
 import { S3Client, PutObjectCommand, DeleteObjectsCommand } from "@aws-sdk/client-s3";
 import { AppError } from "../../errors/AppError";
-import { RegisterIndividualSellerRequestDto } from '../dtos/settlement.dto';
+import { RegisterIndividualSellerRequestDto, RegisterBusinessSellerRequestDto} from '../dtos/settlement.dto';
 import { SettlementRepository } from '../repositories/settlement.repository';
 
 export const registerIndividualSeller = async (userId: number, dto: RegisterIndividualSellerRequestDto) => {
@@ -68,4 +68,38 @@ export const uploadBusinessLicenseFile = async (userId: number, file: Express.Mu
     console.error("S3 업로드 에러:", error);
     throw new AppError("파일 업로드 중 서버 오류가 발생했습니다.", 500, "InternalServerError");
   }
+};
+
+export const registerBusinessSeller = async (userId: number, dto: RegisterBusinessSellerRequestDto) => {
+  // 1. 필수값 누락 및 약관 동의 여부 검증 (400)
+  if (
+    !dto.representativeName || !dto.bank || !dto.accountNumber || 
+    !dto.holderName || !dto.businessNumber || !dto.companyName || 
+    !dto.businessLicenseUrl || dto.isTermsAgreed !== true
+  ) {
+    const error = new Error('필수 입력값이 누락되었거나 이용 약관에 동의하지 않았습니다.');
+    error.name = 'ValidationError';
+    throw error;
+  }
+
+  // 2. 이미 등록되었거나 심사 대기 중인 유저인지 검증 (409)
+  const existingAccount = await SettlementRepository.findAccountByUserId(userId);
+  if (existingAccount) {
+    const error = new Error('이미 판매자로 등록되었거나 승인 심사 대기 중인 회원입니다.');
+    error.name = 'AlreadyRegistered';
+    throw error;
+  }
+
+  // 3. 중복된 사업자등록번호인지 검증 (409)
+  const existingBusiness = await SettlementRepository.findAccountByBusinessNumber(dto.businessNumber);
+  if (existingBusiness) {
+    const error = new Error('이미 등록되었거나 심사 대기 중인 사업자등록번호입니다.');
+    error.name = 'DuplicateBusinessNumber';
+    throw error;
+  }
+
+  // 4. 검증 통과 시 DB 저장 (상태: PENDING)
+  await SettlementRepository.createBusinessAccount(userId, dto);
+
+  return { message: '사업자 판매자 신청이 완료되었습니다. 관리자 승인 후 최종 등록됩니다.' };
 };

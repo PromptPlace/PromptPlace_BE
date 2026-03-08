@@ -442,13 +442,30 @@ model Settlement {
   @@index([user_id])
 }
 
+enum SellerType {
+  INDIVIDUAL
+  BUSINESS
+}
+
+enum ApprovalStatus {
+  PENDING   // 심사 대기중
+  APPROVED  // 승인 완료
+  REJECTED  // 승인 거절
+}
+
 model SettlementAccount {
   id             Int      @id @default(autoincrement())
   user_id        Int      @unique // 한 유저당 하나의 계좌만 가질 수 있도록 강제 (1:1 관계)
   bank_code      String   @db.VarChar(50)
   account_number String   @db.VarChar(30)
   account_holder String   @db.VarChar(100)
+  seller_type    SellerType      @default(INDIVIDUAL)
+  status         ApprovalStatus  @default(APPROVED) // 개인은 즉시 승인, 사업자는 PENDING으로 생성
   is_active      Boolean  @default(true)
+  representative_name  String?         @db.VarChar(100)
+  company_name         String?         @db.VarChar(100)
+  business_number      String?         @unique @db.VarChar(30)
+  business_license_url String?         @db.Text
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
 
@@ -456,6 +473,7 @@ model SettlementAccount {
 
   @@index([bank_code])
   @@index([account_number])
+  @@index([status])
 }
 
 model Review {

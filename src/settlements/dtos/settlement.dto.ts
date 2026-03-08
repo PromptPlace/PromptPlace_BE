@@ -31,3 +31,14 @@ export interface RegisterIndividualSellerRequestDto {
   holderName: string;
   isTermsAgreed: boolean;
 }
+
+export interface RegisterBusinessSellerRequestDto {
+  representativeName: string;
+  bank: string;
+  accountNumber: string;
+  holderName: string;
+  businessNumber: string;
+  companyName: string;
+  businessLicenseUrl: string;
+  isTermsAgreed: boolean;
+}

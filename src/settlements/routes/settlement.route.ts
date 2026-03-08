@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyAccount, ViewAccount } from "../controllers/settlement.account.controller";
-import { registerIndividual } from "../controllers/settlement.seller.controller";
+import { registerIndividual, registerBusiness } from "../controllers/settlement.seller.controller";
 import { uploadLicense } from "../controllers/settlement.seller.controller";
 import { authenticateJwt } from "../../config/passport";
 
@@ -482,5 +482,156 @@ router.post("/register/individual", authenticateJwt, registerIndividual);
  *                   example: 500
  */
 router.post("/upload/business-license", authenticateJwt, uploadLicense);
+
+/**
+ * @swagger
+ * /api/settlements/register/business:
+ *   post:
+ *     summary: 사업자 판매자 등록
+ *     description: 개인/법인 사업자의 정보와 사업자등록증 URL을 입력받아 판매자로 등록 신청합니다. (관리자 승인 대기 상태로 저장됨)
+ *     tags:
+ *       - Settlement
+ *     security:
+ *       - jwt: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - representativeName
+ *               - bank
+ *               - accountNumber
+ *               - holderName
+ *               - businessNumber
+ *               - companyName
+ *               - businessLicenseUrl
+ *               - isTermsAgreed
+ *             properties:
+ *               representativeName:
+ *                 type: string
+ *                 description: 대표자명
+ *                 example: 김대표
+ *               bank:
+ *                 type: string
+ *                 description: 포트원 표준 은행 코드
+ *                 example: SHINHAN
+ *               accountNumber:
+ *                 type: string
+ *                 description: '-'를 제외한 계좌 번호
+ *                 example: "0987654321"
+ *               holderName:
+ *                 type: string
+ *                 description: 계좌 예금주명
+ *                 example: 김대표
+ *               businessNumber:
+ *                 type: string
+ *                 description: 사업자등록번호 ('-' 제외 숫자만)
+ *                 example: "1234567890"
+ *               companyName:
+ *                 type: string
+ *                 description: 상호명
+ *                 example: (주)프롬프트팩토리
+ *               businessLicenseUrl:
+ *                 type: string
+ *                 description: 업로드 API로 발급받은 사업자등록증 이미지 URL
+ *                 example: https://promptplace-storage.s3.ap-northeast-2.amazonaws.com/business-licenses/123-1709865432123.jpg
+ *               isTermsAgreed:
+ *                 type: boolean
+ *                 description: 개인정보 수집 이용 동의 여부 (반드시 true)
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: 판매자 신청 성공 (승인 대기 상태)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 사업자 판매자 신청이 완료되었습니다. 관리자 승인 후 최종 등록됩니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *       400:
+ *         description: 검증 실패 - 필수 입력값 누락 또는 약관 미동의
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: ValidationError
+ *                 message:
+ *                   type: string
+ *                   example: 필수 입력값이 누락되었거나 이용 약관에 동의하지 않았습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 400
+ *       401:
+ *         description: 인증 실패 - 로그인하지 않은 사용자
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Unauthorized
+ *                 message:
+ *                   type: string
+ *                   example: 로그인이 필요합니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 401
+ *       409:
+ *         description: 충돌 - 중복된 사업자등록번호 또는 이미 등록된 유저
+ *         content:
+ *           application/json:
+ *             schema:
+ *               oneOf:
+ *                 - type: object
+ *                   properties:
+ *                     error:
+ *                       type: string
+ *                       example: DuplicateBusinessNumber
+ *                     message:
+ *                       type: string
+ *                       example: 이미 등록되었거나 심사 대기 중인 사업자등록번호입니다.
+ *                     statusCode:
+ *                       type: integer
+ *                       example: 409
+ *                 - type: object
+ *                   properties:
+ *                     error:
+ *                       type: string
+ *                       example: AlreadyRegistered
+ *                     message:
+ *                       type: string
+ *                       example: 이미 판매자로 등록되었거나 승인 심사 대기 중인 회원입니다.
+ *                     statusCode:
+ *                       type: integer
+ *                       example: 409
+ *       500:
+ *         description: 서버 오류 - 알 수 없는 예외 발생
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: InternalServerError
+ *                 message:
+ *                   type: string
+ *                   example: 서버 오류가 발생했습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 500
+ */
+router.post("/register/business", authenticateJwt, registerBusiness);
 
 export default router;
