@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { verifyAccount, ViewAccount } from "../controllers/settlement.account.controller";
 import { registerIndividual } from "../controllers/settlement.seller.controller";
+import { uploadLicense } from "../controllers/settlement.seller.controller";
 import { authenticateJwt } from "../../config/passport";
 
 const router = Router();
@@ -358,5 +359,128 @@ router.get("/accounts", authenticateJwt, ViewAccount);
  *                   example: 500
  */
 router.post("/register/individual", authenticateJwt, registerIndividual);
+
+/**
+ * @swagger
+ * /api/settlements/upload/business-license:
+ *   post:
+ *     summary: 사업자등록증 업로드 (개인/법인 사업자)
+ *     description: 개인 또는 법인 사업자의 사업자등록증 파일(이미지 또는 PDF, 최대 20MB)을 업로드하고 S3 URL을 반환받습니다.
+ *     tags:
+ *       - Settlement
+ *     security:
+ *       - jwt: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - file
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: 업로드할 사업자등록증 파일 (jpg, jpeg, png, pdf) / 최대 20MB
+ *     responses:
+ *       200:
+ *         description: 파일 업로드 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 사업자등록증 업로드가 완료되었습니다.
+ *                 fileUrl:
+ *                   type: string
+ *                   example: https://promptplace-storage.s3.ap-northeast-2.amazonaws.com/business-licenses/123-1709865432123.jpg
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *       400:
+ *         description: 업로드할 파일 누락
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: ValidationError
+ *                 message:
+ *                   type: string
+ *                   example: 업로드할 파일이 첨부되지 않았습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 400
+ *       401:
+ *         description: 인증 실패 - 로그인하지 않은 사용자
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Unauthorized
+ *                 message:
+ *                   type: string
+ *                   example: 로그인이 필요합니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 401
+ *       413:
+ *         description: 파일 용량 제한 초과 (20MB)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: FileTooLarge
+ *                 message:
+ *                   type: string
+ *                   example: 파일 크기는 최대 20MB까지만 허용됩니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 413
+ *       415:
+ *         description: 지원하지 않는 파일 형식
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: InvalidFileType
+ *                 message:
+ *                   type: string
+ *                   example: 지원하지 않는 파일 형식입니다. (jpg, jpeg, png, pdf만 가능)
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 415
+ *       500:
+ *         description: 서버 오류 - 알 수 없는 예외 발생
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: InternalServerError
+ *                 message:
+ *                   type: string
+ *                   example: 서버 오류가 발생했습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 500
+ */
+router.post("/upload/business-license", authenticateJwt, uploadLicense);
 
 export default router;

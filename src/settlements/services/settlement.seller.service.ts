@@ -1,3 +1,6 @@
+import path from "path";
+import { S3Client, PutObjectCommand, DeleteObjectsCommand } from "@aws-sdk/client-s3";
+import { AppError } from "../../errors/AppError";
 import { RegisterIndividualSellerRequestDto } from '../dtos/settlement.dto';
 import { SettlementRepository } from '../repositories/settlement.repository';
 
@@ -25,4 +28,44 @@ export const registerIndividualSeller = async (userId: number, dto: RegisterIndi
   });
 
   return { message: '개인 판매자 등록이 완료되었습니다.' };
+};
+
+export const s3Client = new S3Client({
+  region: process.env.S3_REGION,
+  credentials: {
+    accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+  },
+});
+
+export const uploadFileToS3 = async (key: string, buffer: Buffer, contentType: string) => {
+  const command = new PutObjectCommand({
+    Bucket: process.env.S3_BUCKET!,
+    Key: key,
+    Body: buffer,
+    ContentType: contentType,
+  });
+  
+  await s3Client.send(command);
+  
+  // 업로드된 파일의 S3 URL 반환
+  return `https://${process.env.S3_BUCKET!}.s3.${process.env.S3_REGION}.amazonaws.com/${key}`;
+};
+
+export const uploadBusinessLicenseFile = async (userId: number, file: Express.Multer.File) => {
+  try {
+    const ext = path.extname(file.originalname);
+  
+    const uniqueKey = `business-licenses/${userId}-${Date.now()}${ext}`;
+
+    const fileUrl = await uploadFileToS3(uniqueKey, file.buffer, file.mimetype);
+
+    return { 
+      message: '사업자등록증 업로드가 완료되었습니다.', 
+      fileUrl: fileUrl
+    };
+  } catch (error) {
+    console.error("S3 업로드 에러:", error);
+    throw new AppError("파일 업로드 중 서버 오류가 발생했습니다.", 500, "InternalServerError");
+  }
 };
