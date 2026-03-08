@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { verifyAccount, ViewAccount } from "../controllers/settlement.controller";
+import { verifyAccount, ViewAccount } from "../controllers/settlement.account.controller";
+import { registerIndividual } from "../controllers/settlement.seller.controller";
 import { authenticateJwt } from "../../config/passport";
 
 const router = Router();
@@ -233,5 +234,129 @@ router.post("/verify-account", authenticateJwt, verifyAccount);
  *                   example: 500
  */
 router.get("/accounts", authenticateJwt, ViewAccount);
+
+/**
+ * @swagger
+ * /api/settlements/register/individual:
+ *   post:
+ *     summary: 개인 판매자 등록
+ *     description: 개인정보 수집 이용 동의 및 계좌 정보를 입력받아 일반 개인 판매자로 등록합니다.
+ *     tags:
+ *       - Settlement
+ *     security:
+ *       - jwt: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - bank
+ *               - accountNumber
+ *               - holderName
+ *               - isTermsAgreed
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: 실명
+ *                 example: 홍길동
+ *               bank:
+ *                 type: string
+ *                 description: 포트원 표준 은행 코드
+ *                 example: KOOKMIN
+ *               accountNumber:
+ *                 type: string
+ *                 description: '-'를 제외한 계좌 번호
+ *                 example: "1234567890"
+ *               holderName:
+ *                 type: string
+ *                 description: 계좌 예금주명
+ *                 example: 홍길동
+ *               isTermsAgreed:
+ *                 type: boolean
+ *                 description: 개인정보 수집 이용 동의 여부 (반드시 true)
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: 판매자 등록 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 개인 판매자 등록이 완료되었습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *       400:
+ *         description: 검증 실패 - 필수 입력값 누락 또는 약관 미동의
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: ValidationError
+ *                 message:
+ *                   type: string
+ *                   example: 필수 입력값이 누락되었거나 이용 약관에 동의하지 않았습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 400
+ *       401:
+ *         description: 인증 실패 - 로그인하지 않은 사용자
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Unauthorized
+ *                 message:
+ *                   type: string
+ *                   example: 로그인이 필요합니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 401
+ *       409:
+ *         description: 충돌 - 이미 등록된 판매자
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: AlreadyRegistered
+ *                 message:
+ *                   type: string
+ *                   example: 이미 판매자로 등록된 회원입니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 409
+ *       500:
+ *         description: 서버 오류 - 알 수 없는 예외 발생
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: InternalServerError
+ *                 message:
+ *                   type: string
+ *                   example: 서버 오류가 발생했습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 500
+ */
+router.post("/register/individual", authenticateJwt, registerIndividual);
 
 export default router;

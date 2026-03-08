@@ -23,3 +23,11 @@ export interface UpdateAccountRequestDto {
   accountNumber: string; 
   holderName: string;    
 }
+
+export interface RegisterIndividualSellerRequestDto {
+  name: string;
+  bank: string;
+  accountNumber: string;
+  holderName: string;
+  isTermsAgreed: boolean;
+}
