@@ -38,3 +38,36 @@ export const upload = multer({
     fileSize: 5 * 1024 * 1024, // 5MB 제한
   },
 });
+
+const businessLicenseFileFilter = (
+  req: Request,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback
+) => {
+  const allowedTypes = /jpeg|jpg|png|pdf/; 
+  const mimetype = allowedTypes.test(file.mimetype);
+  const extname = allowedTypes.test(
+    path.extname(file.originalname).toLowerCase()
+  );
+
+  if (mimetype && extname) {
+    return cb(null, true);
+  }
+  
+  cb(
+    new AppError(
+      "지원하지 않는 파일 형식입니다. (jpg, jpeg, png, pdf만 가능)",
+      415,
+      "InvalidFileType"
+    )
+  );
+};
+
+// 사업자등록증 전용 업로드 미들웨어 (20MB 제한)
+export const uploadBusinessLicense = multer({
+  storage: storage, // 기존 메모리 스토리지 재활용
+  fileFilter: businessLicenseFileFilter,
+  limits: {
+    fileSize: 20 * 1024 * 1024,
+  },
+});

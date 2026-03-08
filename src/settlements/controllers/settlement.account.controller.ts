@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { verifyAndSaveAccount, getAccountInfo } from '../services/settlement.service';
+import { verifyAndSaveAccount, getAccountInfo } from '../services/settlement.account.service';
 import { VerifyAccountRequestDto, ViewAccountResponseDto} from '../dtos/settlement.dto';
 
 export const verifyAccount = async (req: Request, res: Response) => {
