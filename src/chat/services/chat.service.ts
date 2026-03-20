@@ -163,7 +163,7 @@ export class ChatService {
       roomId: number;
       senderId: number;
       content: string;
-      files: { key: string; contentType: string; name: string; size: number }[]
+      files: { key: string; content_type: string; name: string; size: number }[]
     }
   ) {
     const { roomId, senderId, content, files } = params;
@@ -172,7 +172,7 @@ export class ChatService {
       url: `${s3BaseUrl}${f.key}`, // URL 생성
       name: f.name,               
       size: f.size,               
-      contentType: mapMimeTypeToEnum(f.contentType)
+      contentType: mapMimeTypeToEnum(f.content_type)
     }))
 
     const savedMessage = await this.chatRepo.saveMessage(roomId, senderId, content, formattedFiles);
