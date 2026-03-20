@@ -200,6 +200,7 @@ router.get("/", promptController.getAllPrompts);
  *                 usage_guide: "사용 가이드 2"
  *                 price: 1000
  *                 is_free: false
+ *                 is_paid: true
  *                 tags:
  *                   - tag_id: 2
  *                     name: "태그 2"
