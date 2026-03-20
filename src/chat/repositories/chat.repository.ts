@@ -76,7 +76,7 @@ export class ChatRepository {
 
     // 채팅방을 나갔으면 그 이후의 메세지만 조회
     if (leftAt) {
-      whereConditions.created_at = { gt: leftAt };
+      whereConditions.sent_at = { gt: leftAt };
     }
 
     const [messages, totalCount] = await Promise.all([
