@@ -259,14 +259,16 @@ export class ChatRepository {
   }
 
   // == 메세지 저장
-  async saveMessage(
-    roomId: number,
-    senderId: number,
-    content: string,
-    files: { url: string; contentType: AttachmentType; name: string; size: number }[]
-  ) {
-
-    return prisma.chatMessage.create({
+async saveMessage(
+  roomId: number,
+  senderId: number,
+  content: string,
+  files: { url: string; contentType: AttachmentType; name: string; size: number }[]
+) {
+  // 트랜잭션으로 메세지 생성과 채팅방 업데이트를 묶어서 처리
+  return prisma.$transaction(async (tx) => {
+    // 1. 메세지 생성
+    const savedMessage = await tx.chatMessage.create({
       data: {
         room_id: roomId,
         sender_id: senderId,
@@ -291,8 +293,14 @@ export class ChatRepository {
         attachments: true,
       },
     });
-  }
 
-  
+    // 2. 채팅방의 마지막 메세지 ID 업데이트
+    await tx.chatRoom.update({
+      where: { room_id: roomId },
+      data: { last_message_id: savedMessage.message_id },
+    });
+
+    return savedMessage;
+  });
 }
-
+}

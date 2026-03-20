@@ -87,7 +87,6 @@ export class ChatService {
         filter,
         search
       });
-
     
     // 페이지네이션 
     const hasMore = roomList.rooms.length > limit;
