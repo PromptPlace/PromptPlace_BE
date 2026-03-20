@@ -105,6 +105,7 @@ export class ChatRepository {
     return {
       messages: actualMessages,
       totalCount,
+      hasMore: hasNextPage,
     };
   }
 
