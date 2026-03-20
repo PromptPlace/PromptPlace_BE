@@ -63,10 +63,9 @@ export class ChatService {
       this.chatRepo.findMessagesByRoomId(roomId, cursor, limit, myId),
       updateReadStatus
     ]);
-    
-    // 페이지네이션 
-    const hasMore = messageInfo.messages.length > limit;
-    const messages = hasMore ? messageInfo.messages.slice(0, limit) : messageInfo.messages;
+
+    const hasMore = messageInfo.hasMore; 
+    const messages = messageInfo.messages;
 
     return ChatRoomDetailResponseDto.from({
       roomDetail,
@@ -88,7 +87,6 @@ export class ChatService {
         filter,
         search
       });
-
     
     // 페이지네이션 
     const hasMore = roomList.rooms.length > limit;
