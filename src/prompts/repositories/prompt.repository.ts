@@ -278,7 +278,7 @@ const promptSelect = Prisma.validator<Prisma.PromptSelect>()({
   },
 });
 
-export const getPromptDetailRepo = async (promptId: number) => {
+export const getPromptDetailRepo = async (promptId: number, userId?: number) => {
 
   await prisma.prompt.update({
     where: { prompt_id: promptId },
@@ -334,7 +334,37 @@ export const getPromptDetailRepo = async (promptId: number) => {
   // ✅ 통계 붙이기
   const [promptWithStats] = attachReviewStats([prompt], stats);
 
-  return promptWithStats;
+  let is_paid = false;
+
+  if (userId) {
+    if (prompt.user_id === userId) {
+      // 본인이 등록한 프롬프트 (무조건 열람 가능)
+      is_paid = true;
+    } else if (prompt.is_free) {
+      // 로그인한 상태 && 무료 프롬프트 (DB 조회 없이 열람 가능)
+      is_paid = true;
+    } else {
+      // 로그인한 상태 && 유료 프롬프트 (결제 성공 여부 검사)
+      const purchaseRecord = await prisma.purchase.findFirst({
+        where: {
+          user_id: userId,
+          prompt_id: promptId,
+          payment: {
+            status: 'Succeed',
+          },
+        },
+      });
+
+      if (purchaseRecord) {
+        is_paid = true;
+      }
+    }
+  }
+
+  return {
+    ...promptWithStats,
+    is_paid,
+  };
 };
 
 export const createPromptWriteRepo = async (
