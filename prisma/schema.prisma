@@ -460,6 +460,7 @@ model SettlementAccount {
   account_number String   @db.VarChar(30)
   account_holder String   @db.VarChar(100)
   seller_type    SellerType      @default(INDIVIDUAL)
+  birth_date     String?  @db.VarChar(10)
   status         ApprovalStatus  @default(APPROVED) // 개인은 즉시 승인, 사업자는 PENDING으로 생성
   is_active      Boolean  @default(true)
   representative_name  String?         @db.VarChar(100)

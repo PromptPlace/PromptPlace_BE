@@ -33,6 +33,10 @@ export const registerIndividual = async (req: Request, res: Response) => {
         statusCode: 400,
       });
     }
+
+    if (error.name === 'AccountVerificationError') {
+      return res.status(400).json({ error: 'AccountVerificationError', message: error.message, statusCode: 400 });
+    }
     
     if (error.name === 'AlreadyRegistered') {
       return res.status(409).json({

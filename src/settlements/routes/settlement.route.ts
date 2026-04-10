@@ -93,7 +93,7 @@ const router = Router();
  *                       example: ValidationError
  *                     message:
  *                       type: string
- *                       example: 필수 입력값(은행, 계좌번호, 실명/대표자명, 예금주명)이 모두 입력되지 않았습니다.
+ *                       example: 필수 입력값(생년월일, 은행, 계좌번호, 실명/대표자명, 예금주명)이 모두 입력되지 않았습니다.
  *                     statusCode:
  *                       type: integer
  *                       example: 400
@@ -240,8 +240,8 @@ router.get("/accounts", authenticateJwt, ViewAccount);
  * @swagger
  * /api/settlements/register/individual:
  *   post:
- *     summary: 개인 판매자 등록
- *     description: 개인정보 수집 이용 동의 및 계좌 정보를 입력받아 일반 개인 판매자로 등록합니다.
+ *     summary: 개인 판매자 등록 및 정보 수정
+ *     description: 개인정보 수집 이용 동의 및 계좌 정보를 입력받아 일반 개인 판매자로 등록하거나 판매자 정보를 수정합니다.
  *     tags:
  *       - Settlement
  *     security:
@@ -254,6 +254,7 @@ router.get("/accounts", authenticateJwt, ViewAccount);
  *             type: object
  *             required:
  *               - name
+ *               - birthDate
  *               - bank
  *               - accountNumber
  *               - holderName
@@ -263,10 +264,14 @@ router.get("/accounts", authenticateJwt, ViewAccount);
  *                 type: string
  *                 description: 실명
  *                 example: 홍길동
+ *               birthDate:
+ *                 type: string
+ *                 description: 예금주 생년월일 6자리 (YYMMDD)
+ *                 example: "880212"
  *               bank:
  *                 type: string
- *                 description: 포트원 표준 은행 코드
- *                 example: KOOKMIN
+ *                 description: 페이플 금융기관 3자리 숫자 코드
+ *                 example: "004"
  *               accountNumber:
  *                 type: string
  *                 description: '-'를 제외한 계좌 번호
@@ -281,7 +286,7 @@ router.get("/accounts", authenticateJwt, ViewAccount);
  *                 example: true
  *     responses:
  *       200:
- *         description: 판매자 등록 성공
+ *         description: 판매자 등록 및 수정 성공
  *         content:
  *           application/json:
  *             schema:
@@ -289,12 +294,22 @@ router.get("/accounts", authenticateJwt, ViewAccount);
  *               properties:
  *                 message:
  *                   type: string
- *                   example: 개인 판매자 등록이 완료되었습니다.
  *                 statusCode:
  *                   type: integer
  *                   example: 200
+ *             examples:
+ *               CreateSuccess:
+ *                 summary: 신규 등록 성공
+ *                 value:
+ *                   message: 개인 판매자 등록이 완료되었습니다.
+ *                   statusCode: 200
+ *               UpdateSuccess:
+ *                 summary: 기존 정보 수정 성공
+ *                 value:
+ *                   message: 판매자 정보가 성공적으로 수정되었습니다.
+ *                   statusCode: 200
  *       400:
- *         description: 검증 실패 - 필수 입력값 누락 또는 약관 미동의
+ *         description: 검증 실패
  *         content:
  *           application/json:
  *             schema:
@@ -302,13 +317,29 @@ router.get("/accounts", authenticateJwt, ViewAccount);
  *               properties:
  *                 error:
  *                   type: string
- *                   example: ValidationError
+ *                   description: 에러 코드
+ *                   enum:
+ *                     - ValidationError
+ *                     - AccountAuthFailed
  *                 message:
  *                   type: string
- *                   example: 필수 입력값이 누락되었거나 이용 약관에 동의하지 않았습니다.
+ *                   description: 에러 메시지
  *                 statusCode:
  *                   type: integer
  *                   example: 400
+ *             examples:
+ *               validationError:
+ *                 summary: 필수 입력값 누락 또는 약관 미동의
+ *                 value:
+ *                   error: ValidationError
+ *                   message: 필수 입력값이 누락되었거나 이용 약관에 동의하지 않았습니다.
+ *                   statusCode: 400
+ *               accountAuthFailed:
+ *                 summary: 페이플 계좌 인증 실패
+ *                 value:
+ *                   error: AccountAuthFailed
+ *                   message: 계좌 인증에 실패했습니다.
+ *                   statusCode: 400
  *       401:
  *         description: 인증 실패 - 로그인하지 않은 사용자
  *         content:
