@@ -53,5 +53,11 @@ export const SettlementRepository = {
       status: 'PENDING',       
       is_active: false,        
     }})
-  }
+  },
+
+  deleteAccountByUserId: async (userId: number) => {
+    return await prisma.settlementAccount.delete({
+      where: { user_id: userId },
+    });
+  },
 };
