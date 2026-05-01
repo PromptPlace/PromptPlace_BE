@@ -10,13 +10,15 @@ export const SettlementRepository = {
     return await prisma.settlementAccount.upsert({
       where: { user_id: userId },
       update: {
-        bank_code: dto.bank,              
+        birth_date: dto.birthDate,
+        bank_code: dto.bank,          
         account_number: dto.accountNumber,
         account_holder: dto.holderName,
         is_active: true,
       },
       create: {
         user_id: userId,
+        birth_date: dto.birthDate,
         bank_code: dto.bank,
         account_number: dto.accountNumber,
         account_holder: dto.holderName,
@@ -51,5 +53,11 @@ export const SettlementRepository = {
       status: 'PENDING',       
       is_active: false,        
     }})
-  }
+  },
+
+  deleteAccountByUserId: async (userId: number) => {
+    return await prisma.settlementAccount.delete({
+      where: { user_id: userId },
+    });
+  },
 };

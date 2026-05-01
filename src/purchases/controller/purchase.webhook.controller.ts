@@ -1,38 +1,26 @@
 import { Request, Response, NextFunction } from 'express';
-import * as PortOne from '@portone/server-sdk';
 import { WebhookService } from '../services/purchase.webhook.service';
+import { PayplePaymentResult } from '../utils/payple';
 
 export const WebhookController = {
   async handleWebhook(req: Request, res: Response, next: NextFunction) {
     try {
-      const webhookSecret = process.env.PORTONE_WEBHOOK_SECRET;
-      if (!webhookSecret) {
-        console.error('PORTONE_WEBHOOK_SECRET is not set');
-        return res.status(500).send('Server Config Error');
+      const result = req.body as Partial<PayplePaymentResult>;
+
+      if (!result || typeof result.PCD_PAY_RST !== 'string') {
+        return res.status(400).send('Invalid payload');
       }
 
-      // 1. 웹훅 서명 검증
-      const webhook = await PortOne.Webhook.verify(
-        webhookSecret,
-        req.body,
-        req.headers as Record<string, string | string[] | undefined>
-      );
-
-      // 2. 이벤트 타입별 처리 -> 현재는 결제 완료(Paid)만 처리
-      if (webhook.type === 'Transaction.Paid') {
-        const { paymentId, storeId } = webhook.data;
-        await WebhookService.handleTransactionPaid(paymentId, storeId);
-      } else if (webhook.type === 'Transaction.Cancelled') {
-        console.log('[Webhook] Transaction Cancelled:', webhook.data.paymentId);
+      if (result.PCD_PAY_RST !== 'success') {
+        console.log('[Webhook] Non-success result:', result.PCD_PAY_CODE, result.PCD_PAY_MSG);
+        return res.status(200).send('OK');
       }
+
+      await WebhookService.handlePaypleResult(result as PayplePaymentResult);
       res.status(200).send('OK');
     } catch (err) {
-      if (err instanceof PortOne.Webhook.WebhookVerificationError) {
-        console.error('[Webhook] Signature Verification Failed');
-        return res.status(400).send('Verification Failed');
-      }
       console.error('[Webhook] Error:', err);
       res.status(500).send('Internal Server Error');
     }
-  }
+  },
 };

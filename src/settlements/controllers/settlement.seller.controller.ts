@@ -33,15 +33,11 @@ export const registerIndividual = async (req: Request, res: Response) => {
         statusCode: 400,
       });
     }
-    
-    if (error.name === 'AlreadyRegistered') {
-      return res.status(409).json({
-        error: 'AlreadyRegistered',
-        message: error.message,
-        statusCode: 409,
-      });
-    }
 
+    if (error.name === 'AccountVerificationError') {
+      return res.status(400).json({ error: 'AccountVerificationError', subCode: error.subCode, message: error.message, statusCode: 400 });
+    }
+    
     return res.status(500).json({
       error: 'InternalServerError',
       message: '서버 오류가 발생했습니다.',

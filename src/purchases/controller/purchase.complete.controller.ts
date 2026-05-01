@@ -8,10 +8,15 @@ export const PurchaseCompleteController = {
       const userId = (req.user as any).user_id;
       const dto = req.body as Partial<PurchaseCompleteRequestDTO>;
 
-      if (!dto || typeof dto.paymentId !== 'string') {
+      if (
+        !dto ||
+        typeof dto.PCD_PAY_OID !== 'string' ||
+        typeof dto.PCD_PAY_REQKEY !== 'string' ||
+        typeof dto.PCD_AUTH_KEY !== 'string'
+      ) {
         return res.status(400).json({
           error: 'BadRequest',
-          message: 'paymentId는 필수입니다.',
+          message: 'PCD_PAY_OID, PCD_PAY_REQKEY, PCD_AUTH_KEY는 필수입니다.',
           statusCode: 400,
         });
       }

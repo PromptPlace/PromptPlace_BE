@@ -1,5 +1,6 @@
 export interface VerifyAccountRequestDto {
   name: string;
+  birthDate: string;
   bank: string;
   accountNumber: string;
   holderName: string;
@@ -26,6 +27,7 @@ export interface UpdateAccountRequestDto {
 
 export interface RegisterIndividualSellerRequestDto {
   name: string;
+  birthDate: string;
   bank: string;
   accountNumber: string;
   holderName: string;
