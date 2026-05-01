@@ -1,6 +1,6 @@
-export interface PurchaseCompleteRequestDTO {
-  paymentId: string;
-}
+import { PayplePaymentResult } from '../utils/payple';
+
+export type PurchaseCompleteRequestDTO = PayplePaymentResult;
 
 export interface PurchaseCompleteResponseDTO {
   message: string;
