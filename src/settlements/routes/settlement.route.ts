@@ -2,6 +2,7 @@ import { Router } from "express";
 import { verifyAccount, ViewAccount } from "../controllers/settlement.account.controller";
 import { registerIndividual, registerBusiness } from "../controllers/settlement.seller.controller";
 import { uploadLicense } from "../controllers/settlement.seller.controller";
+import { getMonthlySales, getYearlySettlements } from "../controllers/settlement.history.controller";
 import { authenticateJwt } from "../../config/passport";
 
 const router = Router();
@@ -698,5 +699,104 @@ router.post("/upload/business-license", authenticateJwt, uploadLicense);
  *                   example: 500
  */
 router.post("/register/business", authenticateJwt, registerBusiness);
+
+/**
+ * @swagger
+ * /api/settlements/sales/monthly:
+ *   get:
+ *     summary: 월별 판매 내역 조회
+ *     description: 로그인한 판매자의 특정 연-월에 발생한 판매(Settlement) 내역을 조회합니다. year/month 미지정 시 현재 UTC 기준 년/월을 사용합니다. 결제수단(pay_type)과 카드사명(card_name)은 페이플 일반결제 검증 결과를 그대로 노출합니다.
+ *     tags:
+ *       - Settlement
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: query
+ *         name: year
+ *         schema: { type: integer, example: 2026 }
+ *         description: 조회할 연도 (기본값 현재 UTC 연도)
+ *       - in: query
+ *         name: month
+ *         schema: { type: integer, minimum: 1, maximum: 12, example: 5 }
+ *         description: 조회할 월 (1-12, 기본값 현재 UTC 월)
+ *     responses:
+ *       200:
+ *         description: 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string, example: 월별 판매 내역 조회 성공 }
+ *                 year: { type: integer, example: 2026 }
+ *                 month: { type: integer, example: 5 }
+ *                 summary:
+ *                   type: object
+ *                   properties:
+ *                     count: { type: integer, example: 3 }
+ *                     total_sales: { type: integer, description: 원래 판매가 합계, example: 30000 }
+ *                     total_settled: { type: integer, description: 정산 금액(수수료 차감 후) 합계, example: 27000 }
+ *                     total_fee: { type: integer, example: 3000 }
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       settlement_id: { type: integer }
+ *                       sold_at: { type: string, format: date-time }
+ *                       prompt_id: { type: integer }
+ *                       prompt_title: { type: string }
+ *                       buyer_id: { type: integer }
+ *                       buyer_nickname: { type: string, nullable: true }
+ *                       pay_type: { type: string, nullable: true, description: '페이플 결제 타입 (card/transfer)' }
+ *                       card_name: { type: string, nullable: true, description: '카드사명 (페이플 PCD_PAY_CARDNAME)' }
+ *                       sale_price: { type: integer }
+ *                       settled_amount: { type: integer }
+ *                       fee: { type: integer }
+ *                       status: { type: string, enum: [Pending, Succeed, Failed] }
+ *                 statusCode: { type: integer, example: 200 }
+ *       400:
+ *         description: 잘못된 year/month 값
+ *       401:
+ *         description: 로그인 필요
+ */
+router.get("/sales/monthly", authenticateJwt, getMonthlySales);
+
+/**
+ * @swagger
+ * /api/settlements/yearly:
+ *   get:
+ *     summary: 연도별 누적 정산 내역 조회
+ *     description: 로그인한 판매자의 연도별 누적 정산 합계를 조회합니다. 각 연도 row는 해당 연도의 판매 건수, 원래 판매가 합계(total_sales), 정산 금액 합계(total_settled), 수수료 합계(total_fee), 상태별 정산금(succeeded/pending) 누적치를 포함합니다.
+ *     tags:
+ *       - Settlement
+ *     security:
+ *       - jwt: []
+ *     responses:
+ *       200:
+ *         description: 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string, example: 연도별 누적 정산 내역 조회 성공 }
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       year: { type: integer, example: 2026 }
+ *                       count: { type: integer, example: 50 }
+ *                       total_sales: { type: integer, example: 500000 }
+ *                       total_settled: { type: integer, example: 450000 }
+ *                       total_fee: { type: integer, example: 50000 }
+ *                       succeeded_amount: { type: integer, example: 400000 }
+ *                       pending_amount: { type: integer, example: 50000 }
+ *                 statusCode: { type: integer, example: 200 }
+ *       401:
+ *         description: 로그인 필요
+ */
+router.get("/yearly", authenticateJwt, getYearlySettlements);
 
 export default router;
