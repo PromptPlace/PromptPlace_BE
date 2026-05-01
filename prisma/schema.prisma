@@ -413,18 +413,18 @@ enum PaymentProvider {
 }
 
 model Payment {
-  payment_id   Int              @id @default(autoincrement())
-  purchase_id  Int              @unique
-  status       Status
-  merchant_uid String           @unique
-  created_at   DateTime         @default(now())
-  updated_at   DateTime         @updatedAt
-  imp_uid      String           @unique
-  purchase     Purchase         @relation(fields: [purchase_id], references: [purchase_id], onDelete: Cascade)
-  settlement   Settlement?
-  // 현금영수증 정보 (가상계좌/계좌이체 시)
-  cash_receipt_url  String?      // 영수증 조회 URL
-  cash_receipt_type String?      // 소득공제(DEDUCTION), 지출증빙(PROOF) 등
+  payment_id     Int              @id @default(autoincrement())
+  purchase_id    Int              @unique
+  status         Status
+  pcd_pay_oid    String           @unique
+  pcd_pay_reqkey String           @unique
+  pay_type       String?
+  card_name      String?
+  created_at     DateTime         @default(now())
+  updated_at     DateTime         @updatedAt
+  purchase       Purchase         @relation(fields: [purchase_id], references: [purchase_id], onDelete: Cascade)
+  settlement     Settlement?
+  cash_receipt_url  String?
 }
 
 model Settlement {

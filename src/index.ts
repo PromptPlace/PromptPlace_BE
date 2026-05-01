@@ -15,6 +15,7 @@ import membersRouter from "./members/routes/member.route"; // members 라우터 
 import promptRoutes from "./prompts/routes/prompt.route"; // 프롬프트 관련 라우터
 import ReviewRouter from "./reviews/routes/review.route";
 import purchaseRouter from "./purchases/routes/purchase.route";
+import purchaseWebhookRouter from "./purchases/routes/purchase.webhook.route";
 import settlementRouter from "./settlements/routes/settlement.route";
 import withdrawalRouter from "./withdrawals/routes/withdrawal.route";
 import promptDownloadRouter from "./prompts/routes/prompt.download.route";
@@ -122,6 +123,9 @@ app.use("/api/reviews", ReviewRouter);
 // 프롬프트 관련 라우터
 // 프롬프트 검색 API
 app.use("/api/prompts", promptRoutes);
+
+// 페이플 PCD_RST_URL 서버 콜백 (urlencoded/json 자체 파싱)
+app.use("/api/prompts/purchases", purchaseWebhookRouter);
 
 // 프롬프트 결제 라우터
 app.use(

@@ -14,20 +14,22 @@ export const PurchaseCompleteRepository = {
 
   createPaymentTx(tx: Tx, data: {
     purchase_id: number;
-    merchant_uid: string;  
-    status: Status; 
-    paymentId: string;
+    pcd_pay_oid: string;
+    pcd_pay_reqkey: string;
+    status: Status;
+    pay_type?: string | null;
+    card_name?: string | null;
     cash_receipt_url?: string | null;
-    cash_receipt_type?: string | null;
   }) {
     return tx.payment.create({
       data: {
         purchase: { connect: { purchase_id: data.purchase_id } },
-        merchant_uid: data.merchant_uid,
-        imp_uid: data.paymentId,
+        pcd_pay_oid: data.pcd_pay_oid,
+        pcd_pay_reqkey: data.pcd_pay_reqkey,
         status: data.status,
+        pay_type: data.pay_type,
+        card_name: data.card_name,
         cash_receipt_url: data.cash_receipt_url,
-        cash_receipt_type: data.cash_receipt_type,
       },
     });
   },
@@ -54,5 +56,5 @@ export const PurchaseCompleteRepository = {
         status: input.status,
       },
     });
-  }
+  },
 };
