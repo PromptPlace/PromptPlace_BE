@@ -36,6 +36,7 @@ export const PurchaseRequestService = {
         prompt_id: dto.prompt_id,
         user_id: userId,
       }),
+      PCD_RST_URL: process.env.PAYPLE_RST_URL || '',
     };
   },
 };
