@@ -19,4 +19,5 @@ export interface PurchaseRequestResponseDTO {
   PCD_PAY_GOODS: string;
   PCD_PAY_TOTAL: number;
   PCD_USER_DEFINE1: string;
+  PCD_RST_URL: string;
 }

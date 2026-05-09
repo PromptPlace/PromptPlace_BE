@@ -2,8 +2,7 @@ services:
   app: # 서비스명
     build: .
     container_name: myapp # 컨테이너명
-    command: >
-      sh -c "pnpm start"
+    command: ["node", "dist/index.js"]
     env_file: # .env 가져오기
       - .env
     environment:
@@ -28,8 +27,7 @@ services:
   app-dev: # 서비스명
     build: .
     container_name: myapp-dev # 컨테이너명
-    command: >
-      sh -c "pnpm start"
+    command: ["node", "dist/index.js"]
     env_file: # .env 가져오기
       - .env.dev
     environment:
