@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../../errors/AppError';
 import {
   approvePendingBusinessSeller,
+  cancelSeller,
   getBusinessSellerDetail,
   getIndividualSellerDetail,
   getPendingBusinessSellerDetail,
@@ -142,6 +143,20 @@ export const getBusinessSellerDetailHandler = async (
     const userId = parseUserIdParam(req.params.userId);
     const result = await getBusinessSellerDetail(userId);
     return res.success(result, '사업자 판매자 상세 정보를 조회했습니다.');
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const cancelSellerHandler = async (
+  req: Request<{ userId: string }>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = parseUserIdParam(req.params.userId);
+    const result = await cancelSeller(userId);
+    return res.success(result, '판매자 등록을 취소했습니다.');
   } catch (error) {
     return next(error);
   }

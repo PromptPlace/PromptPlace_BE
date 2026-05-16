@@ -113,4 +113,23 @@ export const AdminSellerRepository = {
       include: userInclude,
     });
   },
+
+  findApprovedSellerAnyType: async (userId: number) => {
+    return prisma.settlementAccount.findFirst({
+      where: { user_id: userId, status: 'APPROVED' },
+    });
+  },
+
+  cancelSellerTransaction: async (userId: number) => {
+    const [deactivatedPrompts] = await prisma.$transaction([
+      prisma.prompt.updateMany({
+        where: { user_id: userId, inactive_date: null },
+        data: { inactive_date: new Date() },
+      }),
+      prisma.settlementAccount.delete({
+        where: { user_id: userId },
+      }),
+    ]);
+    return { deactivated_prompt_count: deactivatedPrompts.count };
+  },
 };
