@@ -8,4 +8,13 @@ export const AdminStatsRepository = {
       _count: { _all: true },
     });
   },
+
+  countActiveUsersInRange: async (start: Date, end: Date) => {
+    return prisma.user.count({
+      where: {
+        userstatus: { not: 'deleted' },
+        last_active_at: { gte: start, lt: end },
+      },
+    });
+  },
 };

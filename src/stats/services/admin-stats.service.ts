@@ -1,5 +1,6 @@
 import { AdminStatsRepository } from '../repositories/admin-stats.repository';
 import {
+  ActiveUserStatsResponse,
   MemberStatsResponse,
   SignupChannel,
   SignupChannelStats,
@@ -43,5 +44,33 @@ export const getMemberStats = async (): Promise<MemberStatsResponse> => {
   return {
     total_members: total,
     by_signup_channel: byChannel,
+  };
+};
+
+const ACTIVE_WINDOW_DAYS = 30;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export const getActiveUserStats = async (): Promise<ActiveUserStatsResponse> => {
+  const now = new Date();
+  const currentStart = new Date(now.getTime() - ACTIVE_WINDOW_DAYS * DAY_MS);
+  const previousStart = new Date(
+    currentStart.getTime() - ACTIVE_WINDOW_DAYS * DAY_MS,
+  );
+
+  const [current_count, previous_count] = await Promise.all([
+    AdminStatsRepository.countActiveUsersInRange(currentStart, now),
+    AdminStatsRepository.countActiveUsersInRange(previousStart, currentStart),
+  ]);
+
+  const change_rate =
+    previous_count === 0
+      ? null
+      : round4((current_count - previous_count) / previous_count);
+
+  return {
+    window_days: ACTIVE_WINDOW_DAYS,
+    current_count,
+    previous_count,
+    change_rate,
   };
 };

@@ -7436,6 +7436,70 @@
         }
       }
     },
+    "/api/admin/stats/active-users": {
+      "get": {
+        "summary": "활성 사용자 통계 조회",
+        "description": "최근 30일 롤링 윈도우 기준 활성 사용자 수와 전 구간(그 이전 30일) 대비 증감율을 반환합니다.\n\n- `current_count`: now - 30d ~ now 사이에 `last_active_at`이 기록된 사용자 수\n- `previous_count`: now - 60d ~ now - 30d 사이의 활성 사용자 수\n- `change_rate`: `(current - previous) / previous` (소수 4자리). 이전 구간이 0이면 `null`\n- 탈퇴(`userstatus=deleted`) 사용자는 제외\n\n활동 기록은 JWT 인증을 통과한 모든 요청에서 5분 throttle로 갱신됩니다.\n",
+        "tags": [
+          "AdminStats"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "활성 사용자 통계를 조회했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "window_days": {
+                          "type": "integer",
+                          "example": 30
+                        },
+                        "current_count": {
+                          "type": "integer",
+                          "example": 1234
+                        },
+                        "previous_count": {
+                          "type": "integer",
+                          "example": 1100
+                        },
+                        "change_rate": {
+                          "type": "number",
+                          "nullable": true,
+                          "example": 0.1218
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          }
+        }
+      }
+    },
     "/api/admin/stats/prompts/new": {
       "get": {
         "summary": "신규 프롬프트 통계 조회",
