@@ -3,6 +3,7 @@ import http from "http";
 import { Server } from "socket.io"
 import { responseHandler } from "./middlewares/responseHandler";
 import { errorHandler } from "./middlewares/errorHandler";
+import { visitorTracker } from "./middlewares/visitorTracker";
 import "reflect-metadata";
 import passport from "./config/passport";
 import swaggerUi from "swagger-ui-express";
@@ -29,11 +30,14 @@ import "./notifications/listeners/notification.listener"; // 알림 리스터 im
 import messageRouter from "./messages/routes/message.route";
 import adminPromptRouter from "./prompts/routes/admin-prompt.route";
 import adminMemberRouter from "./members/routes/admin-member.route";
+import adminSellerRouter from "./settlements/routes/admin-seller.route";
+import adminStatsRouter from "./stats/routes/admin-stats.route";
 import signupRouter from "./signup/routes/signup.route"
 import signinRouter from "./signin/routes/signin.route";
 import passwordRouter from "./password/routes/password.route";
 import chatRouter from "./chat/routes/chat.route";
 import { initSocket } from "./socket/server";
+import { startPromptStatSnapshotJob } from "./stats/jobs/prompt-stat-snapshot.job";
 import morgan = require('morgan');
 const PORT = 3000;
 const app = express();
@@ -42,6 +46,7 @@ const app = express();
 const server = http.createServer(app); 
 
 initSocket(server)
+startPromptStatSnapshotJob();
 // 1. 응답 핸들러(json 파서보다 위에)
 app.use(responseHandler);
 app.use((req, res, next) => {
@@ -100,6 +105,9 @@ app.use(
   swaggerUi.setup(swaggerJsdoc(swaggerOptions))
 );
 
+// 방문자 추적 미들웨어 (응답 종료 시 HyperLogLog에 visitor_id 누적)
+app.use(visitorTracker);
+
 // 3. 모든 라우터들
 
 // 로그인 라우터
@@ -153,6 +161,8 @@ app.use("/api/prompts", promptLikeRouter);
 
 // admin
 app.use("/api/admin/prompts", adminPromptRouter);
+app.use("/api/admin/sellers", adminSellerRouter);
+app.use("/api/admin/stats", adminStatsRouter);
 app.use("/api/admin", adminMemberRouter);
 
 // 팁 라우터

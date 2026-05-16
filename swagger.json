@@ -5,215 +5,6 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/api/members/me/accounts": {
-      "post": {
-        "summary": "계좌 등록",
-        "description": "사용자가 본인의 계좌를 등록합니다. 한 사용자당 하나의 계좌만 등록 가능합니다.",
-        "tags": [
-          "Account"
-        ],
-        "security": [
-          {
-            "jwt": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "bank_code",
-                  "account_number",
-                  "account_holder"
-                ],
-                "properties": {
-                  "bank_code": {
-                    "type": "string",
-                    "example": "090"
-                  },
-                  "account_number": {
-                    "type": "string",
-                    "example": "3333222111000"
-                  },
-                  "account_holder": {
-                    "type": "string",
-                    "example": "홍길동"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "계좌 등록 성공",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "계좌 정보가 등록되었습니다."
-                    },
-                    "account_id": {
-                      "type": "integer",
-                      "example": 123
-                    },
-                    "statusCode": {
-                      "type": "integer",
-                      "example": 200
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "유효하지 않은 은행 코드 등 잘못된 요청"
-          },
-          "409": {
-            "description": "이미 계좌가 등록된 경우"
-          }
-        }
-      },
-      "get": {
-        "summary": "계좌 정보 조회",
-        "description": "로그인한 사용자의 등록된 계좌 정보를 조회합니다.",
-        "tags": [
-          "Account"
-        ],
-        "security": [
-          {
-            "jwt": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "계좌 정보 조회 성공",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "계좌 정보를 불러왔습니다."
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "account_id": {
-                          "type": "integer",
-                          "example": 123
-                        },
-                        "bank_code": {
-                          "type": "string",
-                          "example": "090"
-                        },
-                        "bank_name": {
-                          "type": "string",
-                          "example": "카카오뱅크"
-                        },
-                        "account_number": {
-                          "type": "string",
-                          "example": "3333222111000"
-                        },
-                        "account_holder": {
-                          "type": "string",
-                          "example": "홍길동"
-                        }
-                      }
-                    },
-                    "statusCode": {
-                      "type": "integer",
-                      "example": 200
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "인증 실패"
-          },
-          "404": {
-            "description": "등록된 계좌 정보 없음"
-          }
-        }
-      },
-      "patch": {
-        "summary": "계좌 정보 수정",
-        "description": "등록된 계좌 정보를 새 계좌로 수정합니다. 본인 소유 계좌만 등록 가능합니다.",
-        "tags": [
-          "Account"
-        ],
-        "security": [
-          {
-            "jwt": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "bank_code",
-                  "account_number",
-                  "account_holder"
-                ],
-                "properties": {
-                  "bank_code": {
-                    "type": "string",
-                    "example": "090"
-                  },
-                  "account_number": {
-                    "type": "string",
-                    "example": "9876543210000"
-                  },
-                  "account_holder": {
-                    "type": "string",
-                    "example": "홍길동"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "계좌 정보 수정 성공",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "계좌 정보가 수정되었습니다."
-                    },
-                    "statusCode": {
-                      "type": "integer",
-                      "example": 200
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "유효하지 않은 은행 코드 또는 중복된 계좌"
-          },
-          "404": {
-            "description": "등록된 계좌 없음"
-          }
-        }
-      }
-    },
     "/api/auth/login/google/callback": {
       "get": {
         "summary": "구글 로그인 콜백",
@@ -1180,6 +971,815 @@
           },
           "500": {
             "description": "서버 오류"
+          }
+        }
+      }
+    },
+    "/api/chat/rooms": {
+      "post": {
+        "summary": "채팅방 생성 또는 반환",
+        "description": "상대방과의 1:1 채팅방을 생성하거나 이미 존재하는 채팅방을 반환합니다.",
+        "tags": [
+          "Chat"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "partner_id"
+                ],
+                "properties": {
+                  "partner_id": {
+                    "type": "integer",
+                    "example": 34
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "채팅방 생성/반환 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "채팅방을 성공적으로 생성/반환했습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "room_id": {
+                          "type": "integer",
+                          "example": 35
+                        },
+                        "is_new": {
+                          "type": "boolean",
+                          "example": true,
+                          "description": "이미 존재하는 채팅방인 경우 false, 새로 생성된 채팅방인 경우 true"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패 (토큰 없음/만료/유효하지 않음)"
+          }
+        }
+      },
+      "get": {
+        "summary": "채팅방 목록 조회",
+        "description": "내 채팅방 목록을 조회합니다.<br/> 메세지가 존재하지 않으면 해당 채팅방은 목록에서 제외됩니다.<br/> filter(전체/안읽음/고정), search(상대 닉네임 검색), cursor 기반 페이징을 지원합니다.\n",
+        "tags": [
+          "Chat"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "filter",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "unread",
+                "pinned"
+              ],
+              "default": "all"
+            },
+            "description": "조회 필터 (기본값 all)",
+            "example": "unread"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "상대방 닉네임 검색 키워드 (기본값 없음)",
+            "example": "달팽이"
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "마지막으로 조회된 room_id (첫 요청 생략 가능)",
+            "example": 70
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            },
+            "description": "가져올 채팅방 개수 (기본값 20)",
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "채팅방 목록 조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "채팅방 목록을 성공적으로 조회했습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "rooms": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "room_id": {
+                                "type": "integer",
+                                "example": 12
+                              },
+                              "partner": {
+                                "type": "object",
+                                "properties": {
+                                  "user_id": {
+                                    "type": "integer",
+                                    "example": 67
+                                  },
+                                  "nickname": {
+                                    "type": "string",
+                                    "example": "달팽이"
+                                  },
+                                  "profile_image_url": {
+                                    "type": "string",
+                                    "example": "https://...png"
+                                  }
+                                }
+                              },
+                              "last_message": {
+                                "type": "object",
+                                "nullable": true,
+                                "properties": {
+                                  "content": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "example": "안녕하세요 너무 신기하네요"
+                                  },
+                                  "sent_at": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true,
+                                    "example": "2025-10-18T10:15:00Z"
+                                  },
+                                  "has_attachments": {
+                                    "type": "boolean",
+                                    "example": false
+                                  },
+                                  "attachment_summary": {
+                                    "type": "object",
+                                    "nullable": true,
+                                    "properties": {
+                                      "image_count": {
+                                        "type": "integer",
+                                        "example": 2
+                                      },
+                                      "file_count": {
+                                        "type": "integer",
+                                        "example": 0
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "unread_count": {
+                                "type": "integer",
+                                "example": 123
+                              },
+                              "is_pinned": {
+                                "type": "boolean",
+                                "example": false
+                              }
+                            }
+                          }
+                        },
+                        "page": {
+                          "type": "object",
+                          "properties": {
+                            "has_more": {
+                              "type": "boolean",
+                              "example": false
+                            },
+                            "total_count": {
+                              "type": "integer",
+                              "example": 3
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 (유효하지 않은 filter 값)"
+          },
+          "401": {
+            "description": "인증 실패 (토큰 없음/만료/유효하지 않음)"
+          }
+        }
+      }
+    },
+    "/api/chat/rooms/{roomId}": {
+      "get": {
+        "summary": "채팅방 상세 조회",
+        "description": "채팅방 상세 정보(상대 정보/차단 상태/메시지 목록/페이지 정보)를 조회합니다.<br/> 메시지는 최신순(DESC)으로 반환되며, cursor 기반으로 과거 메시지를 추가로 불러올 수 있습니다.\n",
+        "tags": [
+          "Chat"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "roomId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "채팅방 ID",
+            "example": 2
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "이번 응답에서 가장 오래된 message_id (첫 요청은 생략)",
+            "example": 70
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            },
+            "description": "가져올 메시지 개수 (기본값 20)",
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "채팅방 상세 조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "채팅방 상세를 성공적으로 조회했습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "room": {
+                          "type": "object",
+                          "properties": {
+                            "room_id": {
+                              "type": "integer",
+                              "example": 2
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "example": "2025-08-21T12:26:42.522Z"
+                            },
+                            "is_pinned": {
+                              "type": "boolean",
+                              "example": true
+                            }
+                          }
+                        },
+                        "my": {
+                          "type": "object",
+                          "properties": {
+                            "user_id": {
+                              "type": "integer",
+                              "example": 45
+                            },
+                            "left_at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "example": "2026-01-20T10:00:00.000Z"
+                            }
+                          }
+                        },
+                        "partner": {
+                          "type": "object",
+                          "properties": {
+                            "user_id": {
+                              "type": "integer",
+                              "example": 67
+                            },
+                            "nickname": {
+                              "type": "string",
+                              "example": "달팽이"
+                            },
+                            "profile_image_url": {
+                              "type": "string",
+                              "example": "https://...png"
+                            },
+                            "role": {
+                              "type": "string",
+                              "example": "USER"
+                            }
+                          }
+                        },
+                        "block_status": {
+                          "type": "object",
+                          "properties": {
+                            "i_blocked_partner": {
+                              "type": "boolean",
+                              "example": true
+                            },
+                            "partner_blocked_me": {
+                              "type": "boolean",
+                              "example": false
+                            }
+                          }
+                        },
+                        "messages": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "message_id": {
+                                "type": "integer",
+                                "example": 56
+                              },
+                              "sender_id": {
+                                "type": "integer",
+                                "example": 45
+                              },
+                              "content": {
+                                "type": "string",
+                                "example": "혹시 이 사진이랑 파일도 프롬프트에 사용할 수 있나요?"
+                              },
+                              "sent_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2025-08-21T12:26:42.522Z"
+                              },
+                              "attachments": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "attachment_id": {
+                                      "type": "integer",
+                                      "example": 23
+                                    },
+                                    "url": {
+                                      "type": "string",
+                                      "example": "https://...png"
+                                    },
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "IMAGE",
+                                        "FILE"
+                                      ],
+                                      "example": "IMAGE"
+                                    },
+                                    "original_name": {
+                                      "type": "string",
+                                      "example": "picture.png"
+                                    },
+                                    "size": {
+                                      "type": "integer",
+                                      "example": 27187
+                                    },
+                                    "created_at": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "example": "2025-08-21T12:26:42.522Z"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "page": {
+                          "type": "object",
+                          "properties": {
+                            "has_more": {
+                              "type": "boolean",
+                              "example": false
+                            },
+                            "total_count": {
+                              "type": "integer",
+                              "example": 2
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패 (토큰 없음/만료/유효하지 않음)"
+          },
+          "404": {
+            "description": "채팅방을 찾을 수 없음"
+          }
+        }
+      }
+    },
+    "/api/chat/block": {
+      "post": {
+        "summary": "사용자 차단",
+        "description": "상대방을 차단합니다.\n",
+        "tags": [
+          "Chat"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "blocked_user_id"
+                ],
+                "properties": {
+                  "blocked_user_id": {
+                    "type": "integer",
+                    "example": 5
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "차단 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "상대방을 성공적으로 차단했습니다."
+                    },
+                    "data": {
+                      "nullable": true,
+                      "example": null
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청"
+          },
+          "401": {
+            "description": "인증 실패 (토큰 없음/만료/유효하지 않음)"
+          }
+        }
+      }
+    },
+    "/api/chat/rooms/{roomId}/leave": {
+      "patch": {
+        "summary": "채팅방 나가기",
+        "description": "채팅방을 나갑니다.<br/> 채팅방을 나가면 채팅방 목록 조회 리스트에서 제외됩니다. <br/> 나갔더라도 채팅방은 유지되며 계속적으로 수신이 가능합니다. 다시 입장할 수 있지만 나가기 전 메시지들은 볼 수 없습니다.\n",
+        "tags": [
+          "Chat"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "roomId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "채팅방 ID",
+            "example": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "채팅방 나가기 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "채팅방을 성공적으로 나갔습니다."
+                    },
+                    "data": {
+                      "nullable": true,
+                      "example": null
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청"
+          },
+          "401": {
+            "description": "인증 실패 (토큰 없음/만료/유효하지 않음)"
+          }
+        }
+      }
+    },
+    "/api/chat/presigned-url": {
+      "post": {
+        "summary": "Presigned URL 발급",
+        "description": "파일 업로드를 위한 presigned url을 발급합니다.<br/><br/> **업로드 프로세스:**<br/> 1) 본 API를 호출하여 파일별 url 과 key 를 받습니다.<br/> 2) 받은 url 로 PUT 요청을 보내 실제 파일을 업로드합니다.<br/> 3) 업로드가 모두 성공하면, 채팅 메시지 전송 API 호출 시 서버로부터 받은 key 값들을 함께 보냅니다.\n",
+        "tags": [
+          "Chat"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "files"
+                ],
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "content_type"
+                      ],
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "example": "cat.jpg"
+                        },
+                        "content_type": {
+                          "type": "string",
+                          "example": "image/jpg"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "example": {
+                "files": [
+                  {
+                    "name": "cat.jpg",
+                    "content_type": "image/jpg"
+                  },
+                  {
+                    "name": "dog.png",
+                    "content_type": "image/png"
+                  },
+                  {
+                    "name": "info.pdf",
+                    "content_type": "application/pdf"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "presign 발급 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "presign을 성공적으로 발급했습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "attachments": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "example": "cat.jpg"
+                              },
+                              "url": {
+                                "type": "string",
+                                "example": "https://s3.aws.com/bucket/random-key-1?signature=..."
+                              },
+                              "key": {
+                                "type": "string",
+                                "example": "uploads/random-key-1.jpg"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                },
+                "example": {
+                  "message": "presign을 성공적으로 발급했습니다.",
+                  "data": {
+                    "attachments": [
+                      {
+                        "name": "cat.jpg",
+                        "url": "https://s3.aws.com/bucket/random-key-1?signature=...",
+                        "key": "uploads/random-key-1.jpg"
+                      },
+                      {
+                        "name": "dog.jpg",
+                        "url": "https://s3.aws.com/bucket/random-key-2?signature=...",
+                        "key": "uploads/random-key-2.png"
+                      },
+                      {
+                        "name": "info.pdf",
+                        "url": "https://s3.aws.com/bucket/random-key-3?signature=...",
+                        "key": "uploads/random-key-3.pdf"
+                      }
+                    ]
+                  },
+                  "statusCode": 200
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청"
+          },
+          "401": {
+            "description": "인증 실패 (토큰 없음/만료/유효하지 않음)"
+          }
+        }
+      }
+    },
+    "/api/chat/rooms/{roomId}/pin": {
+      "patch": {
+        "summary": "채팅방 고정 토글",
+        "description": "채팅방 고정을 토글합니다.<br/><br/> `isPinned`:<br/>\n  - false → 토글 결과 = 고정 해제<br/>\n  - true → 토글 결과 = 고정\n",
+        "tags": [
+          "Chat"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "roomId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "채팅방 ID",
+            "example": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "채팅방 고정 토글 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "채팅방 고정을 성공적으로 토글했습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "isPinned": {
+                          "type": "boolean",
+                          "example": true
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                },
+                "example": {
+                  "message": "채팅방 고정을 성공적으로 토글했습니다.",
+                  "data": {
+                    "isPinned": true
+                  },
+                  "statusCode": 200
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청"
+          },
+          "401": {
+            "description": "인증 실패 (토큰 없음/만료/유효하지 않음)"
+          },
+          "404": {
+            "description": "채팅방을 찾을 수 없음"
           }
         }
       }
@@ -2389,11 +2989,6 @@
         "tags": [
           "Member"
         ],
-        "security": [
-          {
-            "jwt": []
-          }
-        ],
         "parameters": [
           {
             "in": "path",
@@ -2964,7 +3559,7 @@
     "/api/notifications/me": {
       "get": {
         "summary": "내 알림 목록 조회",
-        "description": "- 커서 기반 페이지네이션(cursor-based-pagination) 사용.\n   - `cursor`는 이전 요청에서 받은 마지막 데이터의 ID를 의미하며, 이를 기준으로 이후 데이터를 조회.\n   - 첫 요청 시에는 `cursor`를 생략하여 최신 데이터부터 조회.\n   - `has_more` 속성으로 더 불러올 데이터가 있는지 미리 확인 가능.\n\n- type 종류:\n  - FOLLOW: 누가 나를 팔로우 했을 때 \n  - NEW_PROMPT: 알림 설정한 프롬프터가 새 프롬프트를 올렸을 때\n  - INQUIRY: 나에게 문의사항이 도착했을 때\n  - ANNOUNCEMENT: 공지사항이 등록되었을 때\n  - REPORT: 내 신고가 접수되었을 때\n\n- actor 필드는 알림을 유발한 사용자를 뜻하며, 타입이 REPORT, ANNOUNCEMENT일 때에만 null입니다.\n- profile_image 필드는 타입이 FOLLOW, NEW_PROMPT일 경우에만 반환됩니다.\n",
+        "description": "- 커서 기반 페이지네이션(cursor-based-pagination) 사용.\n   - `cursor`는 이전 요청에서 받은 마지막 데이터의 ID를 의미하며, 이를 기준으로 이후 데이터를 조회.\n\n   - 첫 요청 시에는 `cursor`를 생략하여 최신 데이터부터 조회.\n\n   - `has_more` 속성으로 더 불러올 데이터가 있는지 미리 확인 가능.\n\n- type 종류:\n  - `FOLLOW`: 누가 나를 팔로우 했을 때 \n\n  - `NEW_PROMPT`: 알림 설정한 프롬프터가 새 프롬프트를 올렸을 때\n\n  - `INQUIRY`: 나에게 문의사항이 도착했을 때\n\n  - `ANNOUNCEMENT`: 공지사항이 등록되었을 때\n\n  - `REPORT`: 내 신고가 접수되었을 때\n\n  - `ADMIN_MESSAGE`: 관리자 메시지가 도착했을 때\n\n- `actor` 필드는 알림을 유발한 사용자를 뜻하며, 타입이 `REPORT`, `ANNOUNCEMENT`일 때에는 null입니다.\n",
         "tags": [
           "Notifications"
         ],
@@ -3016,26 +3611,30 @@
                         },
                         {
                           "notification_id": 599,
-                          "content": "신고가 접수되었습니다.",
-                          "type": "REPORT",
+                          "content": "`홍길동`님이 새 프롬프트를 업로드하셨습니다.",
+                          "type": "NEW_PROMPT",
                           "created_at": "2025-10-26T16:57:04.162Z",
-                          "link_url": null,
-                          "actor": null
+                          "link_url": "/profile/10",
+                          "actor": {
+                            "user_id": 10,
+                            "nickname": "홍길동",
+                            "profile_image": "https://promptplace-s3.s3.ap-northeast-2.amazonaws.com/profile-images/1a2b3c4d-5678-90ab-cdef-1234567890ab_1755892991870.png"
+                          }
                         },
                         {
                           "notification_id": 598,
-                          "content": "신고가 접수되었습니다.",
-                          "type": "REPORT",
+                          "content": "새로운 공지사항이 등록되었습니다.",
+                          "type": "ANNOUNCEMENT",
                           "created_at": "2025-10-26T13:38:26.906Z",
                           "link_url": null,
                           "actor": null
                         },
                         {
                           "notification_id": 489,
-                          "content": "‘또도도잉’님이 회원님을 팔로우합니다.",
-                          "type": "FOLLOW",
+                          "content": "프롬프트에 새로운 문의가 도착했습니다.",
+                          "type": "INQUIRY",
                           "created_at": "2025-08-21T12:26:45.288Z",
-                          "link_url": "/profile/33",
+                          "link_url": "/inquiries/2",
                           "actor": {
                             "user_id": 33,
                             "nickname": "또도도잉",
@@ -3051,6 +3650,18 @@
                           "actor": {
                             "user_id": 33,
                             "nickname": "또도도잉",
+                            "profile_image": "https://promptplace-s3.s3.ap-northeast-2.amazonaws.com/profile-images/3b137096-7915-408d-ad94-b70e5aa53107_1755892991870.png"
+                          }
+                        },
+                        {
+                          "notification_id": 487,
+                          "content": "안녕하세요. 프롬프트 플레이스 관리자입니다. 회원님의 원활한 서비스 이용을 위해 공지사항을 확인해주세요.",
+                          "type": "ADMIN_MESSAGE",
+                          "created_at": "2025-08-21T12:26:42.522Z",
+                          "link_url": null,
+                          "actor": {
+                            "user_id": 45,
+                            "nickname": "관리자",
                             "profile_image": "https://promptplace-s3.s3.ap-northeast-2.amazonaws.com/profile-images/3b137096-7915-408d-ad94-b70e5aa53107_1755892991870.png"
                           }
                         }
@@ -3706,6 +4317,7 @@
                     "usage_guide": "사용 가이드 2",
                     "price": 1000,
                     "is_free": false,
+                    "is_paid": true,
                     "tags": [
                       {
                         "tag_id": 2,
@@ -3785,6 +4397,122 @@
           },
           "401": {
             "description": "인증 실패"
+          }
+        }
+      },
+      "patch": {
+        "summary": "프롬프트 이미지 순서 변경",
+        "tags": [
+          "Prompts"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image_url": {
+                    "type": "string"
+                  },
+                  "order_index": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "image_url",
+                  "order_index"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "이미지 순서 변경 성공"
+          },
+          "400": {
+            "description": "잘못된 요청"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          },
+          "404": {
+            "description": "이미지를 찾을 수 없음"
+          }
+        }
+      },
+      "delete": {
+        "summary": "프롬프트 이미지 삭제",
+        "tags": [
+          "Prompts"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "promptId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "order_index": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "order_index"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "이미지 삭제 성공"
+          },
+          "400": {
+            "description": "잘못된 요청"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          },
+          "404": {
+            "description": "이미지를 찾을 수 없음"
           }
         }
       }
@@ -3939,8 +4667,8 @@
     },
     "/api/prompts/purchases/requests": {
       "post": {
-        "summary": "결제 요청 생성",
-        "description": "결제 시작을 위한 요청을 생성합니다.",
+        "summary": "결제 요청 생성 (페이플 인증 + 주문서 발행)",
+        "description": "페이플 파트너 인증을 수행하고 프론트의 PaypleCpayAuthCheck 호출에 필요한 PCD_* 필드 묶음을 반환합니다.",
         "tags": [
           "Purchase"
         ],
@@ -3955,28 +4683,22 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "prompt_id"
+                ],
                 "properties": {
                   "prompt_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 12
                   },
-                  "pg": {
+                  "pay_type": {
                     "type": "string",
                     "enum": [
-                      "kakaopay",
-                      "tosspayments"
-                    ]
-                  },
-                  "merchant_uid": {
-                    "type": "string"
-                  },
-                  "amount": {
-                    "type": "integer"
-                  },
-                  "buyer_name": {
-                    "type": "string"
-                  },
-                  "redirect_url": {
-                    "type": "string"
+                      "card",
+                      "transfer"
+                    ],
+                    "default": "card",
+                    "description": "결제 수단 (card=카드, transfer=계좌이체)"
                   }
                 }
               }
@@ -3985,130 +4707,82 @@
         },
         "responses": {
           "200": {
-            "description": "결제 요청 생성 성공",
+            "description": "주문서 생성 성공 (페이플 일반결제 연동 데이터 반환)",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "message": {
-                      "type": "string"
-                    },
-                    "payment_gateway": {
-                      "type": "string"
-                    },
-                    "merchant_uid": {
-                      "type": "string"
-                    },
-                    "redirect_url": {
-                      "type": "string"
+                      "type": "string",
+                      "example": "주문서가 생성되었습니다."
                     },
                     "statusCode": {
-                      "type": "integer"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "잘못된 요청"
-          },
-          "401": {
-            "description": "인증 실패"
-          },
-          "404": {
-            "description": "리소스 없음"
-          },
-          "409": {
-            "description": "중복/상태 충돌"
-          }
-        }
-      }
-    },
-    "/api/prompts/purchases/complete": {
-      "post": {
-        "summary": "결제 완료 처리(Webhook/리다이렉트 후 서버 검증)",
-        "description": "포트원 imp_uid 기반으로 서버에서 결제 검증 후 구매/결제/정산을 기록합니다.",
-        "tags": [
-          "Purchase"
-        ],
-        "security": [
-          {
-            "jwt": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "imp_uid": {
-                    "type": "string"
-                  },
-                  "merchant_uid": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "결제 완료 처리 성공",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
+                      "type": "integer",
+                      "example": 200
                     },
-                    "status": {
+                    "PCD_CST_ID": {
+                      "type": "string",
+                      "description": "페이플 가맹점 ID"
+                    },
+                    "PCD_CUST_KEY": {
+                      "type": "string",
+                      "description": "페이플 가맹점 Key"
+                    },
+                    "PCD_AUTH_KEY": {
+                      "type": "string",
+                      "description": "페이플 인증 토큰"
+                    },
+                    "PCD_PAY_TYPE": {
                       "type": "string",
                       "enum": [
-                        "Succeed",
-                        "Failed",
-                        "Pending"
+                        "card",
+                        "transfer"
                       ]
                     },
-                    "purchase_id": {
-                      "type": "integer",
-                      "nullable": true
+                    "PCD_PAY_WORK": {
+                      "type": "string",
+                      "enum": [
+                        "PAY"
+                      ]
                     },
-                    "statusCode": {
-                      "type": "integer"
+                    "PCD_PAY_HOST": {
+                      "type": "string",
+                      "description": "페이플 결제 호스트 (재검증 시 사용)"
+                    },
+                    "PCD_PAY_URL": {
+                      "type": "string",
+                      "description": "페이플 결제 URL (재검증 시 사용)"
+                    },
+                    "PCD_PAY_OID": {
+                      "type": "string",
+                      "description": "서버 생성 주문 번호"
+                    },
+                    "PCD_PAY_GOODS": {
+                      "type": "string",
+                      "description": "주문명 (프롬프트 제목)"
+                    },
+                    "PCD_PAY_TOTAL": {
+                      "type": "number",
+                      "description": "결제 금액 (서버 검증 기준)"
+                    },
+                    "PCD_USER_DEFINE1": {
+                      "type": "string",
+                      "description": "검증/웹훅용 메타 (JSON 문자열, prompt_id/user_id 포함)",
+                      "example": "{\"prompt_id\":12,\"user_id\":5}"
                     }
                   }
                 }
               }
             }
-          },
-          "400": {
-            "description": "검증 실패/유효하지 않은 요청"
-          },
-          "401": {
-            "description": "인증 실패"
-          },
-          "404": {
-            "description": "리소스 없음"
-          },
-          "409": {
-            "description": "충돌"
-          },
-          "500": {
-            "description": "서버 오류"
           }
         }
       }
     },
     "/api/prompts/purchases": {
       "get": {
-        "summary": "내 결제 내역 조회",
-        "description": "인증된 사용자의 결제(구매) 내역을 조회합니다.",
+        "summary": "결제 내역 조회",
+        "description": "인증된 사용자의 결제 내역을 최신순으로 조회합니다.",
         "tags": [
           "Purchase"
         ],
@@ -4117,43 +4791,9 @@
             "jwt": []
           }
         ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer"
-            },
-            "required": false,
-            "description": "페이지 번호 (옵션)"
-          },
-          {
-            "in": "query",
-            "name": "pageSize",
-            "schema": {
-              "type": "integer"
-            },
-            "required": false,
-            "description": "페이지 크기 (옵션)"
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "Succeed",
-                "Failed",
-                "Pending"
-              ]
-            },
-            "required": false,
-            "description": "결제 상태 필터 (옵션)"
-          }
-        ],
         "responses": {
           "200": {
-            "description": "결제 내역 조회 성공",
+            "description": "조회 성공",
             "content": {
               "application/json": {
                 "schema": {
@@ -4176,21 +4816,29 @@
                           "price": {
                             "type": "integer"
                           },
+                          "seller_nickname": {
+                            "type": "string"
+                          },
                           "purchased_at": {
                             "type": "string",
                             "format": "date-time"
                           },
-                          "seller_nickname": {
-                            "type": "string",
-                            "nullable": true
-                          },
                           "pg": {
                             "type": "string",
+                            "description": "결제 제공자 (DB Enum)",
                             "enum": [
-                              "kakaopay",
-                              "tosspay",
-                              null
-                            ]
+                              "TOSSPAYMENTS",
+                              "KAKAOPAY",
+                              "TOSSPAY",
+                              "NAVERPAY",
+                              "SAMSUNGPAY",
+                              "APPLEPAY",
+                              "LPAY",
+                              "PAYCO",
+                              "SSG",
+                              "PINPAY"
+                            ],
+                            "nullable": true
                           }
                         }
                       }
@@ -4202,12 +4850,110 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "인증 실패"
-          },
-          "500": {
-            "description": "서버 오류"
+          }
+        }
+      }
+    },
+    "/api/prompts/purchases/complete": {
+      "post": {
+        "summary": "결제 완료 처리 (페이플 검증 및 저장)",
+        "description": "페이플 결제 완료 후 프론트가 받은 PCD_* 결과 객체를 서버로 그대로 전달하면, PCD_PAY_REQKEY로 페이플에 재검증 후 구매를 확정합니다.",
+        "tags": [
+          "Purchase"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "PCD_PAY_RST",
+                  "PCD_PAY_OID",
+                  "PCD_PAY_REQKEY",
+                  "PCD_AUTH_KEY"
+                ],
+                "properties": {
+                  "PCD_PAY_RST": {
+                    "type": "string",
+                    "enum": [
+                      "success",
+                      "error",
+                      "close"
+                    ]
+                  },
+                  "PCD_PAY_CODE": {
+                    "type": "string"
+                  },
+                  "PCD_PAY_MSG": {
+                    "type": "string"
+                  },
+                  "PCD_PAY_OID": {
+                    "type": "string",
+                    "description": "주문 번호 (요청 시 발급된 값)"
+                  },
+                  "PCD_PAY_REQKEY": {
+                    "type": "string",
+                    "description": "페이플 재검증 키"
+                  },
+                  "PCD_AUTH_KEY": {
+                    "type": "string",
+                    "description": "페이플 인증 토큰"
+                  },
+                  "PCD_PAY_HOST": {
+                    "type": "string"
+                  },
+                  "PCD_PAY_URL": {
+                    "type": "string"
+                  },
+                  "PCD_PAY_TOTAL": {
+                    "type": "number"
+                  },
+                  "PCD_PAY_TYPE": {
+                    "type": "string"
+                  },
+                  "PCD_USER_DEFINE1": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "결제 성공 및 저장 완료",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "Succeed",
+                        "Failed",
+                        "Pending"
+                      ]
+                    },
+                    "purchase_id": {
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -4318,7 +5064,7 @@
       },
       "get": {
         "summary": "신고된 프롬프트 목록 조회 (관리자 전용)",
-        "description": "커서 기반 페이지네이션(cursor-based-pagination) 사용.\n- `cursor`는 이전 요청에서 받은 마지막 목록의 ID를 의미하며, 이를 기준으로 이후 데이터를 조회.\n- 첫 요청 시에는 `cursor`를 생략하여 최신 리뷰부터 조회.\n- `has_more` 속성으로 더 불러올 데이터가 있는지 미리 확인 가능.\n",
+        "description": "커서 기반 페이지네이션(cursor-based-pagination) 사용.\n- `cursor`는 이전 요청에서 받은 마지막 목록의 ID를 의미하며, 이를 기준으로 이후 데이터를 조회.\n- 첫 요청 시에는 `cursor`를 생략하여 최신 신고부터 조회.\n- `has_more` 속성으로 더 불러올 데이터가 있는지 미리 확인 가능.\n",
         "tags": [
           "Report"
         ],
@@ -4335,7 +5081,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "마지막으로 조회된 ID.   처음 요청 시 생략 가능.   예: 첫 요청에서 id=80~70까지 받았다면 다음 요청 시 `cursor=70`\n"
+            "description": "마지막으로 조회된 ID. 처음 요청 시 생략 가능. 예: 첫 요청에서 id=80~70까지 받았다면 다음 요청 시 `cursor=70`\n"
           },
           {
             "in": "query",
@@ -4345,7 +5091,7 @@
               "type": "integer",
               "default": 10
             },
-            "description": "가져올 리뷰 수 (기본값 10)"
+            "description": "가져올 신고 수 (기본값 10)"
           }
         ],
         "responses": {
@@ -4403,6 +5149,11 @@
                         "has_more": {
                           "type": "boolean",
                           "example": false
+                        },
+                        "total_count": {
+                          "type": "integer",
+                          "example": 57,
+                          "description": "시스템에 존재하는 전체 신고 수"
                         }
                       }
                     },
@@ -5036,6 +5787,2063 @@
         }
       }
     },
+    "/api/admin/sellers/pending": {
+      "get": {
+        "summary": "사업자 판매자 승인 대기 목록 조회",
+        "description": "관리자가 승인 대기 상태(`PENDING`)인 사업자 판매자 등록 신청 목록을 조회합니다.",
+        "tags": [
+          "AdminSeller"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "페이지 번호"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            },
+            "description": "페이지 당 항목 수"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "승인 대기 사업자 판매자 목록을 조회했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "user": {
+                                "type": "object",
+                                "properties": {
+                                  "user_id": {
+                                    "type": "integer",
+                                    "example": 12
+                                  },
+                                  "name": {
+                                    "type": "string",
+                                    "example": "홍길동"
+                                  },
+                                  "nickname": {
+                                    "type": "string",
+                                    "example": "gildong"
+                                  },
+                                  "email": {
+                                    "type": "string",
+                                    "example": "gildong@example.com"
+                                  },
+                                  "profile_image_url": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "example": "https://cdn.example.com/users/12.png"
+                                  }
+                                }
+                              },
+                              "business_number": {
+                                "type": "string",
+                                "nullable": true,
+                                "example": "123-45-67890"
+                              },
+                              "company_name": {
+                                "type": "string",
+                                "nullable": true,
+                                "example": "홍길동컴퍼니"
+                              },
+                              "representative_name": {
+                                "type": "string",
+                                "nullable": true,
+                                "example": "홍길동"
+                              },
+                              "business_license_url": {
+                                "type": "string",
+                                "nullable": true,
+                                "example": "https://s3.example.com/licenses/12.pdf"
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        },
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "page": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "limit": {
+                              "type": "integer",
+                              "example": 10
+                            },
+                            "total": {
+                              "type": "integer",
+                              "example": 23
+                            },
+                            "total_pages": {
+                              "type": "integer",
+                              "example": 3
+                            },
+                            "has_next": {
+                              "type": "boolean",
+                              "example": true
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패 - 로그인하지 않은 사용자"
+          },
+          "403": {
+            "description": "권한 없음 - 관리자가 아님"
+          }
+        }
+      }
+    },
+    "/api/admin/sellers/pending/{userId}": {
+      "get": {
+        "summary": "사업자 판매자 승인 대기 상세 조회",
+        "description": "관리자가 특정 사용자의 승인 대기 중인 사업자 등록 신청 상세 정보를 조회합니다.",
+        "tags": [
+          "AdminSeller"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "사용자 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "승인 대기 사업자 판매자 상세 정보를 조회했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "user_id": {
+                              "type": "integer"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "nickname": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "profile_image_url": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          }
+                        },
+                        "business_number": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "company_name": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "representative_name": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "business_license_url": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "bank_code": {
+                          "type": "string"
+                        },
+                        "account_number": {
+                          "type": "string"
+                        },
+                        "account_holder": {
+                          "type": "string"
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "유효하지 않은 사용자 ID"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          },
+          "404": {
+            "description": "승인 대기 중인 신청이 존재하지 않음"
+          }
+        }
+      },
+      "delete": {
+        "summary": "사업자 판매자 등록 반려",
+        "description": "관리자가 사업자 판매자 등록 신청을 반려합니다. `SettlementAccount.status`가 `REJECTED`로 전환되어 승인 대기 목록에서 제외됩니다(soft delete).",
+        "tags": [
+          "AdminSeller"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "사용자 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "반려 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "사업자 판매자 등록을 반려했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user_id": {
+                          "type": "integer",
+                          "example": 12
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "유효하지 않은 사용자 ID"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          },
+          "404": {
+            "description": "승인 대기 중인 신청이 존재하지 않음"
+          }
+        }
+      }
+    },
+    "/api/admin/sellers/pending/{userId}/approve": {
+      "patch": {
+        "summary": "사업자 판매자 등록 승인",
+        "description": "관리자가 사업자 판매자 등록 신청을 승인합니다. `SettlementAccount.status`가 `APPROVED`로 전환되고 `is_active`가 `true`로 설정됩니다.",
+        "tags": [
+          "AdminSeller"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "사용자 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "승인 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "사업자 판매자 등록을 승인했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user_id": {
+                          "type": "integer",
+                          "example": 12
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "유효하지 않은 사용자 ID"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          },
+          "404": {
+            "description": "승인 대기 중인 신청이 존재하지 않음"
+          }
+        }
+      }
+    },
+    "/api/admin/sellers/individual": {
+      "get": {
+        "summary": "개인 판매자 목록 조회 / 검색",
+        "description": "관리자가 승인 완료(`APPROVED`) 상태의 개인 판매자 목록을 조회합니다. `search` 파라미터로 실명/이메일/닉네임 부분 일치 검색이 가능합니다.",
+        "tags": [
+          "AdminSeller"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "페이지 번호"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            },
+            "description": "페이지 당 항목 수"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "실명, 이메일, 닉네임 부분 일치 검색어"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "개인 판매자 목록을 조회했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "user_id": {
+                                "type": "integer",
+                                "example": 12
+                              },
+                              "name": {
+                                "type": "string",
+                                "example": "홍길동"
+                              },
+                              "email": {
+                                "type": "string",
+                                "example": "gildong@example.com"
+                              },
+                              "settlement_account": {
+                                "type": "object",
+                                "properties": {
+                                  "bank_code": {
+                                    "type": "string",
+                                    "example": "KOOKMIN"
+                                  },
+                                  "account_number": {
+                                    "type": "string",
+                                    "example": "1234567890"
+                                  },
+                                  "account_holder": {
+                                    "type": "string",
+                                    "example": "홍길동"
+                                  }
+                                }
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        },
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "page": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "limit": {
+                              "type": "integer",
+                              "example": 10
+                            },
+                            "total": {
+                              "type": "integer",
+                              "example": 23
+                            },
+                            "total_pages": {
+                              "type": "integer",
+                              "example": 3
+                            },
+                            "has_next": {
+                              "type": "boolean",
+                              "example": true
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          }
+        }
+      }
+    },
+    "/api/admin/sellers/business": {
+      "get": {
+        "summary": "사업자 판매자 목록 조회 / 검색",
+        "description": "관리자가 승인 완료(`APPROVED`) 상태의 사업자 판매자 목록을 조회합니다. `search` 파라미터로 실명/이메일/닉네임 부분 일치 검색이 가능합니다.",
+        "tags": [
+          "AdminSeller"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "실명, 이메일, 닉네임 부분 일치 검색어"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "사업자 판매자 목록을 조회했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "user_id": {
+                                "type": "integer",
+                                "example": 12
+                              },
+                              "profile_image_url": {
+                                "type": "string",
+                                "nullable": true,
+                                "example": "https://cdn.example.com/users/12.png"
+                              },
+                              "nickname": {
+                                "type": "string",
+                                "example": "gildong"
+                              },
+                              "name": {
+                                "type": "string",
+                                "example": "홍길동"
+                              },
+                              "email": {
+                                "type": "string",
+                                "example": "gildong@example.com"
+                              },
+                              "settlement_account": {
+                                "type": "object",
+                                "properties": {
+                                  "bank_code": {
+                                    "type": "string",
+                                    "example": "KOOKMIN"
+                                  },
+                                  "account_number": {
+                                    "type": "string",
+                                    "example": "1234567890"
+                                  },
+                                  "account_holder": {
+                                    "type": "string",
+                                    "example": "홍길동"
+                                  }
+                                }
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        },
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "page": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "limit": {
+                              "type": "integer",
+                              "example": 10
+                            },
+                            "total": {
+                              "type": "integer",
+                              "example": 23
+                            },
+                            "total_pages": {
+                              "type": "integer",
+                              "example": 3
+                            },
+                            "has_next": {
+                              "type": "boolean",
+                              "example": true
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          }
+        }
+      }
+    },
+    "/api/admin/sellers/individual/{userId}": {
+      "get": {
+        "summary": "개인 판매자 상세 조회",
+        "description": "관리자가 승인 완료(`APPROVED`)된 개인 판매자의 상세 정보를 조회합니다.",
+        "tags": [
+          "AdminSeller"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "사용자 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "개인 판매자 상세 정보를 조회했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user_id": {
+                          "type": "integer",
+                          "example": 12
+                        },
+                        "profile_image_url": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "nickname": {
+                          "type": "string",
+                          "example": "gildong"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "홍길동"
+                        },
+                        "email": {
+                          "type": "string",
+                          "example": "gildong@example.com"
+                        },
+                        "registration_type": {
+                          "type": "string",
+                          "example": "INDIVIDUAL"
+                        },
+                        "settlement_account": {
+                          "type": "object",
+                          "properties": {
+                            "bank_code": {
+                              "type": "string",
+                              "example": "KOOKMIN"
+                            },
+                            "account_number": {
+                              "type": "string",
+                              "example": "1234567890"
+                            },
+                            "account_holder": {
+                              "type": "string",
+                              "example": "홍길동"
+                            }
+                          }
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updated_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "유효하지 않은 사용자 ID"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          },
+          "404": {
+            "description": "승인 완료된 개인 판매자 정보가 존재하지 않음"
+          }
+        }
+      }
+    },
+    "/api/admin/sellers/business/{userId}": {
+      "get": {
+        "summary": "사업자 판매자 상세 조회",
+        "description": "관리자가 승인 완료(`APPROVED`)된 사업자 판매자의 상세 정보를 조회합니다. 사업자등록증 URL과 사업자 정보를 포함합니다.",
+        "tags": [
+          "AdminSeller"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "사용자 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "사업자 판매자 상세 정보를 조회했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user_id": {
+                          "type": "integer",
+                          "example": 12
+                        },
+                        "profile_image_url": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "nickname": {
+                          "type": "string",
+                          "example": "gildong"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "홍길동"
+                        },
+                        "email": {
+                          "type": "string",
+                          "example": "gildong@example.com"
+                        },
+                        "registration_type": {
+                          "type": "string",
+                          "example": "BUSINESS"
+                        },
+                        "business_number": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "123-45-67890"
+                        },
+                        "representative_name": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "홍길동"
+                        },
+                        "company_name": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "홍길동컴퍼니"
+                        },
+                        "business_license_url": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "https://s3.example.com/licenses/12.pdf"
+                        },
+                        "settlement_account": {
+                          "type": "object",
+                          "properties": {
+                            "bank_code": {
+                              "type": "string"
+                            },
+                            "account_number": {
+                              "type": "string"
+                            },
+                            "account_holder": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updated_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "유효하지 않은 사용자 ID"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          },
+          "404": {
+            "description": "승인 완료된 사업자 판매자 정보가 존재하지 않음"
+          }
+        }
+      }
+    },
+    "/api/admin/sellers/{userId}": {
+      "delete": {
+        "summary": "판매자 등록 취소",
+        "description": "관리자가 승인 완료(`APPROVED`) 상태의 판매자(개인/사업자 공통) 등록을 취소합니다.\n다음 작업이 트랜잭션으로 함께 수행됩니다.\n\n- 사용자의 활성 프롬프트 일괄 비활성화 (`Prompt.inactive_date = now()`)\n- `SettlementAccount` 레코드 하드 삭제\n\n기존 구매/정산 이력은 영향받지 않습니다.\n",
+        "tags": [
+          "AdminSeller"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "사용자 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "취소 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "판매자 등록을 취소했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user_id": {
+                          "type": "integer",
+                          "example": 12
+                        },
+                        "deactivated_prompt_count": {
+                          "type": "integer",
+                          "example": 5
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "유효하지 않은 사용자 ID"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          },
+          "404": {
+            "description": "승인 완료된 판매자가 아님"
+          }
+        }
+      }
+    },
+    "/api/settlements/accounts": {
+      "get": {
+        "summary": "등록된 정산 계좌 정보 조회",
+        "description": "현재 로그인한 사용자의 정산용 계좌 정보(은행, 계좌번호, 예금주명)를 조회합니다.",
+        "tags": [
+          "Settlement"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "계좌 정보 조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "계좌 정보 조회가 완료되었습니다."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "bank": {
+                          "type": "string",
+                          "example": "KOOKMIN"
+                        },
+                        "accountNumber": {
+                          "type": "string",
+                          "example": "1234567890"
+                        },
+                        "holderName": {
+                          "type": "string",
+                          "example": "홍길동"
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패 - 로그인하지 않은 사용자",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "로그인이 필요합니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 401
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "계좌 정보 없음 - 등록된 계좌가 없는 경우",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "AccountNotFound"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "등록된 계좌 정보가 존재하지 않습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 404
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "InternalServerError"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "알 수 없는 오류가 발생했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 500
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/settlements/upload/business-license": {
+      "post": {
+        "summary": "사업자등록증 업로드 (개인/법인 사업자)",
+        "description": "개인 또는 법인 사업자의 사업자등록증 파일(이미지 또는 PDF, 최대 20MB)을 업로드하고 S3 URL을 반환받습니다.",
+        "tags": [
+          "Settlement"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "업로드할 사업자등록증 파일 (jpg, jpeg, png, pdf) / 최대 20MB"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "파일 업로드 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "사업자등록증 업로드가 완료되었습니다."
+                    },
+                    "fileUrl": {
+                      "type": "string",
+                      "example": "https://promptplace-storage.s3.ap-northeast-2.amazonaws.com/business-licenses/123-1709865432123.jpg"
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "업로드할 파일 누락",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "ValidationError"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "업로드할 파일이 첨부되지 않았습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 400
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패 - 로그인하지 않은 사용자",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "로그인이 필요합니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 401
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "파일 용량 제한 초과 (20MB)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "FileTooLarge"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "파일 크기는 최대 20MB까지만 허용됩니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 413
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "지원하지 않는 파일 형식",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "InvalidFileType"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "지원하지 않는 파일 형식입니다. (jpg, jpeg, png, pdf만 가능)"
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 415
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류 - 알 수 없는 예외 발생",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "InternalServerError"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "서버 오류가 발생했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 500
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/settlements/sales/monthly": {
+      "get": {
+        "summary": "월별 판매 내역 조회",
+        "description": "로그인한 판매자의 특정 연-월에 발생한 판매(Settlement) 내역을 조회합니다. year/month 미지정 시 현재 UTC 기준 년/월을 사용합니다. 결제수단(pay_type)과 카드사명(card_name)은 페이플 일반결제 검증 결과를 그대로 노출합니다.",
+        "tags": [
+          "Settlement"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "year",
+            "schema": {
+              "type": "integer",
+              "example": 2026
+            },
+            "description": "조회할 연도 (기본값 현재 UTC 연도)"
+          },
+          {
+            "in": "query",
+            "name": "month",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12,
+              "example": 5
+            },
+            "description": "조회할 월 (1-12, 기본값 현재 UTC 월)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "월별 판매 내역 조회 성공"
+                    },
+                    "year": {
+                      "type": "integer",
+                      "example": 2026
+                    },
+                    "month": {
+                      "type": "integer",
+                      "example": 5
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "integer",
+                          "example": 3
+                        },
+                        "total_sales": {
+                          "type": "integer",
+                          "description": "원래 판매가 합계",
+                          "example": 30000
+                        },
+                        "total_settled": {
+                          "type": "integer",
+                          "description": "정산 금액(수수료 차감 후) 합계",
+                          "example": 27000
+                        },
+                        "total_fee": {
+                          "type": "integer",
+                          "example": 3000
+                        }
+                      }
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "settlement_id": {
+                            "type": "integer"
+                          },
+                          "sold_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "prompt_id": {
+                            "type": "integer"
+                          },
+                          "prompt_title": {
+                            "type": "string"
+                          },
+                          "buyer_id": {
+                            "type": "integer"
+                          },
+                          "buyer_nickname": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "pay_type": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "페이플 결제 타입 (card/transfer)"
+                          },
+                          "card_name": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "카드사명 (페이플 PCD_PAY_CARDNAME)"
+                          },
+                          "sale_price": {
+                            "type": "integer"
+                          },
+                          "settled_amount": {
+                            "type": "integer"
+                          },
+                          "fee": {
+                            "type": "integer"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "Pending",
+                              "Succeed",
+                              "Failed"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 year/month 값"
+          },
+          "401": {
+            "description": "로그인 필요"
+          }
+        }
+      }
+    },
+    "/api/settlements/yearly": {
+      "get": {
+        "summary": "연도별 누적 정산 내역 조회",
+        "description": "로그인한 판매자의 연도별 누적 정산 합계를 조회합니다. 각 연도 row는 해당 연도의 판매 건수, 원래 판매가 합계(total_sales), 정산 금액 합계(total_settled), 수수료 합계(total_fee), 상태별 정산금(succeeded/pending) 누적치를 포함합니다.",
+        "tags": [
+          "Settlement"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "연도별 누적 정산 내역 조회 성공"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "year": {
+                            "type": "integer",
+                            "example": 2026
+                          },
+                          "count": {
+                            "type": "integer",
+                            "example": 50
+                          },
+                          "total_sales": {
+                            "type": "integer",
+                            "example": 500000
+                          },
+                          "total_settled": {
+                            "type": "integer",
+                            "example": 450000
+                          },
+                          "total_fee": {
+                            "type": "integer",
+                            "example": 50000
+                          },
+                          "succeeded_amount": {
+                            "type": "integer",
+                            "example": 400000
+                          },
+                          "pending_amount": {
+                            "type": "integer",
+                            "example": 50000
+                          }
+                        }
+                      }
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "로그인 필요"
+          }
+        }
+      }
+    },
+    "/api/admin/stats/members": {
+      "get": {
+        "summary": "회원 가입 현황 조회",
+        "description": "관리자 대시보드의 사용자 통계 영역에서 사용할 회원 가입 현황을 조회합니다.\n\n- 총 회원수: 탈퇴(`deleted`) 상태를 제외한 전체 회원수\n- 가입 경로별 비율: 자체 이메일(`NONE`) / 구글 / 카카오 / 네이버\n\n`ratio`는 0~1 사이 값(소수점 4자리)으로 반환됩니다.\n",
+        "tags": [
+          "AdminStats"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "회원 가입 현황을 조회했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "total_members": {
+                          "type": "integer",
+                          "example": 1234
+                        },
+                        "by_signup_channel": {
+                          "type": "object",
+                          "properties": {
+                            "email": {
+                              "type": "object",
+                              "properties": {
+                                "count": {
+                                  "type": "integer",
+                                  "example": 700
+                                },
+                                "ratio": {
+                                  "type": "number",
+                                  "example": 0.5673
+                                }
+                              }
+                            },
+                            "google": {
+                              "type": "object",
+                              "properties": {
+                                "count": {
+                                  "type": "integer",
+                                  "example": 250
+                                },
+                                "ratio": {
+                                  "type": "number",
+                                  "example": 0.2026
+                                }
+                              }
+                            },
+                            "kakao": {
+                              "type": "object",
+                              "properties": {
+                                "count": {
+                                  "type": "integer",
+                                  "example": 200
+                                },
+                                "ratio": {
+                                  "type": "number",
+                                  "example": 0.1621
+                                }
+                              }
+                            },
+                            "naver": {
+                              "type": "object",
+                              "properties": {
+                                "count": {
+                                  "type": "integer",
+                                  "example": 84
+                                },
+                                "ratio": {
+                                  "type": "number",
+                                  "example": 0.0681
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          }
+        }
+      }
+    },
+    "/api/admin/stats/active-users": {
+      "get": {
+        "summary": "활성 사용자 통계 조회",
+        "description": "최근 30일 롤링 윈도우 기준 활성 사용자 수와 전 구간(그 이전 30일) 대비 증감율을 반환합니다.\n\n- `current_count`: now - 30d ~ now 사이에 `last_active_at`이 기록된 사용자 수\n- `previous_count`: now - 60d ~ now - 30d 사이의 활성 사용자 수\n- `change_rate`: `(current - previous) / previous` (소수 4자리). 이전 구간이 0이면 `null`\n- 탈퇴(`userstatus=deleted`) 사용자는 제외\n\n활동 기록은 JWT 인증을 통과한 모든 요청에서 5분 throttle로 갱신됩니다.\n",
+        "tags": [
+          "AdminStats"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "활성 사용자 통계를 조회했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "window_days": {
+                          "type": "integer",
+                          "example": 30
+                        },
+                        "current_count": {
+                          "type": "integer",
+                          "example": 1234
+                        },
+                        "previous_count": {
+                          "type": "integer",
+                          "example": 1100
+                        },
+                        "change_rate": {
+                          "type": "number",
+                          "nullable": true,
+                          "example": 0.1218
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          }
+        }
+      }
+    },
+    "/api/admin/stats/visitors": {
+      "get": {
+        "summary": "방문자 통계 조회",
+        "description": "방문자 통계를 조회합니다. 모든 카운트는 KST(Asia/Seoul) 캘린더 기준이며 Redis HyperLogLog를 사용해 고유 방문자 수를 추정(오차 ~0.81%)합니다.\n\n- `daily_count`: 오늘(KST) 고유 방문자 수\n- `current_count`: 최근 30일 롤링 윈도우 고유 방문자 수 (합집합)\n- `previous_count`: 그 이전 30일 (now-60d ~ now-30d) 고유 방문자 수\n- `change_rate`: `(current - previous) / previous` (소수 4자리). 이전 구간 0이면 `null`\n- `?month=YYYY-MM` 파라미터 제공 시 `month_total`(해당 월 고유 방문자 합) + `month_daily`(일별 분포) 함께 반환\n\n활동 기록은 모든 비-봇 API 요청에서 KST 일별 HyperLogLog 키에 `PFADD`로 누적됩니다.\n",
+        "tags": [
+          "AdminStats"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "month",
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "example": "2026-05"
+            },
+            "description": "특정 월의 일별 분포 조회 (선택)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "방문자 통계를 조회했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "daily_count": {
+                          "type": "integer",
+                          "example": 312
+                        },
+                        "window_days": {
+                          "type": "integer",
+                          "example": 30
+                        },
+                        "current_count": {
+                          "type": "integer",
+                          "example": 9450
+                        },
+                        "previous_count": {
+                          "type": "integer",
+                          "example": 8200
+                        },
+                        "change_rate": {
+                          "type": "number",
+                          "nullable": true,
+                          "example": 0.1524
+                        },
+                        "month": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "2026-05"
+                        },
+                        "month_total": {
+                          "type": "integer",
+                          "nullable": true,
+                          "example": 8970
+                        },
+                        "month_daily": {
+                          "type": "array",
+                          "nullable": true,
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "date": {
+                                "type": "string",
+                                "example": "2026-05-01"
+                              },
+                              "count": {
+                                "type": "integer",
+                                "example": 287
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 month 파라미터 형식"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          }
+        }
+      }
+    },
+    "/api/admin/stats/prompts/new": {
+      "get": {
+        "summary": "신규 프롬프트 통계 조회",
+        "description": "관리자 대시보드의 신규 프롬프트 영역에서 사용하는 통계 API.\n\n- `daily_count`: 최근 24시간(롤링 윈도우) 동안 업로드된 활성 프롬프트 수\n- `weekly_count`: 최근 7일(KST 캘린더 기준) 업로드 합계\n- `daily_uploads`: 최근 7일치 일자별 업로드 수 (KST 기준 `YYYY-MM-DD`, 막대 그래프용)\n\n비활성(`inactive_date IS NOT NULL`) 프롬프트는 모두 제외됩니다.\n",
+        "tags": [
+          "AdminStats"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "신규 프롬프트 통계를 조회했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "daily_count": {
+                          "type": "integer",
+                          "example": 12
+                        },
+                        "weekly_count": {
+                          "type": "integer",
+                          "example": 86
+                        },
+                        "daily_uploads": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "date": {
+                                "type": "string",
+                                "example": "2026-05-11"
+                              },
+                              "count": {
+                                "type": "integer",
+                                "example": 14
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          }
+        }
+      }
+    },
+    "/api/admin/stats/prompts/top-sales": {
+      "get": {
+        "summary": "매출 상위 프롬프트 Top 5 조회",
+        "description": "최근 30일간 매출액 기준 상위 5개 프롬프트를 조회합니다.\n\n- 기준: `Purchase.amount` 합계 (`is_free=false`만 합산)\n- 기간: 최근 30일(롤링 윈도우)\n- 정렬: `total_sales DESC`, 동률 시 Prisma 기본 순서\n- 프롬프트가 삭제·비활성화되어도 매출 집계에는 포함되며, 제목이 없을 경우 `title: null`로 반환됩니다.\n",
+        "tags": [
+          "AdminStats"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "매출 상위 프롬프트를 조회했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "period_days": {
+                          "type": "integer",
+                          "example": 30
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "rank": {
+                                "type": "integer",
+                                "example": 1
+                              },
+                              "prompt_id": {
+                                "type": "integer",
+                                "example": 42
+                              },
+                              "title": {
+                                "type": "string",
+                                "nullable": true,
+                                "example": "ChatGPT 마케팅 카피 30종"
+                              },
+                              "total_sales": {
+                                "type": "integer",
+                                "example": 825000
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          }
+        }
+      }
+    },
+    "/api/admin/stats/prompts/popular": {
+      "get": {
+        "summary": "인기 프롬프트 Top 5 조회",
+        "description": "최근 7일간 (조회수 증가분 + 다운로드 증가분) 기준 상위 5개 프롬프트를 조회합니다.\n\n- 일일 스냅샷(`PromptStatDaily`)과 현재값의 차분으로 7일 윈도우 계산\n- 활성(`inactive_date IS NULL`) 프롬프트만 포함\n- 7일 전 스냅샷이 없으면 baseline=0으로 간주 (신규 프롬프트도 포함됨)\n- 동률 시 정렬 안정성은 보장하지 않음\n\n스냅샷은 매일 00:00 KST에 자동 수행되며 90일치 보관됩니다.\n",
+        "tags": [
+          "AdminStats"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "인기 프롬프트를 조회했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "period_days": {
+                          "type": "integer",
+                          "example": 7
+                        },
+                        "snapshot_date": {
+                          "type": "string",
+                          "example": "2026-05-10"
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "rank": {
+                                "type": "integer",
+                                "example": 1
+                              },
+                              "prompt_id": {
+                                "type": "integer",
+                                "example": 42
+                              },
+                              "title": {
+                                "type": "string",
+                                "example": "ChatGPT 마케팅 카피 30종"
+                              },
+                              "views_delta": {
+                                "type": "integer",
+                                "example": 1240
+                              },
+                              "downloads_delta": {
+                                "type": "integer",
+                                "example": 87
+                              },
+                              "score": {
+                                "type": "integer",
+                                "example": 1327
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          }
+        }
+      }
+    },
     "/api/tips": {
       "get": {
         "summary": "팁 목록 조회",
@@ -5332,12 +8140,12 @@
   },
   "tags": [
     {
-      "name": "Account",
-      "description": "계좌 관련 API"
-    },
-    {
       "name": "Auth",
       "description": "인증 및 로그인 관련 API"
+    },
+    {
+      "name": "Chat",
+      "description": "채팅 관련 API"
     },
     {
       "name": "Inquiry",
@@ -5378,6 +8186,18 @@
     {
       "name": "Reviews",
       "description": "프롬프트 리뷰 관련 API"
+    },
+    {
+      "name": "AdminSeller",
+      "description": "관리자 - 판매자 관리 API"
+    },
+    {
+      "name": "Settlement",
+      "description": "정산 관리 관련 API"
+    },
+    {
+      "name": "AdminStats",
+      "description": "관리자 - 대시보드 통계 API"
     },
     {
       "name": "Tip",
