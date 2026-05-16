@@ -10,6 +10,7 @@ import {
   getTopSalesPromptsHandler,
 } from '../controllers/admin-prompt-stats.controller';
 import { getVisitorStatsHandler } from '../controllers/admin-visitor-stats.controller';
+import { getPopularPromptsHandler } from '../controllers/admin-popular-prompts.controller';
 
 const router = Router();
 
@@ -297,6 +298,61 @@ router.get(
   authenticateJwt,
   isAdmin,
   getTopSalesPromptsHandler,
+);
+
+/**
+ * @swagger
+ * /api/admin/stats/prompts/popular:
+ *   get:
+ *     summary: 인기 프롬프트 Top 5 조회
+ *     description: |
+ *       최근 7일간 (조회수 증가분 + 다운로드 증가분) 기준 상위 5개 프롬프트를 조회합니다.
+ *
+ *       - 일일 스냅샷(`PromptStatDaily`)과 현재값의 차분으로 7일 윈도우 계산
+ *       - 활성(`inactive_date IS NULL`) 프롬프트만 포함
+ *       - 7일 전 스냅샷이 없으면 baseline=0으로 간주 (신규 프롬프트도 포함됨)
+ *       - 동률 시 정렬 안정성은 보장하지 않음
+ *
+ *       스냅샷은 매일 00:00 KST에 자동 수행되며 90일치 보관됩니다.
+ *     tags: [AdminStats]
+ *     security:
+ *       - jwt: []
+ *     responses:
+ *       200:
+ *         description: 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string, example: 인기 프롬프트를 조회했습니다. }
+ *                 statusCode: { type: integer, example: 200 }
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     period_days: { type: integer, example: 7 }
+ *                     snapshot_date: { type: string, example: "2026-05-10" }
+ *                     items:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           rank: { type: integer, example: 1 }
+ *                           prompt_id: { type: integer, example: 42 }
+ *                           title: { type: string, example: "ChatGPT 마케팅 카피 30종" }
+ *                           views_delta: { type: integer, example: 1240 }
+ *                           downloads_delta: { type: integer, example: 87 }
+ *                           score: { type: integer, example: 1327 }
+ *       401:
+ *         description: 인증 실패
+ *       403:
+ *         description: 권한 없음
+ */
+router.get(
+  '/prompts/popular',
+  authenticateJwt,
+  isAdmin,
+  getPopularPromptsHandler,
 );
 
 export default router;
