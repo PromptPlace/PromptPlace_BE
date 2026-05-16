@@ -7500,6 +7500,116 @@
         }
       }
     },
+    "/api/admin/stats/visitors": {
+      "get": {
+        "summary": "방문자 통계 조회",
+        "description": "방문자 통계를 조회합니다. 모든 카운트는 KST(Asia/Seoul) 캘린더 기준이며 Redis HyperLogLog를 사용해 고유 방문자 수를 추정(오차 ~0.81%)합니다.\n\n- `daily_count`: 오늘(KST) 고유 방문자 수\n- `current_count`: 최근 30일 롤링 윈도우 고유 방문자 수 (합집합)\n- `previous_count`: 그 이전 30일 (now-60d ~ now-30d) 고유 방문자 수\n- `change_rate`: `(current - previous) / previous` (소수 4자리). 이전 구간 0이면 `null`\n- `?month=YYYY-MM` 파라미터 제공 시 `month_total`(해당 월 고유 방문자 합) + `month_daily`(일별 분포) 함께 반환\n\n활동 기록은 모든 비-봇 API 요청에서 KST 일별 HyperLogLog 키에 `PFADD`로 누적됩니다.\n",
+        "tags": [
+          "AdminStats"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "month",
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "example": "2026-05"
+            },
+            "description": "특정 월의 일별 분포 조회 (선택)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "방문자 통계를 조회했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "daily_count": {
+                          "type": "integer",
+                          "example": 312
+                        },
+                        "window_days": {
+                          "type": "integer",
+                          "example": 30
+                        },
+                        "current_count": {
+                          "type": "integer",
+                          "example": 9450
+                        },
+                        "previous_count": {
+                          "type": "integer",
+                          "example": 8200
+                        },
+                        "change_rate": {
+                          "type": "number",
+                          "nullable": true,
+                          "example": 0.1524
+                        },
+                        "month": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "2026-05"
+                        },
+                        "month_total": {
+                          "type": "integer",
+                          "nullable": true,
+                          "example": 8970
+                        },
+                        "month_daily": {
+                          "type": "array",
+                          "nullable": true,
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "date": {
+                                "type": "string",
+                                "example": "2026-05-01"
+                              },
+                              "count": {
+                                "type": "integer",
+                                "example": 287
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 month 파라미터 형식"
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          }
+        }
+      }
+    },
     "/api/admin/stats/prompts/new": {
       "get": {
         "summary": "신규 프롬프트 통계 조회",

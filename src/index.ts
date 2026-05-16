@@ -3,6 +3,7 @@ import http from "http";
 import { Server } from "socket.io"
 import { responseHandler } from "./middlewares/responseHandler";
 import { errorHandler } from "./middlewares/errorHandler";
+import { visitorTracker } from "./middlewares/visitorTracker";
 import "reflect-metadata";
 import passport from "./config/passport";
 import swaggerUi from "swagger-ui-express";
@@ -101,6 +102,9 @@ app.use(
   swaggerUi.serve,
   swaggerUi.setup(swaggerJsdoc(swaggerOptions))
 );
+
+// 방문자 추적 미들웨어 (응답 종료 시 HyperLogLog에 visitor_id 누적)
+app.use(visitorTracker);
 
 // 3. 모든 라우터들
 
