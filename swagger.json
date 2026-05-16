@@ -7436,6 +7436,153 @@
         }
       }
     },
+    "/api/admin/stats/prompts/new": {
+      "get": {
+        "summary": "신규 프롬프트 통계 조회",
+        "description": "관리자 대시보드의 신규 프롬프트 영역에서 사용하는 통계 API.\n\n- `daily_count`: 최근 24시간(롤링 윈도우) 동안 업로드된 활성 프롬프트 수\n- `weekly_count`: 최근 7일(KST 캘린더 기준) 업로드 합계\n- `daily_uploads`: 최근 7일치 일자별 업로드 수 (KST 기준 `YYYY-MM-DD`, 막대 그래프용)\n\n비활성(`inactive_date IS NOT NULL`) 프롬프트는 모두 제외됩니다.\n",
+        "tags": [
+          "AdminStats"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "신규 프롬프트 통계를 조회했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "daily_count": {
+                          "type": "integer",
+                          "example": 12
+                        },
+                        "weekly_count": {
+                          "type": "integer",
+                          "example": 86
+                        },
+                        "daily_uploads": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "date": {
+                                "type": "string",
+                                "example": "2026-05-11"
+                              },
+                              "count": {
+                                "type": "integer",
+                                "example": 14
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          }
+        }
+      }
+    },
+    "/api/admin/stats/prompts/top-sales": {
+      "get": {
+        "summary": "매출 상위 프롬프트 Top 5 조회",
+        "description": "최근 30일간 매출액 기준 상위 5개 프롬프트를 조회합니다.\n\n- 기준: `Purchase.amount` 합계 (`is_free=false`만 합산)\n- 기간: 최근 30일(롤링 윈도우)\n- 정렬: `total_sales DESC`, 동률 시 Prisma 기본 순서\n- 프롬프트가 삭제·비활성화되어도 매출 집계에는 포함되며, 제목이 없을 경우 `title: null`로 반환됩니다.\n",
+        "tags": [
+          "AdminStats"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "매출 상위 프롬프트를 조회했습니다."
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "period_days": {
+                          "type": "integer",
+                          "example": 30
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "rank": {
+                                "type": "integer",
+                                "example": 1
+                              },
+                              "prompt_id": {
+                                "type": "integer",
+                                "example": 42
+                              },
+                              "title": {
+                                "type": "string",
+                                "nullable": true,
+                                "example": "ChatGPT 마케팅 카피 30종"
+                              },
+                              "total_sales": {
+                                "type": "integer",
+                                "example": 825000
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          },
+          "403": {
+            "description": "권한 없음"
+          }
+        }
+      }
+    },
     "/api/tips": {
       "get": {
         "summary": "팁 목록 조회",
