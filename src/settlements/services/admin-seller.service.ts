@@ -1,7 +1,9 @@
 import { AdminSellerRepository } from '../repositories/admin-seller.repository';
 import { AppError } from '../../errors/AppError';
 import {
+  BusinessSellerDetail,
   BusinessSellerListItem,
+  IndividualSellerDetail,
   IndividualSellerListItem,
   PendingSellerDetail,
   PendingSellerListItem,
@@ -218,5 +220,76 @@ export const listBusinessSellers = async (
   return {
     items: accounts.map(toBusinessListItem),
     pagination: buildPagination(page, limit, total),
+  };
+};
+
+const sellerNotFound = (sellerType: 'INDIVIDUAL' | 'BUSINESS') => {
+  const label = sellerType === 'INDIVIDUAL' ? '개인' : '사업자';
+  return new AppError(
+    `해당 사용자의 승인 완료된 ${label} 판매자 등록 정보가 존재하지 않습니다.`,
+    404,
+    'SellerNotFound',
+  );
+};
+
+export const getIndividualSellerDetail = async (
+  userId: number,
+): Promise<IndividualSellerDetail> => {
+  const account = await AdminSellerRepository.findApprovedSellerByUserId(
+    'INDIVIDUAL',
+    userId,
+  );
+
+  if (!account) {
+    throw sellerNotFound('INDIVIDUAL');
+  }
+
+  return {
+    user_id: account.user.user_id,
+    profile_image_url: account.user.profileImage?.url ?? null,
+    nickname: account.user.nickname,
+    name: account.user.name,
+    email: account.user.email,
+    registration_type: 'INDIVIDUAL',
+    settlement_account: {
+      bank_code: account.bank_code,
+      account_number: account.account_number,
+      account_holder: account.account_holder,
+    },
+    created_at: account.created_at,
+    updated_at: account.updated_at,
+  };
+};
+
+export const getBusinessSellerDetail = async (
+  userId: number,
+): Promise<BusinessSellerDetail> => {
+  const account = await AdminSellerRepository.findApprovedSellerByUserId(
+    'BUSINESS',
+    userId,
+  );
+
+  if (!account) {
+    throw sellerNotFound('BUSINESS');
+  }
+
+  return {
+    user_id: account.user.user_id,
+    profile_image_url: account.user.profileImage?.url ?? null,
+    nickname: account.user.nickname,
+    name: account.user.name,
+    email: account.user.email,
+    registration_type: 'BUSINESS',
+    business_number: account.business_number,
+    representative_name: account.representative_name,
+    company_name: account.company_name,
+    business_license_url: account.business_license_url,
+    settlement_account: {
+      bank_code: account.bank_code,
+      account_number: account.account_number,
+      account_holder: account.account_holder,
+    },
+    created_at: account.created_at,
+    updated_at: account.updated_at,
   };
 };

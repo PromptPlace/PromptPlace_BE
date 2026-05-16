@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../../errors/AppError';
 import {
   approvePendingBusinessSeller,
+  getBusinessSellerDetail,
+  getIndividualSellerDetail,
   getPendingBusinessSellerDetail,
   listBusinessSellers,
   listIndividualSellers,
@@ -112,6 +114,34 @@ export const getBusinessSellerList = async (
       req.query.search,
     );
     return res.success(result, '사업자 판매자 목록을 조회했습니다.');
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getIndividualSellerDetailHandler = async (
+  req: Request<{ userId: string }>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = parseUserIdParam(req.params.userId);
+    const result = await getIndividualSellerDetail(userId);
+    return res.success(result, '개인 판매자 상세 정보를 조회했습니다.');
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getBusinessSellerDetailHandler = async (
+  req: Request<{ userId: string }>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = parseUserIdParam(req.params.userId);
+    const result = await getBusinessSellerDetail(userId);
+    return res.success(result, '사업자 판매자 상세 정보를 조회했습니다.');
   } catch (error) {
     return next(error);
   }

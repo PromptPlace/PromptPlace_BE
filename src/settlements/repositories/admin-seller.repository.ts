@@ -99,4 +99,18 @@ export const AdminSellerRepository = {
       where: buildApprovedSellerWhere(sellerType, search),
     });
   },
+
+  findApprovedSellerByUserId: async (
+    sellerType: 'INDIVIDUAL' | 'BUSINESS',
+    userId: number,
+  ) => {
+    return prisma.settlementAccount.findFirst({
+      where: {
+        seller_type: sellerType,
+        status: 'APPROVED',
+        user_id: userId,
+      },
+      include: userInclude,
+    });
+  },
 };
