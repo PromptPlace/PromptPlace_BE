@@ -105,3 +105,8 @@ export interface BusinessSellerDetail {
   created_at: Date;
   updated_at: Date;
 }
+
+export interface SellerCancellationResult {
+  user_id: number;
+  deactivated_prompt_count: number;
+}

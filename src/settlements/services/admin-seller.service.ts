@@ -8,6 +8,7 @@ import {
   PendingSellerDetail,
   PendingSellerListItem,
   PendingSellerListResponse,
+  SellerCancellationResult,
   SellerListResponse,
 } from '../dtos/admin-seller.dto';
 
@@ -292,4 +293,23 @@ export const getBusinessSellerDetail = async (
     created_at: account.created_at,
     updated_at: account.updated_at,
   };
+};
+
+export const cancelSeller = async (
+  userId: number,
+): Promise<SellerCancellationResult> => {
+  const account = await AdminSellerRepository.findApprovedSellerAnyType(userId);
+
+  if (!account) {
+    throw new AppError(
+      '해당 사용자는 승인 완료된 판매자로 등록되어 있지 않습니다.',
+      404,
+      'SellerNotFound',
+    );
+  }
+
+  const { deactivated_prompt_count } =
+    await AdminSellerRepository.cancelSellerTransaction(userId);
+
+  return { user_id: userId, deactivated_prompt_count };
 };

@@ -3,6 +3,7 @@ import { authenticateJwt } from '../../config/passport';
 import { isAdmin } from '../../middlewares/isAdmin';
 import {
   approveSeller,
+  cancelSellerHandler,
   getBusinessSellerDetailHandler,
   getBusinessSellerList,
   getIndividualSellerDetailHandler,
@@ -546,5 +547,58 @@ router.get(
   isAdmin,
   getBusinessSellerDetailHandler,
 );
+
+/**
+ * @swagger
+ * /api/admin/sellers/{userId}:
+ *   delete:
+ *     summary: 판매자 등록 취소
+ *     description: |
+ *       관리자가 승인 완료(`APPROVED`) 상태의 판매자(개인/사업자 공통) 등록을 취소합니다.
+ *       다음 작업이 트랜잭션으로 함께 수행됩니다.
+ *
+ *       - 사용자의 활성 프롬프트 일괄 비활성화 (`Prompt.inactive_date = now()`)
+ *       - `SettlementAccount` 레코드 하드 삭제
+ *
+ *       기존 구매/정산 이력은 영향받지 않습니다.
+ *     tags: [AdminSeller]
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 사용자 ID
+ *     responses:
+ *       200:
+ *         description: 취소 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 판매자 등록을 취소했습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user_id: { type: integer, example: 12 }
+ *                     deactivated_prompt_count: { type: integer, example: 5 }
+ *       400:
+ *         description: 유효하지 않은 사용자 ID
+ *       401:
+ *         description: 인증 실패
+ *       403:
+ *         description: 권한 없음
+ *       404:
+ *         description: 승인 완료된 판매자가 아님
+ */
+router.delete('/:userId', authenticateJwt, isAdmin, cancelSellerHandler);
 
 export default router;
