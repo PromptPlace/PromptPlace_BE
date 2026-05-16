@@ -12,6 +12,7 @@ import { configureGoogleStrategy } from "./social/google";
 import { configureNaverStrategy } from "./social/naver";
 import { configureKakaoStrategy } from "./social/kakao";
 import { isActive } from "../utils/status";
+import { recordUserActivity } from "../utils/user-activity";
 import prisma from "./prisma";
 
 // JWT Strategy 설정
@@ -39,6 +40,8 @@ passport.use(
           (error as any).message = "로그인이 필요합니다.";
           return done(error, false);
         }
+
+        void recordUserActivity(user.user_id);
 
         return done(null, user);
       } catch (err) {

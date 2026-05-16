@@ -18,6 +18,7 @@ model User {
   status               Boolean
   userstatus            userStatus                @default(active)
   inactive_date        DateTime?
+  last_active_at       DateTime?
   created_at           DateTime                   @default(now())
   updated_at           DateTime                   @updatedAt
   role                 Role                       @default(USER)
