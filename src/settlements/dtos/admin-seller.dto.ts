@@ -36,3 +36,44 @@ export interface PendingSellerDetail extends PendingSellerListItem {
   account_number: string;
   account_holder: string;
 }
+
+export interface ListSellersQueryDto {
+  page?: string;
+  limit?: string;
+  search?: string;
+}
+
+export interface SettlementAccountSummary {
+  bank_code: string;
+  account_number: string;
+  account_holder: string;
+}
+
+export interface IndividualSellerListItem {
+  user_id: number;
+  name: string;
+  email: string;
+  settlement_account: SettlementAccountSummary;
+  created_at: Date;
+}
+
+export interface BusinessSellerListItem {
+  user_id: number;
+  profile_image_url: string | null;
+  nickname: string;
+  name: string;
+  email: string;
+  settlement_account: SettlementAccountSummary;
+  created_at: Date;
+}
+
+export interface SellerListResponse<T> {
+  items: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    total_pages: number;
+    has_next: boolean;
+  };
+}

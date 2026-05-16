@@ -3,10 +3,15 @@ import { AppError } from '../../errors/AppError';
 import {
   approvePendingBusinessSeller,
   getPendingBusinessSellerDetail,
+  listBusinessSellers,
+  listIndividualSellers,
   listPendingBusinessSellers,
   rejectPendingBusinessSeller,
 } from '../services/admin-seller.service';
-import { ListPendingQueryDto } from '../dtos/admin-seller.dto';
+import {
+  ListPendingQueryDto,
+  ListSellersQueryDto,
+} from '../dtos/admin-seller.dto';
 
 const parseUserIdParam = (raw: string): number => {
   const userId = Number(raw);
@@ -73,6 +78,40 @@ export const rejectSeller = async (
     const userId = parseUserIdParam(req.params.userId);
     await rejectPendingBusinessSeller(userId);
     return res.success({ user_id: userId }, '사업자 판매자 등록을 반려했습니다.');
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getIndividualSellerList = async (
+  req: Request<unknown, unknown, unknown, ListSellersQueryDto>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const result = await listIndividualSellers(
+      req.query.page,
+      req.query.limit,
+      req.query.search,
+    );
+    return res.success(result, '개인 판매자 목록을 조회했습니다.');
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getBusinessSellerList = async (
+  req: Request<unknown, unknown, unknown, ListSellersQueryDto>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const result = await listBusinessSellers(
+      req.query.page,
+      req.query.limit,
+      req.query.search,
+    );
+    return res.success(result, '사업자 판매자 목록을 조회했습니다.');
   } catch (error) {
     return next(error);
   }
