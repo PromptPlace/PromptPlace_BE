@@ -3,7 +3,9 @@ import { authenticateJwt } from '../../config/passport';
 import { isAdmin } from '../../middlewares/isAdmin';
 import {
   approveSeller,
+  getBusinessSellerDetailHandler,
   getBusinessSellerList,
+  getIndividualSellerDetailHandler,
   getIndividualSellerList,
   getPendingSellerDetail,
   getPendingSellerList,
@@ -411,5 +413,138 @@ router.get('/individual', authenticateJwt, isAdmin, getIndividualSellerList);
  *         description: 권한 없음
  */
 router.get('/business', authenticateJwt, isAdmin, getBusinessSellerList);
+
+/**
+ * @swagger
+ * /api/admin/sellers/individual/{userId}:
+ *   get:
+ *     summary: 개인 판매자 상세 조회
+ *     description: 관리자가 승인 완료(`APPROVED`)된 개인 판매자의 상세 정보를 조회합니다.
+ *     tags: [AdminSeller]
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 사용자 ID
+ *     responses:
+ *       200:
+ *         description: 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 개인 판매자 상세 정보를 조회했습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user_id: { type: integer, example: 12 }
+ *                     profile_image_url: { type: string, nullable: true }
+ *                     nickname: { type: string, example: gildong }
+ *                     name: { type: string, example: 홍길동 }
+ *                     email: { type: string, example: gildong@example.com }
+ *                     registration_type: { type: string, example: INDIVIDUAL }
+ *                     settlement_account:
+ *                       type: object
+ *                       properties:
+ *                         bank_code: { type: string, example: KOOKMIN }
+ *                         account_number: { type: string, example: "1234567890" }
+ *                         account_holder: { type: string, example: 홍길동 }
+ *                     created_at: { type: string, format: date-time }
+ *                     updated_at: { type: string, format: date-time }
+ *       400:
+ *         description: 유효하지 않은 사용자 ID
+ *       401:
+ *         description: 인증 실패
+ *       403:
+ *         description: 권한 없음
+ *       404:
+ *         description: 승인 완료된 개인 판매자 정보가 존재하지 않음
+ */
+router.get(
+  '/individual/:userId',
+  authenticateJwt,
+  isAdmin,
+  getIndividualSellerDetailHandler,
+);
+
+/**
+ * @swagger
+ * /api/admin/sellers/business/{userId}:
+ *   get:
+ *     summary: 사업자 판매자 상세 조회
+ *     description: 관리자가 승인 완료(`APPROVED`)된 사업자 판매자의 상세 정보를 조회합니다. 사업자등록증 URL과 사업자 정보를 포함합니다.
+ *     tags: [AdminSeller]
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 사용자 ID
+ *     responses:
+ *       200:
+ *         description: 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 사업자 판매자 상세 정보를 조회했습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user_id: { type: integer, example: 12 }
+ *                     profile_image_url: { type: string, nullable: true }
+ *                     nickname: { type: string, example: gildong }
+ *                     name: { type: string, example: 홍길동 }
+ *                     email: { type: string, example: gildong@example.com }
+ *                     registration_type: { type: string, example: BUSINESS }
+ *                     business_number: { type: string, nullable: true, example: "123-45-67890" }
+ *                     representative_name: { type: string, nullable: true, example: 홍길동 }
+ *                     company_name: { type: string, nullable: true, example: 홍길동컴퍼니 }
+ *                     business_license_url:
+ *                       type: string
+ *                       nullable: true
+ *                       example: https://s3.example.com/licenses/12.pdf
+ *                     settlement_account:
+ *                       type: object
+ *                       properties:
+ *                         bank_code: { type: string }
+ *                         account_number: { type: string }
+ *                         account_holder: { type: string }
+ *                     created_at: { type: string, format: date-time }
+ *                     updated_at: { type: string, format: date-time }
+ *       400:
+ *         description: 유효하지 않은 사용자 ID
+ *       401:
+ *         description: 인증 실패
+ *       403:
+ *         description: 권한 없음
+ *       404:
+ *         description: 승인 완료된 사업자 판매자 정보가 존재하지 않음
+ */
+router.get(
+  '/business/:userId',
+  authenticateJwt,
+  isAdmin,
+  getBusinessSellerDetailHandler,
+);
 
 export default router;

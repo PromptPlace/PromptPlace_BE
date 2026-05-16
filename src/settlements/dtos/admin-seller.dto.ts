@@ -77,3 +77,31 @@ export interface SellerListResponse<T> {
     has_next: boolean;
   };
 }
+
+export interface IndividualSellerDetail {
+  user_id: number;
+  profile_image_url: string | null;
+  nickname: string;
+  name: string;
+  email: string;
+  registration_type: 'INDIVIDUAL';
+  settlement_account: SettlementAccountSummary;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface BusinessSellerDetail {
+  user_id: number;
+  profile_image_url: string | null;
+  nickname: string;
+  name: string;
+  email: string;
+  registration_type: 'BUSINESS';
+  business_number: string | null;
+  representative_name: string | null;
+  company_name: string | null;
+  business_license_url: string | null;
+  settlement_account: SettlementAccountSummary;
+  created_at: Date;
+  updated_at: Date;
+}
