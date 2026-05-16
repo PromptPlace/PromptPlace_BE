@@ -3,6 +3,8 @@ import { authenticateJwt } from '../../config/passport';
 import { isAdmin } from '../../middlewares/isAdmin';
 import {
   approveSeller,
+  getBusinessSellerList,
+  getIndividualSellerList,
   getPendingSellerDetail,
   getPendingSellerList,
   rejectSeller,
@@ -252,5 +254,162 @@ router.patch(
  *         description: 승인 대기 중인 신청이 존재하지 않음
  */
 router.delete('/pending/:userId', authenticateJwt, isAdmin, rejectSeller);
+
+/**
+ * @swagger
+ * /api/admin/sellers/individual:
+ *   get:
+ *     summary: 개인 판매자 목록 조회 / 검색
+ *     description: 관리자가 승인 완료(`APPROVED`) 상태의 개인 판매자 목록을 조회합니다. `search` 파라미터로 실명/이메일/닉네임 부분 일치 검색이 가능합니다.
+ *     tags: [AdminSeller]
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: 페이지 번호
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 50
+ *           default: 10
+ *         description: 페이지 당 항목 수
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: 실명, 이메일, 닉네임 부분 일치 검색어
+ *     responses:
+ *       200:
+ *         description: 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 개인 판매자 목록을 조회했습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     items:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           user_id: { type: integer, example: 12 }
+ *                           name: { type: string, example: 홍길동 }
+ *                           email: { type: string, example: gildong@example.com }
+ *                           settlement_account:
+ *                             type: object
+ *                             properties:
+ *                               bank_code: { type: string, example: KOOKMIN }
+ *                               account_number: { type: string, example: "1234567890" }
+ *                               account_holder: { type: string, example: 홍길동 }
+ *                           created_at: { type: string, format: date-time }
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         page: { type: integer, example: 1 }
+ *                         limit: { type: integer, example: 10 }
+ *                         total: { type: integer, example: 23 }
+ *                         total_pages: { type: integer, example: 3 }
+ *                         has_next: { type: boolean, example: true }
+ *       401:
+ *         description: 인증 실패
+ *       403:
+ *         description: 권한 없음
+ */
+router.get('/individual', authenticateJwt, isAdmin, getIndividualSellerList);
+
+/**
+ * @swagger
+ * /api/admin/sellers/business:
+ *   get:
+ *     summary: 사업자 판매자 목록 조회 / 검색
+ *     description: 관리자가 승인 완료(`APPROVED`) 상태의 사업자 판매자 목록을 조회합니다. `search` 파라미터로 실명/이메일/닉네임 부분 일치 검색이 가능합니다.
+ *     tags: [AdminSeller]
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 50
+ *           default: 10
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: 실명, 이메일, 닉네임 부분 일치 검색어
+ *     responses:
+ *       200:
+ *         description: 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 사업자 판매자 목록을 조회했습니다.
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     items:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           user_id: { type: integer, example: 12 }
+ *                           profile_image_url:
+ *                             type: string
+ *                             nullable: true
+ *                             example: https://cdn.example.com/users/12.png
+ *                           nickname: { type: string, example: gildong }
+ *                           name: { type: string, example: 홍길동 }
+ *                           email: { type: string, example: gildong@example.com }
+ *                           settlement_account:
+ *                             type: object
+ *                             properties:
+ *                               bank_code: { type: string, example: KOOKMIN }
+ *                               account_number: { type: string, example: "1234567890" }
+ *                               account_holder: { type: string, example: 홍길동 }
+ *                           created_at: { type: string, format: date-time }
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         page: { type: integer, example: 1 }
+ *                         limit: { type: integer, example: 10 }
+ *                         total: { type: integer, example: 23 }
+ *                         total_pages: { type: integer, example: 3 }
+ *                         has_next: { type: boolean, example: true }
+ *       401:
+ *         description: 인증 실패
+ *       403:
+ *         description: 권한 없음
+ */
+router.get('/business', authenticateJwt, isAdmin, getBusinessSellerList);
 
 export default router;

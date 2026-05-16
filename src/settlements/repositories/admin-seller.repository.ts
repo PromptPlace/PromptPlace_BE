@@ -1,8 +1,32 @@
 import prisma from '../../config/prisma';
+import { Prisma } from '@prisma/client';
 
 const pendingBusinessFilter = {
   seller_type: 'BUSINESS' as const,
   status: 'PENDING' as const,
+};
+
+const buildSearchFilter = (search?: string): Prisma.UserWhereInput | undefined => {
+  if (!search) return undefined;
+  return {
+    OR: [
+      { name: { contains: search } },
+      { email: { contains: search } },
+      { nickname: { contains: search } },
+    ],
+  };
+};
+
+const buildApprovedSellerWhere = (
+  sellerType: 'INDIVIDUAL' | 'BUSINESS',
+  search?: string,
+): Prisma.SettlementAccountWhereInput => {
+  const userFilter = buildSearchFilter(search);
+  return {
+    seller_type: sellerType,
+    status: 'APPROVED',
+    ...(userFilter ? { user: userFilter } : {}),
+  };
 };
 
 const userInclude = {
@@ -49,6 +73,30 @@ export const AdminSellerRepository = {
         status,
         is_active: status === 'APPROVED',
       },
+    });
+  },
+
+  findApprovedSellers: async (
+    sellerType: 'INDIVIDUAL' | 'BUSINESS',
+    skip: number,
+    take: number,
+    search?: string,
+  ) => {
+    return prisma.settlementAccount.findMany({
+      where: buildApprovedSellerWhere(sellerType, search),
+      include: userInclude,
+      orderBy: { created_at: 'desc' },
+      skip,
+      take,
+    });
+  },
+
+  countApprovedSellers: async (
+    sellerType: 'INDIVIDUAL' | 'BUSINESS',
+    search?: string,
+  ) => {
+    return prisma.settlementAccount.count({
+      where: buildApprovedSellerWhere(sellerType, search),
     });
   },
 };
