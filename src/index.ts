@@ -30,6 +30,7 @@ import messageRouter from "./messages/routes/message.route";
 import adminPromptRouter from "./prompts/routes/admin-prompt.route";
 import adminMemberRouter from "./members/routes/admin-member.route";
 import adminSellerRouter from "./settlements/routes/admin-seller.route";
+import adminStatsRouter from "./stats/routes/admin-stats.route";
 import signupRouter from "./signup/routes/signup.route"
 import signinRouter from "./signin/routes/signin.route";
 import passwordRouter from "./password/routes/password.route";
@@ -155,6 +156,7 @@ app.use("/api/prompts", promptLikeRouter);
 // admin
 app.use("/api/admin/prompts", adminPromptRouter);
 app.use("/api/admin/sellers", adminSellerRouter);
+app.use("/api/admin/stats", adminStatsRouter);
 app.use("/api/admin", adminMemberRouter);
 
 // 팁 라우터
