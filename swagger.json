@@ -7756,15 +7756,25 @@
                         },
                         "total_sales": {
                           "type": "integer",
+                          "description": "원래 판매가 합계 (환불 포함)",
                           "example": 30000
                         },
                         "total_settled": {
                           "type": "integer",
-                          "example": 27000
+                          "description": "net 정산 금액 (환불 제외)",
+                          "example": 18000
                         },
                         "total_fee": {
                           "type": "integer",
                           "example": 3000
+                        },
+                        "refunded_count": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "refunded_amount": {
+                          "type": "integer",
+                          "example": 9000
                         }
                       }
                     },
@@ -7815,7 +7825,8 @@
                             "enum": [
                               "Pending",
                               "Succeed",
-                              "Failed"
+                              "Failed",
+                              "Refunded"
                             ]
                           }
                         }
@@ -7925,11 +7936,13 @@
                           },
                           "total_sales": {
                             "type": "integer",
+                            "description": "gross — 환불 포함",
                             "example": 500000
                           },
                           "total_settled": {
                             "type": "integer",
-                            "example": 450000
+                            "description": "net — Succeed 합계 (환불 제외)",
+                            "example": 400000
                           },
                           "total_fee": {
                             "type": "integer",
@@ -7942,6 +7955,14 @@
                           "pending_amount": {
                             "type": "integer",
                             "example": 50000
+                          },
+                          "refunded_amount": {
+                            "type": "integer",
+                            "example": 50000
+                          },
+                          "refunded_count": {
+                            "type": "integer",
+                            "example": 5
                           }
                         }
                       }

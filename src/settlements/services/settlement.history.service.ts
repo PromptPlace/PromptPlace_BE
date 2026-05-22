@@ -19,12 +19,21 @@ export const SettlementHistoryService = {
     let total_sales = 0;
     let total_settled = 0;
     let total_fee = 0;
+    let refunded_count = 0;
+    let refunded_amount = 0;
 
     const items = rows.map((r) => {
       const sale_price = r.payment?.purchase?.amount ?? 0;
       total_sales += sale_price;
-      total_settled += r.amount;
       total_fee += r.fee;
+
+      // net 정산금: 환불은 제외 (회계상 판매자 net 수익)
+      if (r.status === 'Refunded') {
+        refunded_count += 1;
+        refunded_amount += r.amount;
+      } else {
+        total_settled += r.amount;
+      }
 
       return {
         settlement_id: r.settlement_id,
@@ -38,7 +47,7 @@ export const SettlementHistoryService = {
         sale_price,
         settled_amount: r.amount,
         fee: r.fee,
-        status: r.status as 'Pending' | 'Succeed' | 'Failed',
+        status: r.status as 'Pending' | 'Succeed' | 'Failed' | 'Refunded',
       };
     });
 
@@ -46,7 +55,14 @@ export const SettlementHistoryService = {
       message: '월별 판매 내역 조회 성공',
       year,
       month,
-      summary: { count: items.length, total_sales, total_settled, total_fee },
+      summary: {
+        count: items.length,
+        total_sales,
+        total_settled,
+        total_fee,
+        refunded_count,
+        refunded_amount,
+      },
       items,
       statusCode: 200,
     };
