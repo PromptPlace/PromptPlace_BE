@@ -2,6 +2,7 @@ import { SettlementHistoryRepository } from '../repositories/settlement.history.
 import {
   MonthlySalesResponseDto,
   YearlySettlementResponseDto,
+  PendingAmountResponseDto,
 } from '../dtos/settlement.history.dto';
 
 export const SettlementHistoryService = {
@@ -47,6 +48,16 @@ export const SettlementHistoryService = {
       month,
       summary: { count: items.length, total_sales, total_settled, total_fee },
       items,
+      statusCode: 200,
+    };
+  },
+
+  async getPendingAmount(userId: number): Promise<PendingAmountResponseDto> {
+    const { pending_amount, pending_count } = await SettlementHistoryRepository.sumPendingAmount(userId);
+    return {
+      message: '정산 예정 금액 조회 성공',
+      pending_amount,
+      pending_count,
       statusCode: 200,
     };
   },

@@ -2,7 +2,7 @@ import { Router } from "express";
 import { verifyAccount, ViewAccount, ViewAccountDetail } from "../controllers/settlement.account.controller";
 import { registerIndividual, registerBusiness } from "../controllers/settlement.seller.controller";
 import { uploadLicense } from "../controllers/settlement.seller.controller";
-import { getMonthlySales, getYearlySettlements } from "../controllers/settlement.history.controller";
+import { getMonthlySales, getYearlySettlements, getPendingAmount } from "../controllers/settlement.history.controller";
 import { authenticateJwt } from "../../config/passport";
 
 const router = Router();
@@ -496,6 +496,38 @@ router.post("/register/business", authenticateJwt, registerBusiness);
  *       401:
  *         description: 로그인 필요
  */
+/**
+ * @swagger
+ * /api/settlements/pending-amount:
+ *   get:
+ *     summary: 정산 예정 금액 조회 (대시보드)
+ *     description: |
+ *       로그인한 판매자의 정산 예정 금액(Settlement.status='Pending'인 행의 amount 합계)을 조회합니다.
+ *       정산관리 화면 상단 대시보드에 노출.
+ *
+ *       ⚠️ 현재 코드에는 Settlement.status를 'Succeed'로 업데이트하는 정산 완료 처리 흐름이 없어서,
+ *       모든 미정산 거래의 누계가 반환됩니다. 별도 이슈에서 Payple 정산내역 조회와 연동한 동기화 흐름이 구현된 뒤에는
+ *       실제 정산 예정분만 반환됩니다.
+ *     tags: [Settlement]
+ *     security:
+ *       - jwt: []
+ *     responses:
+ *       200:
+ *         description: 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string, example: 정산 예정 금액 조회 성공 }
+ *                 pending_amount: { type: integer, example: 125000 }
+ *                 pending_count: { type: integer, example: 3 }
+ *                 statusCode: { type: integer, example: 200 }
+ *       401:
+ *         description: 로그인 필요
+ */
+router.get("/pending-amount", authenticateJwt, getPendingAmount);
+
 router.get("/sales/monthly", authenticateJwt, getMonthlySales);
 
 /**
