@@ -40,6 +40,10 @@ const REDACTED_FIELDS = new Set([
   'PCD_PAY_CARDNUM',
   'PCD_LASTKEY',
   'AuthKey',
+  // 결제 취소 (payple-refund.ts에서 재사용)
+  'PCD_REFUND_KEY',
+  'PCD_PAYER_ID',
+  'PCD_PAY_CARDTRADENUM',
 ]);
 
 const redactValue = (v: unknown): string => {
