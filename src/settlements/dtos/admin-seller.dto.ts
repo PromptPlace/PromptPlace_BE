@@ -85,6 +85,7 @@ export interface IndividualSellerDetail {
   name: string;
   email: string;
   registration_type: 'INDIVIDUAL';
+  status: 'APPROVED' | 'PENDING' | 'REJECTED';
   settlement_account: SettlementAccountSummary;
   created_at: Date;
   updated_at: Date;
@@ -97,6 +98,7 @@ export interface BusinessSellerDetail {
   name: string;
   email: string;
   registration_type: 'BUSINESS';
+  status: 'APPROVED' | 'PENDING' | 'REJECTED';
   business_number: string | null;
   representative_name: string | null;
   company_name: string | null;

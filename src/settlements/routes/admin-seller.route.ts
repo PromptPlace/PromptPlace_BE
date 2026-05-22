@@ -454,6 +454,7 @@ router.get('/business', authenticateJwt, isAdmin, getBusinessSellerList);
  *                     name: { type: string, example: 홍길동 }
  *                     email: { type: string, example: gildong@example.com }
  *                     registration_type: { type: string, example: INDIVIDUAL }
+ *                     status: { type: string, enum: [APPROVED, PENDING, REJECTED], example: APPROVED }
  *                     settlement_account:
  *                       type: object
  *                       properties:
@@ -517,6 +518,7 @@ router.get(
  *                     name: { type: string, example: 홍길동 }
  *                     email: { type: string, example: gildong@example.com }
  *                     registration_type: { type: string, example: BUSINESS }
+ *                     status: { type: string, enum: [APPROVED, PENDING, REJECTED], example: APPROVED }
  *                     business_number: { type: string, nullable: true, example: "123-45-67890" }
  *                     representative_name: { type: string, nullable: true, example: 홍길동 }
  *                     company_name: { type: string, nullable: true, example: 홍길동컴퍼니 }

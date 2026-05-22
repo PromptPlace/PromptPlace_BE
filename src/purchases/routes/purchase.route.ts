@@ -101,11 +101,6 @@ router.post('/requests', authenticateJwt, PurchaseRequestController.requestPurch
  *                       purchased_at:
  *                         type: string
  *                         format: date-time
- *                       pg:
- *                         type: string
- *                         description: 결제 제공자 (DB Enum)
- *                         enum: [TOSSPAYMENTS, KAKAOPAY, TOSSPAY, NAVERPAY, SAMSUNGPAY, APPLEPAY, LPAY, PAYCO, SSG, PINPAY]
- *                         nullable: true
  *                 statusCode:
  *                   type: integer
  */
@@ -152,7 +147,7 @@ router.get('/', authenticateJwt, PurchaseHistoryController.list);
  *               type: object
  *               properties:
  *                 message: { type: string }
- *                 status: { type: string, enum: [Succeed, Failed, Pending] }
+ *                 status: { type: string, enum: [Succeed, Failed, Pending, Refunded] }
  *                 purchase_id: { type: integer }
  *                 statusCode: { type: integer }
  */
