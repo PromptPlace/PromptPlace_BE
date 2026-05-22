@@ -23,6 +23,7 @@ export class AccountVerificationError extends AppError {
 
 // 민감 정보 redactor — 로그에 노출되면 안 되는 필드
 const REDACTED_FIELDS = new Set([
+  // 실명인증/은행/토큰
   'account_num',
   'account_holder_info',
   'custKey',
@@ -30,6 +31,15 @@ const REDACTED_FIELDS = new Set([
   'billing_tran_id',
   'bank_tran_id',
   'access_token',
+  // 정산내역 조회 (payple-settlement.ts에서 재사용)
+  'PCD_CUST_KEY',
+  'PCD_AUTH_KEY',
+  'PCD_CST_ID',
+  'PCD_PAYER_NAME',
+  'PCD_PAY_BANKNUM',
+  'PCD_PAY_CARDNUM',
+  'PCD_LASTKEY',
+  'AuthKey',
 ]);
 
 const redactValue = (v: unknown): string => {

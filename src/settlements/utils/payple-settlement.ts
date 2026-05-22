@@ -1,23 +1,29 @@
 import axios from 'axios';
 import redisClient from '../../config/redis';
 import { AppError } from '../../errors/AppError';
+import { redactPaypleLog } from './payple';
 
 // Payple 정산내역 조회용 파트너 인증 + 조회 유틸.
 // 정산내역 조회는 PCD_SETTLEMENT_FLAG=Y로 인증 받고, 응답의 PCD_PAY_HOST + PCD_PAY_URL로 호출.
 // 호출 제한: 1초 1회 / 2분 20회 (호출자가 throttling 책임).
 //
-// 본 이슈에서는 인프라만 추가. 외부 endpoint 노출 없음. 향후 정산 완료 동기화/검증/리포트에 재사용.
+// 보안 정책 (#482 보강):
+//  - Auth 캐시 TTL을 15분으로 단축 (Payple 토큰 만료 추정치보다 짧게)
+//  - cstId/custKey는 캐시에서 제외하고 매 호출 시 env에서 직접 로드 (캐시 손상 시 영역 축소)
+//  - 요청/응답 로그는 redactPaypleLog로 마스킹
 
 const AUTH_CACHE_KEY = 'payple:settlement:auth';
-// Payple 토큰 만료 정책이 명세상 불분명 — 안전하게 25분 캐시 (보통 30분 만료 가정)
-const AUTH_CACHE_TTL_SECONDS = 25 * 60;
+const AUTH_CACHE_TTL_SECONDS = 15 * 60;
 
-interface PaypleSettlementAuth {
-  cstId: string;
-  custKey: string;
+interface PaypleSettlementAuthCache {
   authKey: string;
   payHost: string;
   payUrl: string;
+}
+
+export interface PaypleSettlementAuth extends PaypleSettlementAuthCache {
+  cstId: string;
+  custKey: string;
 }
 
 const getCpayBaseUrl = (): string => {
@@ -33,26 +39,35 @@ const getCpayBaseUrl = (): string => {
 const getSettlementAuthPath = (): string =>
   process.env.PAYPLE_SETTLEMENT_AUTH_PATH || '/php/auth.php';
 
+const loadCredentialsFromEnv = (): { cstId: string; custKey: string } => {
+  const cstId = process.env.PAYPLE_CST_ID;
+  const custKey = process.env.PAYPLE_CUST_KEY;
+  if (!cstId || !custKey) {
+    throw new AppError('Payple 인증 설정이 누락되었습니다.', 500, 'ConfigError');
+  }
+  return { cstId, custKey };
+};
+
 export const fetchPaypleSettlementAuth = async (): Promise<PaypleSettlementAuth> => {
+  // 자격증명은 매 호출 env에서 (캐시 노출 영역 축소)
+  const { cstId, custKey } = loadCredentialsFromEnv();
+
   const cached = await redisClient.get(AUTH_CACHE_KEY);
   if (cached) {
     try {
-      return JSON.parse(cached);
+      const parsed: PaypleSettlementAuthCache = JSON.parse(cached);
+      if (parsed.authKey && parsed.payHost && parsed.payUrl) {
+        return { ...parsed, cstId, custKey };
+      }
     } catch {
       // 캐시 손상 — 재발급
     }
   }
 
-  const cst_id = process.env.PAYPLE_CST_ID;
-  const custKey = process.env.PAYPLE_CUST_KEY;
-  if (!cst_id || !custKey) {
-    throw new AppError('Payple 인증 설정이 누락되었습니다.', 500, 'ConfigError');
-  }
-
   const url = `${getCpayBaseUrl()}${getSettlementAuthPath()}`;
   const res = await axios.post(
     url,
-    { cst_id, custKey, PCD_SETTLEMENT_FLAG: 'Y' },
+    { cst_id: cstId, custKey, PCD_SETTLEMENT_FLAG: 'Y' },
     { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' } },
   );
 
@@ -61,15 +76,14 @@ export const fetchPaypleSettlementAuth = async (): Promise<PaypleSettlementAuth>
     throw new AppError('Payple 정산내역 조회 인증에 실패했습니다.', 502, 'PaypleAuthFailed');
   }
 
-  const auth: PaypleSettlementAuth = {
-    cstId: res.data.cst_id,
-    custKey: res.data.custKey,
+  // 캐시에는 authKey/payHost/payUrl만 저장 (cstId/custKey 노출 영역 최소화)
+  const cacheable: PaypleSettlementAuthCache = {
     authKey: res.data.AuthKey,
     payHost: res.data.PCD_PAY_HOST,
     payUrl: res.data.PCD_PAY_URL,
   };
-  await redisClient.set(AUTH_CACHE_KEY, JSON.stringify(auth), { EX: AUTH_CACHE_TTL_SECONDS });
-  return auth;
+  await redisClient.set(AUTH_CACHE_KEY, JSON.stringify(cacheable), { EX: AUTH_CACHE_TTL_SECONDS });
+  return { ...cacheable, cstId, custKey };
 };
 
 export type PaypleMethod = 'CARD' | 'EASYPAY' | 'TRANSFER';
@@ -136,7 +150,10 @@ export const fetchPaypleSettlements = async (
   });
 
   if (res.data?.PCD_PAY_RST !== 'success') {
-    console.error('[payple-settlement] query failed', { code: res.data?.PCD_PAY_CODE });
+    console.error('[payple-settlement] query failed', {
+      code: res.data?.PCD_PAY_CODE,
+      response: redactPaypleLog(res.data),
+    });
     throw new AppError(
       `Payple 정산내역 조회에 실패했습니다. (${res.data?.PCD_PAY_CODE ?? 'UNKNOWN'})`,
       502,
