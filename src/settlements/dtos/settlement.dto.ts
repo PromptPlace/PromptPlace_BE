@@ -38,6 +38,7 @@ export interface AccountDataDto {
   bank: string;
   accountNumber: string;
   holderName: string;
+  birthDate?: string; // YYMMDD. CORPORATE는 null (응답에서 생략)
 }
 
 export interface ViewAccountResponseDto {
