@@ -7089,6 +7089,12 @@
                         "holderName": {
                           "type": "string",
                           "example": "홍길동"
+                        },
+                        "birthDate": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "예금주 생년월일 YYMMDD. CORPORATE는 null",
+                          "example": "880212"
                         }
                       }
                     },
