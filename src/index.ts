@@ -16,6 +16,7 @@ import membersRouter from "./members/routes/member.route"; // members 라우터 
 import promptRoutes from "./prompts/routes/prompt.route"; // 프롬프트 관련 라우터
 import ReviewRouter from "./reviews/routes/review.route";
 import purchaseRouter from "./purchases/routes/purchase.route";
+import refundRouter from "./refunds/routes/refund.route";
 import purchaseWebhookRouter from "./purchases/routes/purchase.webhook.route";
 import settlementRouter from "./settlements/routes/settlement.route";
 import withdrawalRouter from "./withdrawals/routes/withdrawal.route";
@@ -138,6 +139,7 @@ app.use("/api/prompts", promptRoutes);
 app.use("/api/prompts/purchases", purchaseWebhookRouter);
 
 // 프롬프트 결제 라우터
+app.use("/api/prompts/purchases", refundRouter);
 app.use(
   "/api/prompts/purchases",
   express.text({ type: "text/plain" }),
