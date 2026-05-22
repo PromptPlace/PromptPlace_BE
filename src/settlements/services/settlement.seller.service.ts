@@ -1,5 +1,4 @@
-import path from 'path';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { v4 as uuidv4 } from 'uuid';
 import { AppError } from '../../errors/AppError';
 import {
   RegisterIndividualSellerRequestDto,
@@ -7,43 +6,36 @@ import {
 } from '../dtos/settlement.dto';
 import { SettlementRepository } from '../repositories/settlement.repository';
 import { consumeRegisterToken } from '../utils/register-token';
-
-export const s3Client = new S3Client({
-  region: process.env.S3_REGION,
-  credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
-  },
-});
-
-export const uploadFileToS3 = async (
-  key: string,
-  buffer: Buffer,
-  contentType: string,
-): Promise<string> => {
-  const command = new PutObjectCommand({
-    Bucket: process.env.S3_BUCKET!,
-    Key: key,
-    Body: buffer,
-    ContentType: contentType,
-  });
-
-  await s3Client.send(command);
-
-  return `https://${process.env.S3_BUCKET!}.s3.${process.env.S3_REGION}.amazonaws.com/${key}`;
-};
+import { uploadFileToS3 } from '../utils/s3-client';
+import { detectBusinessLicenseFileType, isClaimedMimeMatch } from '../utils/file-signature';
 
 export const uploadBusinessLicenseFile = async (
-  userId: number,
   file: Express.Multer.File,
 ) => {
+  const detected = detectBusinessLicenseFileType(file.buffer);
+  if (!detected) {
+    throw new AppError(
+      '지원하지 않는 파일 형식입니다. (jpg, jpeg, png, pdf만 가능)',
+      415,
+      'InvalidFileType',
+    );
+  }
+  if (!isClaimedMimeMatch(file.mimetype, detected)) {
+    throw new AppError(
+      '업로드된 파일의 실제 형식과 확장자가 일치하지 않습니다.',
+      415,
+      'InvalidFileType',
+    );
+  }
+
   try {
-    const ext = path.extname(file.originalname);
-    const uniqueKey = `business-licenses/${userId}-${Date.now()}${ext}`;
-    const fileUrl = await uploadFileToS3(uniqueKey, file.buffer, file.mimetype);
+    // userId 노출/예측 가능성 차단을 위해 uuid 사용
+    const fileKey = `business-licenses/${uuidv4()}${detected.ext}`;
+    const fileUrl = await uploadFileToS3(fileKey, file.buffer, detected.mime);
 
     return {
       message: '사업자등록증 업로드가 완료되었습니다.',
+      fileKey,
       fileUrl,
     };
   } catch (error) {

@@ -121,10 +121,11 @@ export const uploadLicense = async (req: Request, res: Response) => {
         });
       }
 
-      const result = await uploadBusinessLicenseFile(user.user_id, req.file);
+      const result = await uploadBusinessLicenseFile(req.file);
 
       return res.status(200).json({
         message: result.message,
+        fileKey: result.fileKey,
         fileUrl: result.fileUrl,
         statusCode: 200,
       });
