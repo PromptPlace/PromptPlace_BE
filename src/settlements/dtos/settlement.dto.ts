@@ -62,8 +62,9 @@ export interface AccountDetailResponseDto {
   accountNumber: string;
   holderName: string;
   name: string;
+  birthDate?: string;       // YYMMDD. 본인 조회용 평문. INDIVIDUAL / BUSINESS+PERSONAL일 때 값 존재
   businessType?: BusinessKind;
-  businessNumber?: string; // 마스킹된 표시값
+  businessNumber?: string;  // 마스킹된 표시값
   representativeName?: string;
   companyName?: string;
   businessLicenseUrl?: string;

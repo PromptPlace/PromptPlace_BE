@@ -170,6 +170,7 @@ export const getSellerAccountDetail = async (
     accountNumber: account.account_number,
     holderName: account.account_holder,
     name: account.account_holder,
+    birthDate: account.birth_date ?? undefined,
   };
 
   if (sellerType === 'BUSINESS') {

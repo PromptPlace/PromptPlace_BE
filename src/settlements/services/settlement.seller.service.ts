@@ -72,10 +72,17 @@ export const registerIndividualSeller = async (
     await SettlementRepository.deleteAccountByUserId(userId);
   }
 
+  if (!payload.birthDate) {
+    const error = new Error('등록 토큰에 생년월일 정보가 없습니다. 계좌 인증을 다시 진행해 주세요.');
+    error.name = 'ValidationError';
+    throw error;
+  }
+
   await SettlementRepository.upsertIndividualAccount(userId, {
     bank: payload.bank,
     accountNumber: payload.accountNumber,
     holderName: payload.holderName,
+    birthDate: payload.birthDate,
   });
 
   const isUpdate = !!existingAccount && existingAccount.seller_type === 'INDIVIDUAL';
@@ -148,6 +155,7 @@ export const registerBusinessSeller = async (
       businessType: payload.businessType,
       companyName: dto.companyName,
       businessLicenseUrl: dto.businessLicenseUrl!,
+      birthDate: payload.birthDate,
     });
     return {
       message: '사업자 판매자 신청이 완료되었습니다. 관리자 승인 후 최종 등록됩니다.',
@@ -168,6 +176,7 @@ export const registerBusinessSeller = async (
       businessType: payload.businessType,
       companyName: dto.companyName,
       businessLicenseUrl: dto.businessLicenseUrl!,
+      birthDate: payload.birthDate,
     });
     return {
       message: '사업자 판매자 변경 신청이 완료되었습니다. 관리자 승인 후 최종 등록됩니다.',
@@ -186,6 +195,7 @@ export const registerBusinessSeller = async (
     businessType: payload.businessType,
     companyName: dto.companyName,
     businessLicenseUrl: dto.businessLicenseUrl,
+    birthDate: payload.birthDate,
   });
   return {
     message: '사업자 정보 변경 신청이 완료되었습니다. 관리자 승인 후 변경 사항이 반영됩니다.',

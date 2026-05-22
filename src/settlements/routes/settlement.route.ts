@@ -208,7 +208,7 @@ router.get("/accounts", authenticateJwt, ViewAccount);
  *       정보 변경 화면에서 기존 등록 데이터를 prefill 하기 위한 상세 조회 API.
  *       사업자는 추가 필드(businessType/businessNumber/companyName/representativeName/businessLicenseUrl/status) 포함.
  *       businessNumber는 마스킹(`123-45-****0`)되어 응답되며, 변경 시 사용자가 실제 값을 다시 입력해야 함.
- *       birthDate는 정책상 미저장이라 응답에 없음.
+ *       birthDate는 본인 조회용 평문으로 응답 (정보 변경 시 계좌 재인증을 위해 prefill 필요).
  *     tags: [Settlement]
  *     security:
  *       - jwt: []
@@ -231,6 +231,7 @@ router.get("/accounts", authenticateJwt, ViewAccount);
  *                     accountNumber: { type: string, example: "1234567890" }
  *                     holderName: { type: string, example: 홍길동 }
  *                     name: { type: string, description: 실명(INDIVIDUAL) 또는 대표자명(BUSINESS) }
+ *                     birthDate: { type: string, nullable: true, description: 예금주 생년월일 YYMMDD. CORPORATE는 null, example: "880212" }
  *                     businessType: { type: string, enum: [PERSONAL, CORPORATE], nullable: true }
  *                     businessNumber: { type: string, nullable: true, description: 마스킹된 사업자번호, example: "123-45-****0" }
  *                     representativeName: { type: string, nullable: true }
