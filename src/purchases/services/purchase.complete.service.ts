@@ -4,6 +4,7 @@ import { PurchaseCompleteRepository } from '../repositories/purchase.complete.re
 import { AppError } from '../../errors/AppError';
 import prisma from '../../config/prisma';
 import { verifyPayplePayment } from '../utils/payple';
+import { calculateSettlementFee } from '../utils/fee';
 
 export const PurchaseCompleteService = {
   async completePurchase(userId: number, dto: PurchaseCompleteRequestDTO): Promise<PurchaseCompleteResponseDTO> {
@@ -43,13 +44,12 @@ export const PurchaseCompleteService = {
         cash_receipt_url: verifiedPayment.cashReceiptUrl,
       });
 
-      const FEE_RATE = 0.1;
-      const fee = Math.floor(serverPrice * FEE_RATE);
+      const { fee, settledAmount } = calculateSettlementFee(serverPrice);
 
       await PurchaseCompleteRepository.upsertSettlementForPaymentTx(tx, {
         sellerId: prompt.user_id,
         paymentId: payment.payment_id,
-        amount: serverPrice - fee,
+        amount: settledAmount,
         fee,
         status: 'Pending',
       });
