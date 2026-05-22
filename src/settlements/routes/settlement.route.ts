@@ -504,12 +504,11 @@ router.post("/register/business", authenticateJwt, registerBusiness);
  *   get:
  *     summary: 정산 예정 금액 조회 (대시보드)
  *     description: |
- *       로그인한 판매자의 정산 예정 금액(Settlement.status='Pending'인 행의 amount 합계)을 조회합니다.
+ *       로그인한 판매자의 정산 예정 금액(`Settlement.status='Pending'`인 행의 amount 합계)을 조회합니다.
  *       정산관리 화면 상단 대시보드에 노출.
  *
- *       ⚠️ 현재 코드에는 Settlement.status를 'Succeed'로 업데이트하는 정산 완료 처리 흐름이 없어서,
- *       모든 미정산 거래의 누계가 반환됩니다. 별도 이슈에서 Payple 정산내역 조회와 연동한 동기화 흐름이 구현된 뒤에는
- *       실제 정산 예정분만 반환됩니다.
+ *       정산 완료 처리는 매일 KST 08:00에 동작하는 `settlement-sync` cron이 Payple 정산내역 조회 결과를
+ *       바탕으로 `Pending → Succeed`로 전이합니다 (#482). 환불된 거래는 `Refunded` 상태가 되어 본 합계에서 제외됩니다 (#485).
  *     tags: [Settlement]
  *     security:
  *       - jwt: []
