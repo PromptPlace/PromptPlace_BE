@@ -508,6 +508,7 @@ model SettlementAccount {
   company_name         String?        @db.VarChar(100)
   business_number      String?        @unique @db.VarChar(30)
   business_license_url String?        @db.Text
+  billing_tran_id      String?        @db.VarChar(64) // Payple 정산지급대행 계좌 빌링키 (#491)
   created_at           DateTime       @default(now())
   updated_at           DateTime       @updatedAt
 

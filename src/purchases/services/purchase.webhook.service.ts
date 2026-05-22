@@ -2,6 +2,7 @@ import { PurchaseRequestRepository } from '../repositories/purchase.request.repo
 import { PurchaseCompleteRepository } from '../repositories/purchase.complete.repository';
 import prisma from '../../config/prisma';
 import { PayplePaymentResult, verifyPayplePayment } from '../utils/payple';
+import { calculateSettlementFee } from '../utils/fee';
 
 export const WebhookService = {
   async handlePaypleResult(result: PayplePaymentResult) {
@@ -55,12 +56,11 @@ export const WebhookService = {
           cash_receipt_url: verified.cashReceiptUrl,
         });
 
-        const FEE_RATE = 0.1;
-        const fee = Math.floor(serverPrice * FEE_RATE);
+        const { fee, settledAmount } = calculateSettlementFee(serverPrice);
         await PurchaseCompleteRepository.upsertSettlementForPaymentTx(tx, {
           sellerId: prompt.user_id,
           paymentId: payment.payment_id,
-          amount: serverPrice - fee,
+          amount: settledAmount,
           fee,
           status: 'Pending',
         });
