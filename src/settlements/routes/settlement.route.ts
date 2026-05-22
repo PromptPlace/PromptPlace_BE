@@ -470,9 +470,11 @@ router.post("/register/business", authenticateJwt, registerBusiness);
  *                   type: object
  *                   properties:
  *                     count: { type: integer, example: 3 }
- *                     total_sales: { type: integer, example: 30000 }
- *                     total_settled: { type: integer, example: 27000 }
+ *                     total_sales: { type: integer, description: 원래 판매가 합계 (환불 포함), example: 30000 }
+ *                     total_settled: { type: integer, description: net 정산 금액 (환불 제외), example: 18000 }
  *                     total_fee: { type: integer, example: 3000 }
+ *                     refunded_count: { type: integer, example: 1 }
+ *                     refunded_amount: { type: integer, example: 9000 }
  *                 items:
  *                   type: array
  *                   items:
@@ -489,7 +491,7 @@ router.post("/register/business", authenticateJwt, registerBusiness);
  *                       sale_price: { type: integer }
  *                       settled_amount: { type: integer }
  *                       fee: { type: integer }
- *                       status: { type: string, enum: [Pending, Succeed, Failed] }
+ *                       status: { type: string, enum: [Pending, Succeed, Failed, Refunded] }
  *                 statusCode: { type: integer, example: 200 }
  *       400:
  *         description: 잘못된 year/month
@@ -556,11 +558,13 @@ router.get("/sales/monthly", authenticateJwt, getMonthlySales);
  *                     properties:
  *                       year: { type: integer, example: 2026 }
  *                       count: { type: integer, example: 50 }
- *                       total_sales: { type: integer, example: 500000 }
- *                       total_settled: { type: integer, example: 450000 }
+ *                       total_sales: { type: integer, description: gross — 환불 포함, example: 500000 }
+ *                       total_settled: { type: integer, description: net — Succeed 합계 (환불 제외), example: 400000 }
  *                       total_fee: { type: integer, example: 50000 }
  *                       succeeded_amount: { type: integer, example: 400000 }
  *                       pending_amount: { type: integer, example: 50000 }
+ *                       refunded_amount: { type: integer, example: 50000 }
+ *                       refunded_count: { type: integer, example: 5 }
  *                 statusCode: { type: integer, example: 200 }
  *       401:
  *         description: 로그인 필요

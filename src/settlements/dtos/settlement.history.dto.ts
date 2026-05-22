@@ -10,14 +10,16 @@ export interface MonthlySalesItemDto {
   sale_price: number;
   settled_amount: number;
   fee: number;
-  status: 'Pending' | 'Succeed' | 'Failed';
+  status: 'Pending' | 'Succeed' | 'Failed' | 'Refunded';
 }
 
 export interface MonthlySalesSummaryDto {
   count: number;
   total_sales: number;
-  total_settled: number;
+  total_settled: number;          // net — Succeed만, 환불 제외
   total_fee: number;
+  refunded_count: number;
+  refunded_amount: number;
 }
 
 export interface MonthlySalesResponseDto {
@@ -32,11 +34,13 @@ export interface MonthlySalesResponseDto {
 export interface YearlySettlementItemDto {
   year: number;
   count: number;
-  total_sales: number;
-  total_settled: number;
+  total_sales: number;       // gross
+  total_settled: number;     // net — 환불 제외, Succeed 합계
   total_fee: number;
   succeeded_amount: number;
   pending_amount: number;
+  refunded_amount: number;
+  refunded_count: number;
 }
 
 export interface YearlySettlementResponseDto {
