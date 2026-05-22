@@ -252,6 +252,7 @@ export const getIndividualSellerDetail = async (
     name: account.user.name,
     email: account.user.email,
     registration_type: 'INDIVIDUAL',
+    status: account.status,
     settlement_account: {
       bank_code: account.bank_code,
       account_number: account.account_number,
@@ -281,6 +282,7 @@ export const getBusinessSellerDetail = async (
     name: account.user.name,
     email: account.user.email,
     registration_type: 'BUSINESS',
+    status: account.status,
     business_number: account.business_number,
     representative_name: account.representative_name,
     company_name: account.company_name,

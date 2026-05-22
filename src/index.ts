@@ -138,8 +138,9 @@ app.use("/api/prompts", promptRoutes);
 // 페이플 PCD_RST_URL 서버 콜백 (urlencoded/json 자체 파싱)
 app.use("/api/prompts/purchases", purchaseWebhookRouter);
 
-// 프롬프트 결제 라우터
-app.use("/api/prompts/purchases", refundRouter);
+// 프롬프트 결제 라우터 — purchaseRouter가 동적 :id 라우트를 추후 추가해도
+// refundRouter 경로(:purchaseId/refund, :purchaseId/refund-eligibility)와
+// 충돌하지 않도록 refundRouter는 purchaseRouter 뒤에 마운트.
 app.use(
   "/api/prompts/purchases",
   express.text({ type: "text/plain" }),
@@ -153,6 +154,7 @@ app.use(
   },
   purchaseRouter
 );
+app.use("/api/prompts/purchases", refundRouter);
 
 // 채팅 라우터
 app.use("/api/chat", chatRouter);
