@@ -2,6 +2,21 @@ import prisma from '../../config/prisma';
 import { Status } from '@prisma/client';
 
 export const SettlementHistoryRepository = {
+  // 정산 예정 금액 — Settlement.status='Pending' 인 행의 amount 합계.
+  // 정산 완료 처리 (Pending → Succeed) 흐름이 별도 이슈에서 구현되기 전까지는
+  // 이 값이 모든 미정산 거래의 누계가 됨.
+  async sumPendingAmount(userId: number): Promise<{ pending_amount: number; pending_count: number }> {
+    const result = await prisma.settlement.aggregate({
+      where: { user_id: userId, status: Status.Pending },
+      _sum: { amount: true },
+      _count: { _all: true },
+    });
+    return {
+      pending_amount: result._sum.amount ?? 0,
+      pending_count: result._count._all ?? 0,
+    };
+  },
+
   async findSalesByMonth(userId: number, year: number, month: number) {
     const start = new Date(Date.UTC(year, month - 1, 1));
     const end = new Date(Date.UTC(year, month, 1));

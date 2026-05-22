@@ -44,3 +44,10 @@ export interface YearlySettlementResponseDto {
   items: YearlySettlementItemDto[];
   statusCode: number;
 }
+
+export interface PendingAmountResponseDto {
+  message: string;
+  pending_amount: number;
+  pending_count: number;
+  statusCode: number;
+}
