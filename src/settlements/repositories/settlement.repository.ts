@@ -6,6 +6,7 @@ export interface UpsertIndividualAccountInput {
   bank: string;
   accountNumber: string;
   holderName: string;
+  birthDate: string;            // INDIVIDUAL은 Payple 인증에 birthDate 필수
 }
 
 export interface CreateBusinessAccountInput {
@@ -17,6 +18,20 @@ export interface CreateBusinessAccountInput {
   businessType: BusinessKind;
   companyName: string;
   businessLicenseUrl: string;
+  birthDate?: string;           // BUSINESS+PERSONAL일 때만 존재 (대표자 생년월일). CORPORATE는 undefined
+}
+
+export interface UpdateBusinessAccountInput {
+  representativeName: string;
+  bank: string;
+  accountNumber: string;
+  holderName: string;
+  businessNumber: string;
+  businessType: BusinessKind;
+  companyName: string;
+  // optional — 빈 값이면 기존 URL 유지
+  businessLicenseUrl?: string | null;
+  birthDate?: string;           // BUSINESS+PERSONAL일 때만 존재
 }
 
 export const SettlementRepository = {
@@ -30,11 +45,11 @@ export const SettlementRepository = {
         bank_code: dto.bank,
         account_number: dto.accountNumber,
         account_holder: dto.holderName,
+        birth_date: dto.birthDate,
         seller_type: 'INDIVIDUAL',
         business_type: null,
         status: 'APPROVED',
         is_active: true,
-        birth_date: null,
         business_number: null,
         company_name: null,
         representative_name: null,
@@ -45,6 +60,7 @@ export const SettlementRepository = {
         bank_code: dto.bank,
         account_number: dto.accountNumber,
         account_holder: dto.holderName,
+        birth_date: dto.birthDate,
         seller_type: 'INDIVIDUAL',
         status: 'APPROVED',
         is_active: true,
@@ -76,10 +92,40 @@ export const SettlementRepository = {
         company_name: dto.companyName,
         representative_name: dto.representativeName,
         business_license_url: dto.businessLicenseUrl,
+        birth_date: dto.birthDate ?? null,
         seller_type: 'BUSINESS',
         status: 'PENDING',
         is_active: false,
       },
+    });
+  },
+
+  // 사업자 → 사업자 정보변경.
+  // 같은 row 덮어쓰기 + status=PENDING + is_active=false (관리자 승인 전까지 일시 비활성화).
+  // businessLicenseUrl이 undefined면 기존 URL 유지.
+  updateBusinessAccountForApproval: async (
+    userId: number,
+    dto: UpdateBusinessAccountInput,
+  ) => {
+    const data: Record<string, unknown> = {
+      bank_code: dto.bank,
+      account_number: dto.accountNumber,
+      account_holder: dto.holderName,
+      business_number: dto.businessNumber,
+      business_type: dto.businessType,
+      company_name: dto.companyName,
+      representative_name: dto.representativeName,
+      birth_date: dto.birthDate ?? null,
+      seller_type: 'BUSINESS',
+      status: 'PENDING',
+      is_active: false,
+    };
+    if (dto.businessLicenseUrl) {
+      data.business_license_url = dto.businessLicenseUrl;
+    }
+    return await prisma.settlementAccount.update({
+      where: { user_id: userId },
+      data,
     });
   },
 

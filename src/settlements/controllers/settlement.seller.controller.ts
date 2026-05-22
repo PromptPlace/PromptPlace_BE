@@ -49,6 +49,8 @@ export const registerIndividual = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       message: result.message,
+      status: result.status,
+      requiresApproval: result.requiresApproval,
       statusCode: 200,
     });
   } catch (error: any) {
@@ -157,6 +159,8 @@ export const registerBusiness = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       message: result.message,
+      status: result.status,
+      requiresApproval: result.requiresApproval,
       statusCode: 200,
     });
   } catch (error: any) {
