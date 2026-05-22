@@ -141,6 +141,7 @@ export const getAccountInfo = async (userId: number): Promise<AccountDataDto> =>
     bank: account.bank_code,
     accountNumber: account.account_number,
     holderName: account.account_holder,
+    birthDate: account.birth_date ?? undefined,
   };
 };
 

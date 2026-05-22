@@ -189,6 +189,7 @@ router.post("/verify-account", authenticateJwt, verifyAccount);
  *                     bank: { type: string, example: "088" }
  *                     accountNumber: { type: string, example: "1234567890" }
  *                     holderName: { type: string, example: 홍길동 }
+ *                     birthDate: { type: string, nullable: true, description: 예금주 생년월일 YYMMDD. CORPORATE는 null, example: "880212" }
  *                 statusCode: { type: integer, example: 200 }
  *       401:
  *         description: 로그인 필요
