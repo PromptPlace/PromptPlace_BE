@@ -1,114 +1,128 @@
-import axios from 'axios';
-import { PAYPLE_BANKS } from '../constants/bank';
-import { VerifyAccountRequestDto, AccountDataDto } from '../dtos/settlement.dto';
+import { AppError } from '../../errors/AppError';
+import {
+  VerifyAccountRequestDto,
+  AccountDataDto,
+  SellerKind,
+  BusinessKind,
+} from '../dtos/settlement.dto';
 import { SettlementRepository } from '../repositories/settlement.repository';
-import { AccountVerificationError, parseAccountVerificationError } from '../utils/payple';
+import {
+  AccountVerificationError,
+  consumePaypleRateLimit,
+  verifyRealNameWithPayple,
+} from '../utils/payple';
+import { issueRegisterToken } from '../utils/register-token';
+import { recordSellerRegistrationConsent } from './seller-consent.service';
+import { isValidPaypleBank } from '../constants/bank';
 
-export const verifyAndSaveAccount = async (userId: number, dto: VerifyAccountRequestDto) => {
-  const { name, birthDate, bank, accountNumber, holderName } = dto;
+const ALLOWED_SELLER_TYPES: readonly SellerKind[] = ['INDIVIDUAL', 'BUSINESS'];
+const ALLOWED_BUSINESS_TYPES: readonly BusinessKind[] = ['PERSONAL', 'CORPORATE'];
 
-  if (!name || !birthDate || !bank || !accountNumber || !holderName) {
-    throw {
-      status: 400,
-      type: 'ValidationError',
-      message: '필수 입력값(이름, 생년월일, 은행, 계좌번호, 예금주명)이 모두 입력되지 않았습니다.',
-    };
+const validateDto = (dto: VerifyAccountRequestDto): void => {
+  if (!dto || typeof dto !== 'object') {
+    throw new AppError('요청 본문이 올바르지 않습니다.', 400, 'ValidationError');
   }
-
-  if (!PAYPLE_BANKS[bank]) {
-    throw {
-      status: 400,
-      type: 'InvalidAccountInfo',
-      message: '유효하지 않은 계좌번호이거나 지원하지 않는 은행입니다.',
-    };
+  if (!ALLOWED_SELLER_TYPES.includes(dto.sellerType)) {
+    throw new AppError('판매자 유형(sellerType)이 올바르지 않습니다.', 400, 'ValidationError');
   }
-
-  if (name !== holderName) {
-    throw {
-      status: 400,
-      type: 'NameMismatch',
-      message: '입력하신 실명/대표자명과 예금주명이 일치하지 않습니다.',
-    };
-  }
-
-  const PAYPLE_HUB_URL = process.env.PAYPLE_HUB_URL;
-  const cst_id = process.env.PAYPLE_CST_ID;
-  const custKey = process.env.PAYPLE_CUST_KEY;
-
-  try {
-    const authResponse = await axios.post(
-      `${PAYPLE_HUB_URL}/oauth/token`,
-      { cst_id, custKey, code: Math.random().toString(36).slice(2, 12) },
-      { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' } }
+  if (!dto.name || !dto.bank || !dto.accountNumber || !dto.holderName) {
+    throw new AppError(
+      '필수 입력값(이름, 은행, 계좌번호, 예금주명)이 모두 입력되지 않았습니다.',
+      400,
+      'ValidationError',
     );
-
-    if (authResponse.data.result !== 'T0000') {
-      throw new AccountVerificationError(
-        `페이플 인증 실패: ${authResponse.data.message}`,
-        'AUTH_FAILED'
+  }
+  if (dto.sellerType === 'BUSINESS') {
+    if (!dto.businessType || !ALLOWED_BUSINESS_TYPES.includes(dto.businessType)) {
+      throw new AppError(
+        '사업자 유형(businessType)이 올바르지 않습니다. PERSONAL 또는 CORPORATE만 가능합니다.',
+        400,
+        'ValidationError',
       );
     }
-
-    const accessToken = authResponse.data.access_token;
-
-    const verifyResponse = await axios.post(
-      `${PAYPLE_HUB_URL}/inquiry/real_name`,
-      {
-        cst_id,
-        custKey,
-        sub_id: `user_${userId}`,
-        bank_code_std: bank,
-        account_num: accountNumber,
-        account_holder_info_type: '0',
-        account_holder_info: birthDate,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-        },
+    if (dto.businessType === 'CORPORATE') {
+      if (!dto.businessNumber || !/^\d{10}$/.test(dto.businessNumber)) {
+        throw new AppError(
+          '입력하신 사업자등록번호가 올바르지 않습니다. 10자리 숫자로 다시 입력해 주세요.',
+          400,
+          'ValidationError',
+        );
       }
-    );
-
-    if (verifyResponse.data.result !== 'A0000') {
-      throw parseAccountVerificationError(verifyResponse.data);
+    } else {
+      // PERSONAL — 개인사업자는 생년월일 필수 (Payple type=0)
+      if (!dto.birthDate || !/^\d{6}$/.test(dto.birthDate)) {
+        throw new AppError(
+          '입력하신 생년월일이 올바르지 않습니다. YYMMDD 형식으로 다시 입력해 주세요.',
+          400,
+          'ValidationError',
+        );
+      }
     }
-
-    if (verifyResponse.data.account_holder_name !== holderName) {
-      throw new AccountVerificationError(
-        '인증 실패: 실제 계좌의 예금주명과 다릅니다.',
-        'NAME_MISMATCH'
+  } else {
+    // INDIVIDUAL
+    if (!dto.birthDate || !/^\d{6}$/.test(dto.birthDate)) {
+      throw new AppError(
+        '입력하신 생년월일이 올바르지 않습니다. YYMMDD 형식으로 다시 입력해 주세요.',
+        400,
+        'ValidationError',
       );
     }
-  } catch (error: any) {
-    if (error.name === 'AccountVerificationError') {
-      throw {
-        status: 400,
-        type: error.subCode || 'AccountVerificationError',
-        message: error.message,
-      };
-    }
-    if (error.status) throw error;
-
-    if (error.response?.status === 400 || error.response?.status === 404) {
-      throw {
-        status: 400,
-        type: 'InvalidAccountInfo',
-        message: '유효하지 않은 계좌번호이거나 지원하지 않는 은행입니다.',
-      };
-    }
-
-    throw {
-      status: 500,
-      type: 'InternalServerError',
-      message: '알 수 없는 오류가 발생했습니다.',
-    };
+  }
+  if (!isValidPaypleBank(dto.bank)) {
+    throw new AppError(
+      '유효하지 않은 계좌번호이거나 지원하지 않는 은행입니다.',
+      400,
+      'InvalidAccountInfo',
+    );
   }
 
-  await SettlementRepository.upsertSettlementAccount(userId, dto);
+  // 법인사업자가 아닌 경우(INDIVIDUAL, BUSINESS+PERSONAL): name === holderName
+  // 법인사업자는 holderName이 법인명이므로 사전 비교 안 함 (Payple 응답으로 검증)
+  const isCorporate = dto.sellerType === 'BUSINESS' && dto.businessType === 'CORPORATE';
+  if (!isCorporate && dto.name !== dto.holderName) {
+    throw new AccountVerificationError(
+      '실명/대표자명과 예금주명이 일치하지 않습니다. 다시 확인해주세요.',
+      'NAME_MISMATCH',
+    );
+  }
+};
 
-  return { message: '계좌 인증이 완료되었습니다.' };
+export const verifySellerAccount = async (userId: number, dto: VerifyAccountRequestDto) => {
+  validateDto(dto);
+
+  await consumePaypleRateLimit(userId);
+
+  await verifyRealNameWithPayple({
+    userId,
+    sellerType: dto.sellerType,
+    businessType: dto.businessType,
+    bank: dto.bank,
+    accountNumber: dto.accountNumber,
+    holderName: dto.holderName,
+    birthDate: dto.birthDate,
+    businessNumber: dto.businessNumber,
+  });
+
+  // PIPA 증빙: 등록 실패해도 동의 이력은 보존
+  await recordSellerRegistrationConsent({ userId });
+
+  const { token, expiresIn } = issueRegisterToken({
+    userId,
+    sellerType: dto.sellerType,
+    businessType: dto.businessType,
+    name: dto.name,
+    birthDate: dto.birthDate,
+    businessNumber: dto.businessNumber,
+    bank: dto.bank,
+    accountNumber: dto.accountNumber,
+    holderName: dto.holderName,
+  });
+
+  return {
+    message: '계좌 인증이 완료되었습니다.',
+    registerToken: token,
+    expiresIn,
+  };
 };
 
 export const getAccountInfo = async (userId: number): Promise<AccountDataDto> => {
