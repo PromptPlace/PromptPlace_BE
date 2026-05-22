@@ -460,6 +460,11 @@ enum SellerType {
   BUSINESS
 }
 
+enum BusinessType {
+  PERSONAL    // 개인사업자
+  CORPORATE   // 법인사업자
+}
+
 enum ApprovalStatus {
   PENDING   // 심사 대기중
   APPROVED  // 승인 완료
@@ -473,7 +478,8 @@ model SettlementAccount {
   account_number String   @db.VarChar(30)
   account_holder String   @db.VarChar(100)
   seller_type    SellerType      @default(INDIVIDUAL)
-  birth_date     String?  @db.VarChar(10)
+  business_type  BusinessType?   // BUSINESS일 때만 PERSONAL/CORPORATE 지정
+  birth_date     String?  @db.VarChar(10)  // 정책상 미저장 (PII 폐기). Phase 11에서 컬럼 제거 검토
   status         ApprovalStatus  @default(APPROVED) // 개인은 즉시 승인, 사업자는 PENDING으로 생성
   is_active      Boolean  @default(true)
   representative_name  String?         @db.VarChar(100)

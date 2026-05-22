@@ -1,14 +1,41 @@
 import { Request, Response } from 'express';
-import { registerIndividualSeller, registerBusinessSeller } from '../services/settlement.seller.service';
 import multer from 'multer';
+import {
+  registerIndividualSeller,
+  registerBusinessSeller,
+  uploadBusinessLicenseFile,
+} from '../services/settlement.seller.service';
 import { uploadBusinessLicense } from '../../middlewares/upload';
-import { uploadBusinessLicenseFile } from '../services/settlement.seller.service';
 import { AppError } from '../../errors/AppError';
+
+const mapTokenError = (error: any) => {
+  if (error?.error === 'InvalidRegisterToken') {
+    return {
+      status: 401,
+      body: {
+        error: 'InvalidRegisterToken',
+        message: error.message,
+        statusCode: 401,
+      },
+    };
+  }
+  if (error?.error === 'RegisterTokenAlreadyUsed') {
+    return {
+      status: 409,
+      body: {
+        error: 'RegisterTokenAlreadyUsed',
+        message: error.message,
+        statusCode: 409,
+      },
+    };
+  }
+  return null;
+};
 
 export const registerIndividual = async (req: Request, res: Response) => {
   try {
     const user = req.user;
-    
+
     if (!user) {
       return res.status(401).json({
         error: 'Unauthorized',
@@ -24,8 +51,11 @@ export const registerIndividual = async (req: Request, res: Response) => {
       message: result.message,
       statusCode: 200,
     });
-
   } catch (error: any) {
+    const tokenError = mapTokenError(error);
+    if (tokenError) {
+      return res.status(tokenError.status).json(tokenError.body);
+    }
     if (error.name === 'ValidationError') {
       return res.status(400).json({
         error: 'ValidationError',
@@ -33,11 +63,14 @@ export const registerIndividual = async (req: Request, res: Response) => {
         statusCode: 400,
       });
     }
-
     if (error.name === 'AccountVerificationError') {
-      return res.status(400).json({ error: 'AccountVerificationError', subCode: error.subCode, message: error.message, statusCode: 400 });
+      return res.status(400).json({
+        error: 'AccountVerificationError',
+        subCode: error.subCode,
+        message: error.message,
+        statusCode: 400,
+      });
     }
-    
     return res.status(500).json({
       error: 'InternalServerError',
       message: '서버 오류가 발생했습니다.',
@@ -59,16 +92,16 @@ export const uploadLicense = async (req: Request, res: Response) => {
             statusCode: 413,
           });
         }
-      } 
-      
+      }
+
       if (err instanceof AppError && err.statusCode === 415) {
         return res.status(415).json({
-          error: err.name, 
+          error: err.name,
           message: err.message,
           statusCode: 415,
         });
       } else if (err) {
-        throw err; 
+        throw err;
       }
 
       const user = req.user as { user_id: number } | undefined;
@@ -95,9 +128,8 @@ export const uploadLicense = async (req: Request, res: Response) => {
         fileUrl: result.fileUrl,
         statusCode: 200,
       });
-
     } catch (error: any) {
-      console.error('사업자등록증 업로드 중 에러 발생:', error);
+      console.error('사업자등록증 업로드 중 에러 발생');
       return res.status(500).json({
         error: 'InternalServerError',
         message: '알 수 없는 오류가 발생했습니다.',
@@ -110,7 +142,7 @@ export const uploadLicense = async (req: Request, res: Response) => {
 export const registerBusiness = async (req: Request, res: Response) => {
   try {
     const user = req.user as { user_id: number } | undefined;
-    
+
     if (!user) {
       return res.status(401).json({
         error: 'Unauthorized',
@@ -126,8 +158,11 @@ export const registerBusiness = async (req: Request, res: Response) => {
       message: result.message,
       statusCode: 200,
     });
-
   } catch (error: any) {
+    const tokenError = mapTokenError(error);
+    if (tokenError) {
+      return res.status(tokenError.status).json(tokenError.body);
+    }
     if (error.name === 'ValidationError') {
       return res.status(400).json({
         error: 'ValidationError',
@@ -135,7 +170,6 @@ export const registerBusiness = async (req: Request, res: Response) => {
         statusCode: 400,
       });
     }
-    
     if (error.name === 'AlreadyRegistered') {
       return res.status(409).json({
         error: 'AlreadyRegistered',
@@ -143,7 +177,6 @@ export const registerBusiness = async (req: Request, res: Response) => {
         statusCode: 409,
       });
     }
-
     if (error.name === 'DuplicateBusinessNumber') {
       return res.status(409).json({
         error: 'DuplicateBusinessNumber',
@@ -152,7 +185,7 @@ export const registerBusiness = async (req: Request, res: Response) => {
       });
     }
 
-    console.error('사업자 판매자 등록 중 에러 발생:', error);
+    console.error('사업자 판매자 등록 중 에러 발생');
     return res.status(500).json({
       error: 'InternalServerError',
       message: '서버 오류가 발생했습니다.',
