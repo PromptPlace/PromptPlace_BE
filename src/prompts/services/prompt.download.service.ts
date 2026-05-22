@@ -14,7 +14,7 @@ async getPromptContent(userId: number, promptId: number): Promise<PromptDownload
   let isPaid = false;
 
   if (!prompt.is_free) {
-    // 유료 프롬프트일 경우 결제 상태 확인
+    // 유료 프롬프트일 경우 결제 상태 + 환불 여부 확인
     const purchase = await prisma.purchase.findFirst({
       where: {
         user_id: userId,
@@ -22,13 +22,26 @@ async getPromptContent(userId: number, promptId: number): Promise<PromptDownload
       },
       include: {
         payment: true,
+        refund: { select: { refund_id: true } },
       },
     });
+
+    if (purchase?.refund) {
+      throw new AppError('환불된 프롬프트는 다시 다운로드할 수 없습니다.', 403, 'Refunded');
+    }
 
     isPaid = purchase?.payment?.status === 'Succeed';
 
     if (!isPaid) {
       throw new AppError('해당 프롬프트는 무료가 아니며, 결제가 완료되지 않았습니다.', 403, 'Forbidden');
+    }
+
+    // 첫 다운로드 시점 기록 — 이후 환불 불가 (#485)
+    if (purchase && !purchase.downloaded_at) {
+      await prisma.purchase.update({
+        where: { purchase_id: purchase.purchase_id },
+        data: { downloaded_at: new Date() },
+      });
     }
   } else {
     // 무료 프롬프트일 경우 purchase 기록이 없다면 추가

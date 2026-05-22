@@ -8,60 +8,61 @@ datasource db {
 }
 
 model User {
-  user_id              Int                        @id @default(autoincrement())
-  name                 String                     @db.VarChar(50)
-  nickname             String                     @db.VarChar(50)
-  email                String                     @unique @db.VarChar(255)
-  password             String?                    @db.VarChar(255)
-  is_initial_setup_required Boolean               @default(true)
-  social_type          String                     @db.VarChar(50)
-  status               Boolean
-  userstatus            userStatus                @default(active)
-  inactive_date        DateTime?
-  last_active_at       DateTime?
-  created_at           DateTime                   @default(now())
-  updated_at           DateTime                   @updatedAt
-  role                 Role                       @default(USER)
-  announcements        Announcement[]
-  receivedMessages     Message[]                  @relation("ReceivedMessages")
-  sentMessages         Message[]                  @relation("SentMessages")
-  sentNotifications    Notification[]             @relation("ActorNotifications")
-  notifications        Notification[]             @relation("UserNotifications")
-  subscribers          NotificationSubscription[] @relation("NotificationTargetPrompter")
-  subscriptions        NotificationSubscription[] @relation("NotificationSubscriber")
-  prompts              Prompt[]
-  prompt_likes         PromptLike[]
-  prompt_reports       PromptReport[]             @relation("UserReport")
-  purchases            Purchase[]
-  refreshTokens        RefreshToken[]
-  reviews              Review[]
-  settlements          Settlement[]               @relation("UserSettlements")
-  tips                 Tip[]
-  profileImage         UserImage?
-  intro                UserIntro?
-  sns_list             UserSNS[]
-  withdraw_requests    WithdrawRequest[]
-  notificationSetting  UserNotificationSetting?
-  settlementAccount    SettlementAccount?
-  consents             UserConsent[]
-  chatRoomAs1          ChatRoom[]                  @relation("ChatUser1")
-  chatRoomAs2          ChatRoom[]                  @relation("ChatUser2")
-  sentChatMessages     ChatMessage[]               @relation("UserSentMessages")
-  chatParticipants     ChatParticipant[]
-  blocks               UserBlock[]                 @relation("BlockerUser")
-  blockedBy            UserBlock[]                 @relation("BlockedUser")
+  user_id                   Int                        @id @default(autoincrement())
+  name                      String                     @db.VarChar(50)
+  nickname                  String                     @db.VarChar(50)
+  email                     String                     @unique @db.VarChar(255)
+  password                  String?                    @db.VarChar(255)
+  is_initial_setup_required Boolean                    @default(true)
+  social_type               String                     @db.VarChar(50)
+  status                    Boolean
+  userstatus                userStatus                 @default(active)
+  inactive_date             DateTime?
+  last_active_at            DateTime?
+  created_at                DateTime                   @default(now())
+  updated_at                DateTime                   @updatedAt
+  role                      Role                       @default(USER)
+  announcements             Announcement[]
+  receivedMessages          Message[]                  @relation("ReceivedMessages")
+  sentMessages              Message[]                  @relation("SentMessages")
+  sentNotifications         Notification[]             @relation("ActorNotifications")
+  notifications             Notification[]             @relation("UserNotifications")
+  subscribers               NotificationSubscription[] @relation("NotificationTargetPrompter")
+  subscriptions             NotificationSubscription[] @relation("NotificationSubscriber")
+  prompts                   Prompt[]
+  prompt_likes              PromptLike[]
+  prompt_reports            PromptReport[]             @relation("UserReport")
+  purchases                 Purchase[]
+  refreshTokens             RefreshToken[]
+  reviews                   Review[]
+  settlements               Settlement[]               @relation("UserSettlements")
+  tips                      Tip[]
+  profileImage              UserImage?
+  intro                     UserIntro?
+  sns_list                  UserSNS[]
+  withdraw_requests         WithdrawRequest[]
+  notificationSetting       UserNotificationSetting?
+  settlementAccount         SettlementAccount?
+  consents                  UserConsent[]
+  refunds                   Refund[]
+  chatRoomAs1               ChatRoom[]                 @relation("ChatUser1")
+  chatRoomAs2               ChatRoom[]                 @relation("ChatUser2")
+  sentChatMessages          ChatMessage[]              @relation("UserSentMessages")
+  chatParticipants          ChatParticipant[]
+  blocks                    UserBlock[]                @relation("BlockerUser")
+  blockedBy                 UserBlock[]                @relation("BlockedUser")
 }
 
 model UserConsent {
-  id             Int      @id @default(autoincrement())
-  user_id        Int
-  consent_type   String   @db.VarChar(50) 
-  is_agreed      Boolean  
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
-  user           User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  
-  @@unique([user_id, consent_type]) 
+  id           Int      @id @default(autoincrement())
+  user_id      Int
+  consent_type String   @db.VarChar(50)
+  is_agreed    Boolean
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  user         User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@unique([user_id, consent_type])
 }
 
 model UserIntro {
@@ -84,7 +85,7 @@ model UserHistory {
 model UserSNS {
   sns_id      Int      @id @default(autoincrement())
   user_id     Int
-  user_sns_id String   @db.VarChar(100) @default(" ")
+  user_sns_id String   @default(" ") @db.VarChar(100)
   url         String
   description String
   created_at  DateTime @default(now())
@@ -177,14 +178,13 @@ model Notification {
 }
 
 model UserNotificationSetting {
-  setting_id                        Int       @id @default(autoincrement())
-  user_id                           Int       @unique
-  last_notification_check_time      DateTime? 
-  created_at                        DateTime  @default(now())
-  updated_at                        DateTime  @updatedAt
-  user                              User      @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  setting_id                   Int       @id @default(autoincrement())
+  user_id                      Int       @unique
+  last_notification_check_time DateTime?
+  created_at                   DateTime  @default(now())
+  updated_at                   DateTime  @updatedAt
+  user                         User      @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 }
-
 
 model Message {
   message_id  Int       @id @default(autoincrement())
@@ -244,28 +244,28 @@ model WithdrawRequest {
 }
 
 model Prompt {
-  prompt_id      Int            @id @default(autoincrement())
+  prompt_id      Int              @id @default(autoincrement())
   user_id        Int
-  title          String         @db.Text
-  prompt         String         @db.Text
-  prompt_result  String         @db.Text
+  title          String           @db.Text
+  prompt         String           @db.Text
+  prompt_result  String           @db.Text
   has_image      Boolean
-  description    String         @db.Text
-  usage_guide    String         @db.Text
+  description    String           @db.Text
+  usage_guide    String           @db.Text
   price          Int
   is_free        Boolean
   downloads      Int
   views          Int
   likes          Int
-  model_version  String         @db.VarChar(50) @default("")
-  created_at     DateTime       @default(now())
-  updated_at     DateTime       @updatedAt
+  model_version  String           @default("") @db.VarChar(50)
+  created_at     DateTime         @default(now())
+  updated_at     DateTime         @updatedAt
   inactive_date  DateTime?
-  user           User           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  user           User             @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   images         PromptImage[]
   prompt_likes   PromptLike[]
   models         PromptModel[]
-  prompt_reports PromptReport[] @relation("PromptReport")
+  prompt_reports PromptReport[]   @relation("PromptReport")
   categories     PromptCategory[]
   purchases      Purchase[]
   reviews        Review[]
@@ -387,16 +387,18 @@ model PromptReport {
 }
 
 model Purchase {
-  purchase_id Int      @id @default(autoincrement())
-  user_id     Int
-  prompt_id   Int
-  amount      Int
-  is_free     Boolean
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-  payment     Payment?
-  prompt      Prompt   @relation(fields: [prompt_id], references: [prompt_id])
-  user        User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  purchase_id   Int       @id @default(autoincrement())
+  user_id       Int
+  prompt_id     Int
+  amount        Int
+  is_free       Boolean
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  downloaded_at DateTime? // 첫 다운로드 시점 — 환불 가능 조건 판단용 (#485)
+  payment       Payment?
+  refund        Refund?
+  prompt        Prompt    @relation(fields: [prompt_id], references: [prompt_id])
+  user          User      @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@index([prompt_id], map: "Purchase_prompt_id_fkey")
   @@index([user_id], map: "Purchase_user_id_fkey")
@@ -404,40 +406,60 @@ model Purchase {
 
 // 결제 수단
 enum PaymentMethod {
-  CARD              // 카드
-  VIRTUAL_ACCOUNT   // 가상계좌
-  TRANSFER          // 계좌이체
-  MOBILE            // 휴대폰
-  EASY_PAY          // 간편결제
+  CARD // 카드
+  VIRTUAL_ACCOUNT // 가상계좌
+  TRANSFER // 계좌이체
+  MOBILE // 휴대폰
+  EASY_PAY // 간편결제
 }
 
 // 구체적인 PG사 또는 간편결제사
 enum PaymentProvider {
-  TOSSPAYMENTS      // 일반 토스 PG (카드, 가상계좌 등)
-  KAKAOPAY          // 카카오페이
-  NAVERPAY          // 네이버페이
-  TOSSPAY           // 토스페이
-  SAMSUNGPAY        // 삼성페이
-  APPLEPAY          // 애플페이
-  LPAY              // 엘페이
-  PAYCO             // 페이코
-  SSG               // SSG페이
-  PINPAY            // 핀페이
+  TOSSPAYMENTS // 일반 토스 PG (카드, 가상계좌 등)
+  KAKAOPAY // 카카오페이
+  NAVERPAY // 네이버페이
+  TOSSPAY // 토스페이
+  SAMSUNGPAY // 삼성페이
+  APPLEPAY // 애플페이
+  LPAY // 엘페이
+  PAYCO // 페이코
+  SSG // SSG페이
+  PINPAY // 핀페이
 }
 
 model Payment {
-  payment_id     Int              @id @default(autoincrement())
-  purchase_id    Int              @unique
-  status         Status
-  pcd_pay_oid    String           @unique
-  pcd_pay_reqkey String           @unique
-  pay_type       String?
-  card_name      String?
-  created_at     DateTime         @default(now())
-  updated_at     DateTime         @updatedAt
-  purchase       Purchase         @relation(fields: [purchase_id], references: [purchase_id], onDelete: Cascade)
-  settlement     Settlement?
-  cash_receipt_url  String?
+  payment_id       Int         @id @default(autoincrement())
+  purchase_id      Int         @unique
+  status           Status
+  pcd_pay_oid      String      @unique
+  pcd_pay_reqkey   String      @unique
+  pay_type         String?
+  card_name        String?
+  created_at       DateTime    @default(now())
+  updated_at       DateTime    @updatedAt
+  purchase         Purchase    @relation(fields: [purchase_id], references: [purchase_id], onDelete: Cascade)
+  settlement       Settlement?
+  refund           Refund?
+  cash_receipt_url String?
+}
+
+model Refund {
+  refund_id             Int      @id @default(autoincrement())
+  purchase_id           Int      @unique
+  payment_id            Int      @unique
+  user_id               Int
+  amount                Int
+  reason                String?  @db.VarChar(200)
+  initiator             String   @db.VarChar(20) // 'USER' | 'ADMIN'
+  payple_pay_code       String?  @db.VarChar(20) // PCD_PAY_CODE (e.g. PAYC0000)
+  payple_card_trade_num String?  @db.VarChar(64) // PCD_PAY_CARDTRADENUM 감사 추적용
+  refunded_at           DateTime @default(now())
+
+  purchase Purchase @relation(fields: [purchase_id], references: [purchase_id], onDelete: Cascade)
+  payment  Payment  @relation(fields: [payment_id], references: [payment_id], onDelete: Cascade)
+  user     User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
 }
 
 model Settlement {
@@ -461,35 +483,35 @@ enum SellerType {
 }
 
 enum BusinessType {
-  PERSONAL    // 개인사업자
-  CORPORATE   // 법인사업자
+  PERSONAL // 개인사업자
+  CORPORATE // 법인사업자
 }
 
 enum ApprovalStatus {
-  PENDING   // 심사 대기중
-  APPROVED  // 승인 완료
-  REJECTED  // 승인 거절
+  PENDING // 심사 대기중
+  APPROVED // 승인 완료
+  REJECTED // 승인 거절
 }
 
 model SettlementAccount {
-  id             Int      @id @default(autoincrement())
-  user_id        Int      @unique // 한 유저당 하나의 계좌만 가질 수 있도록 강제 (1:1 관계)
-  bank_code      String   @db.VarChar(50)
-  account_number String   @db.VarChar(30)
-  account_holder String   @db.VarChar(100)
-  seller_type    SellerType      @default(INDIVIDUAL)
-  business_type  BusinessType?   // BUSINESS일 때만 PERSONAL/CORPORATE 지정
-  birth_date     String?  @db.VarChar(10)  // 정책상 미저장 (PII 폐기). Phase 11에서 컬럼 제거 검토
-  status         ApprovalStatus  @default(APPROVED) // 개인은 즉시 승인, 사업자는 PENDING으로 생성
-  is_active      Boolean  @default(true)
-  representative_name  String?         @db.VarChar(100)
-  company_name         String?         @db.VarChar(100)
-  business_number      String?         @unique @db.VarChar(30)
-  business_license_url String?         @db.Text
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  id                   Int            @id @default(autoincrement())
+  user_id              Int            @unique // 한 유저당 하나의 계좌만 가질 수 있도록 강제 (1:1 관계)
+  bank_code            String         @db.VarChar(50)
+  account_number       String         @db.VarChar(30)
+  account_holder       String         @db.VarChar(100)
+  seller_type          SellerType     @default(INDIVIDUAL)
+  business_type        BusinessType? // BUSINESS일 때만 PERSONAL/CORPORATE 지정
+  birth_date           String?        @db.VarChar(10) // 정책상 미저장 (PII 폐기). Phase 11에서 컬럼 제거 검토
+  status               ApprovalStatus @default(APPROVED) // 개인은 즉시 승인, 사업자는 PENDING으로 생성
+  is_active            Boolean        @default(true)
+  representative_name  String?        @db.VarChar(100)
+  company_name         String?        @db.VarChar(100)
+  business_number      String?        @unique @db.VarChar(30)
+  business_license_url String?        @db.Text
+  created_at           DateTime       @default(now())
+  updated_at           DateTime       @updatedAt
 
-  user           User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@index([bank_code])
   @@index([account_number])
@@ -512,85 +534,85 @@ model Review {
 }
 
 model ChatRoom {
-  room_id               Int                @id @default(autoincrement())
-  created_at            DateTime           @default(now())
-  last_message_id       Int?               @unique
-  user_id1              Int
-  user_id2              Int
+  room_id         Int      @id @default(autoincrement())
+  created_at      DateTime @default(now())
+  last_message_id Int?     @unique
+  user_id1        Int
+  user_id2        Int
 
-  lastMessage           ChatMessage?        @relation("lastMessage", fields: [last_message_id], references: [message_id], onDelete: SetNull)
-  user1                 User                @relation("ChatUser1", fields: [user_id1], references: [user_id])
-  user2                 User                @relation("ChatUser2", fields: [user_id2], references: [user_id])
+  lastMessage ChatMessage? @relation("lastMessage", fields: [last_message_id], references: [message_id], onDelete: SetNull)
+  user1       User         @relation("ChatUser1", fields: [user_id1], references: [user_id])
+  user2       User         @relation("ChatUser2", fields: [user_id2], references: [user_id])
+
+  messages     ChatMessage[]     @relation("RoomMessages")
+  participants ChatParticipant[] @relation("RoomParticipants")
 
   @@unique([user_id1, user_id2]) // 두 유저간 채팅방은 유일
-
-  messages              ChatMessage[]       @relation("RoomMessages")
-  participants          ChatParticipant[]   @relation("RoomParticipants")
 }
 
 model ChatMessage {
-  message_id            Int                 @id @default(autoincrement())
-  content               String?             @db.Text
-  sent_at               DateTime            @default(now())
-  sender_id             Int
-  room_id               Int
+  message_id Int      @id @default(autoincrement())
+  content    String?  @db.Text
+  sent_at    DateTime @default(now())
+  sender_id  Int
+  room_id    Int
 
-  user                  User                @relation("UserSentMessages", fields: [sender_id], references: [user_id])
-  chatRoom              ChatRoom            @relation("RoomMessages", fields: [room_id], references: [room_id], onDelete: Cascade)          
+  user     User     @relation("UserSentMessages", fields: [sender_id], references: [user_id])
+  chatRoom ChatRoom @relation("RoomMessages", fields: [room_id], references: [room_id], onDelete: Cascade)
 
-  lastMessageOf         ChatRoom?           @relation("lastMessage") 
-  readByParticipants    ChatParticipant[]   @relation("LastReadMessage")
+  lastMessageOf      ChatRoom?         @relation("lastMessage")
+  readByParticipants ChatParticipant[] @relation("LastReadMessage")
 
-  attachments           Attachment[]        
+  attachments Attachment[]
 }
 
 model ChatParticipant {
-  chat_participant_id   Int                 @id @default(autoincrement())
-  is_pinned             Boolean             @default(false)
-  left_at               DateTime?        
-  room_id               Int
-  user_id               Int
-  last_read_message_id  Int?
-  unread_count           Int                 @default(0)
+  chat_participant_id  Int       @id @default(autoincrement())
+  is_pinned            Boolean   @default(false)
+  left_at              DateTime?
+  room_id              Int
+  user_id              Int
+  last_read_message_id Int?
+  unread_count         Int       @default(0)
 
-  chatRoom              ChatRoom            @relation("RoomParticipants", fields: [room_id], references: [room_id], onDelete: Cascade)
-  user                  User                @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  lastReadMessage       ChatMessage?        @relation("LastReadMessage", fields: [last_read_message_id], references: [message_id], onDelete: SetNull)
-           
+  chatRoom        ChatRoom     @relation("RoomParticipants", fields: [room_id], references: [room_id], onDelete: Cascade)
+  user            User         @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  lastReadMessage ChatMessage? @relation("LastReadMessage", fields: [last_read_message_id], references: [message_id], onDelete: SetNull)
+
   @@unique([room_id, user_id])
 }
 
 model UserBlock {
-  block_id              Int                 @id @default(autoincrement())
-  blocked_at            DateTime            @default(now())            
-  blocker_id            Int
-  blocked_id            Int 
+  block_id   Int      @id @default(autoincrement())
+  blocked_at DateTime @default(now())
+  blocker_id Int
+  blocked_id Int
+
+  blockerUser User @relation("BlockerUser", fields: [blocker_id], references: [user_id], onDelete: Cascade)
+  blockedUser User @relation("BlockedUser", fields: [blocked_id], references: [user_id], onDelete: Cascade)
 
   @@unique([blocker_id, blocked_id])
-
-  blockerUser           User                @relation("BlockerUser", fields: [blocker_id], references: [user_id], onDelete: Cascade)
-  blockedUser           User                @relation("BlockedUser", fields: [blocked_id], references: [user_id], onDelete: Cascade)
-  
 }
 
 model Attachment {
-  attachment_id         Int                 @id @default(autoincrement())
-  message_id            Int
-  url                   String              @db.Text
-  type                  AttachmentType
-  name                  String
-  size                  Int
-  created_at            DateTime            @default(now())
+  attachment_id Int            @id @default(autoincrement())
+  message_id    Int
+  url           String         @db.Text
+  type          AttachmentType
+  name          String
+  size          Int
+  created_at    DateTime       @default(now())
 
-  attachmentMessage    ChatMessage         @relation(fields: [message_id], references: [message_id], onDelete: Cascade)
+  attachmentMessage ChatMessage @relation(fields: [message_id], references: [message_id], onDelete: Cascade)
 
-  @@index([message_id]) 
+  @@index([message_id])
 }
 
 enum Status {
   Pending
   Succeed
   Failed
+  Refunded
 }
 
 enum Role {
