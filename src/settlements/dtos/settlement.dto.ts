@@ -29,7 +29,8 @@ export interface RegisterIndividualSellerRequestDto {
 export interface RegisterBusinessSellerRequestDto {
   registerToken: string;
   companyName: string;
-  businessLicenseUrl: string;         // S3 업로드 응답으로 받은 URL (Phase 9에서 key로 전환 예정)
+  // 정보 변경 시 새 파일 업로드 안 하고 기존 등록증 유지하고 싶으면 생략 가능
+  businessLicenseUrl?: string;
   isTermsAgreed: boolean;
 }
 
@@ -50,4 +51,26 @@ export interface UpdateAccountRequestDto {
   bank: string;
   accountNumber: string;
   holderName: string;
+}
+
+// 정보 변경 화면 prefill용 — 사업자는 추가 필드 포함, businessNumber는 마스킹
+export interface AccountDetailResponseDto {
+  sellerType: SellerKind;
+  status: 'APPROVED' | 'PENDING' | 'REJECTED';
+  isActive: boolean;
+  bank: string;
+  accountNumber: string;
+  holderName: string;
+  name: string;
+  businessType?: BusinessKind;
+  businessNumber?: string; // 마스킹된 표시값
+  representativeName?: string;
+  companyName?: string;
+  businessLicenseUrl?: string;
+}
+
+export interface RegisterResultDto {
+  message: string;
+  status: 'APPROVED' | 'PENDING';
+  requiresApproval: boolean;
 }

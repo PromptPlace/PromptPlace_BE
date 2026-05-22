@@ -2,9 +2,11 @@ import { AppError } from '../../errors/AppError';
 import {
   VerifyAccountRequestDto,
   AccountDataDto,
+  AccountDetailResponseDto,
   SellerKind,
   BusinessKind,
 } from '../dtos/settlement.dto';
+import { maskBusinessNumber } from '../utils/masking';
 import { SettlementRepository } from '../repositories/settlement.repository';
 import {
   AccountVerificationError,
@@ -140,4 +142,47 @@ export const getAccountInfo = async (userId: number): Promise<AccountDataDto> =>
     accountNumber: account.account_number,
     holderName: account.account_holder,
   };
+};
+
+// 정보 변경 화면 prefill용.
+// 사업자는 추가 필드 포함하고 사업자번호는 마스킹된 상태로 응답.
+// 실제 계좌 인증/등록 시점에는 사용자가 사업자번호를 다시 입력해야 함 (마스킹 값만 갖고는 인증 불가).
+export const getSellerAccountDetail = async (
+  userId: number,
+): Promise<AccountDetailResponseDto> => {
+  const account = await SettlementRepository.findAccountByUserId(userId);
+
+  if (!account) {
+    throw new AppError(
+      '등록된 판매자 정보가 존재하지 않습니다.',
+      404,
+      'AccountNotFound',
+    );
+  }
+
+  const sellerType = account.seller_type as SellerKind;
+
+  const base: AccountDetailResponseDto = {
+    sellerType,
+    status: account.status as 'APPROVED' | 'PENDING' | 'REJECTED',
+    isActive: account.is_active,
+    bank: account.bank_code,
+    accountNumber: account.account_number,
+    holderName: account.account_holder,
+    name: account.account_holder,
+  };
+
+  if (sellerType === 'BUSINESS') {
+    return {
+      ...base,
+      businessType: (account.business_type ?? undefined) as BusinessKind | undefined,
+      businessNumber: maskBusinessNumber(account.business_number) ?? undefined,
+      representativeName: account.representative_name ?? undefined,
+      companyName: account.company_name ?? undefined,
+      businessLicenseUrl: account.business_license_url ?? undefined,
+      name: account.representative_name ?? account.account_holder,
+    };
+  }
+
+  return base;
 };

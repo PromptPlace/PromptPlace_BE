@@ -83,6 +83,8 @@ export const registerIndividualSeller = async (
     message: isUpdate
       ? '판매자 정보가 성공적으로 수정되었습니다.'
       : '개인 판매자 등록이 완료되었습니다.',
+    status: 'APPROVED' as const,
+    requiresApproval: false,
   };
 };
 
@@ -94,7 +96,6 @@ export const registerBusinessSeller = async (
     !dto ||
     !dto.registerToken ||
     !dto.companyName ||
-    !dto.businessLicenseUrl ||
     dto.isTermsAgreed !== true
   ) {
     const error = new Error('필수 입력값이 누락되었거나 이용 약관에 동의하지 않았습니다.');
@@ -116,20 +117,67 @@ export const registerBusinessSeller = async (
   }
 
   const existingAccount = await SettlementRepository.findAccountByUserId(userId);
-  if (existingAccount) {
-    const error = new Error('이미 판매자로 등록되었거나 승인 심사 대기 중인 회원입니다.');
-    error.name = 'AlreadyRegistered';
-    throw error;
-  }
 
-  const existingBusiness = await SettlementRepository.findAccountByBusinessNumber(payload.businessNumber);
-  if (existingBusiness) {
+  // 사업자등록번호 중복 검사 — 본인 row는 제외
+  const existingBusiness = await SettlementRepository.findAccountByBusinessNumber(
+    payload.businessNumber,
+  );
+  if (existingBusiness && existingBusiness.user_id !== userId) {
     const error = new Error('이미 등록되었거나 심사 대기 중인 사업자등록번호입니다.');
     error.name = 'DuplicateBusinessNumber';
     throw error;
   }
 
-  await SettlementRepository.createBusinessAccount(userId, {
+  // 최초 사업자 등록 시에는 사업자등록증 URL 필수.
+  // 사업자 → 사업자 정보변경 시에만 생략 허용 (기존 URL 유지).
+  const isBusinessUpdate = !!existingAccount && existingAccount.seller_type === 'BUSINESS';
+  if (!isBusinessUpdate && !dto.businessLicenseUrl) {
+    const error = new Error('사업자등록증 파일을 업로드해 주세요.');
+    error.name = 'ValidationError';
+    throw error;
+  }
+
+  if (!existingAccount) {
+    // 최초 사업자 등록
+    await SettlementRepository.createBusinessAccount(userId, {
+      representativeName: payload.name,
+      bank: payload.bank,
+      accountNumber: payload.accountNumber,
+      holderName: payload.holderName,
+      businessNumber: payload.businessNumber,
+      businessType: payload.businessType,
+      companyName: dto.companyName,
+      businessLicenseUrl: dto.businessLicenseUrl!,
+    });
+    return {
+      message: '사업자 판매자 신청이 완료되었습니다. 관리자 승인 후 최종 등록됩니다.',
+      status: 'PENDING' as const,
+      requiresApproval: true,
+    };
+  }
+
+  if (existingAccount.seller_type === 'INDIVIDUAL') {
+    // 개인 → 사업자 전환: 기존 INDIVIDUAL 삭제 후 BUSINESS PENDING 신규 생성
+    await SettlementRepository.deleteAccountByUserId(userId);
+    await SettlementRepository.createBusinessAccount(userId, {
+      representativeName: payload.name,
+      bank: payload.bank,
+      accountNumber: payload.accountNumber,
+      holderName: payload.holderName,
+      businessNumber: payload.businessNumber,
+      businessType: payload.businessType,
+      companyName: dto.companyName,
+      businessLicenseUrl: dto.businessLicenseUrl!,
+    });
+    return {
+      message: '사업자 판매자 변경 신청이 완료되었습니다. 관리자 승인 후 최종 등록됩니다.',
+      status: 'PENDING' as const,
+      requiresApproval: true,
+    };
+  }
+
+  // BUSINESS → BUSINESS 정보 변경: 같은 row 덮어쓰기 + PENDING + is_active=false
+  await SettlementRepository.updateBusinessAccountForApproval(userId, {
     representativeName: payload.name,
     bank: payload.bank,
     accountNumber: payload.accountNumber,
@@ -139,6 +187,9 @@ export const registerBusinessSeller = async (
     companyName: dto.companyName,
     businessLicenseUrl: dto.businessLicenseUrl,
   });
-
-  return { message: '사업자 판매자 신청이 완료되었습니다. 관리자 승인 후 최종 등록됩니다.' };
+  return {
+    message: '사업자 정보 변경 신청이 완료되었습니다. 관리자 승인 후 변경 사항이 반영됩니다.',
+    status: 'PENDING' as const,
+    requiresApproval: true,
+  };
 };

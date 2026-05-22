@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { verifyAccount, ViewAccount } from "../controllers/settlement.account.controller";
+import { verifyAccount, ViewAccount, ViewAccountDetail } from "../controllers/settlement.account.controller";
 import { registerIndividual, registerBusiness } from "../controllers/settlement.seller.controller";
 import { uploadLicense } from "../controllers/settlement.seller.controller";
 import { getMonthlySales, getYearlySettlements } from "../controllers/settlement.history.controller";
@@ -201,6 +201,53 @@ router.get("/accounts", authenticateJwt, ViewAccount);
 
 /**
  * @swagger
+ * /api/settlements/account/detail:
+ *   get:
+ *     summary: 판매자 정보 변경 화면용 상세 조회
+ *     description: |
+ *       정보 변경 화면에서 기존 등록 데이터를 prefill 하기 위한 상세 조회 API.
+ *       사업자는 추가 필드(businessType/businessNumber/companyName/representativeName/businessLicenseUrl/status) 포함.
+ *       businessNumber는 마스킹(`123-45-****0`)되어 응답되며, 변경 시 사용자가 실제 값을 다시 입력해야 함.
+ *       birthDate는 정책상 미저장이라 응답에 없음.
+ *     tags: [Settlement]
+ *     security:
+ *       - jwt: []
+ *     responses:
+ *       200:
+ *         description: 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string, example: 판매자 정보 조회가 완료되었습니다. }
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     sellerType: { type: string, enum: [INDIVIDUAL, BUSINESS] }
+ *                     status: { type: string, enum: [APPROVED, PENDING, REJECTED] }
+ *                     isActive: { type: boolean }
+ *                     bank: { type: string, example: "088" }
+ *                     accountNumber: { type: string, example: "1234567890" }
+ *                     holderName: { type: string, example: 홍길동 }
+ *                     name: { type: string, description: 실명(INDIVIDUAL) 또는 대표자명(BUSINESS) }
+ *                     businessType: { type: string, enum: [PERSONAL, CORPORATE], nullable: true }
+ *                     businessNumber: { type: string, nullable: true, description: 마스킹된 사업자번호, example: "123-45-****0" }
+ *                     representativeName: { type: string, nullable: true }
+ *                     companyName: { type: string, nullable: true }
+ *                     businessLicenseUrl: { type: string, nullable: true }
+ *                 statusCode: { type: integer, example: 200 }
+ *       401:
+ *         description: 로그인 필요
+ *       404:
+ *         description: 등록된 판매자 정보 없음
+ *       500:
+ *         description: 서버 오류
+ */
+router.get("/account/detail", authenticateJwt, ViewAccountDetail);
+
+/**
+ * @swagger
  * /api/settlements/register/individual:
  *   post:
  *     summary: 개인 판매자 등록
@@ -237,6 +284,8 @@ router.get("/accounts", authenticateJwt, ViewAccount);
  *               type: object
  *               properties:
  *                 message: { type: string, example: 개인 판매자 등록이 완료되었습니다. }
+ *                 status: { type: string, enum: [APPROVED], example: APPROVED }
+ *                 requiresApproval: { type: boolean, example: false, description: 개인 판매자는 즉시 승인이므로 항상 false }
  *                 statusCode: { type: integer, example: 200 }
  *       400:
  *         description: 필수값 누락 또는 약관 미동의
@@ -318,10 +367,18 @@ router.post("/upload/business-license", authenticateJwt, uploadLicense);
  * @swagger
  * /api/settlements/register/business:
  *   post:
- *     summary: 사업자 판매자 등록 신청
+ *     summary: 사업자 판매자 등록/변경 신청
  *     description: |
  *       /verify-account에서 발급받은 registerToken과 추가 사업자 정보(상호명, 사업자등록증)를 받아
- *       사업자 판매자로 등록 신청합니다. 상태는 PENDING으로 저장되고 관리자 승인 후 활성화됩니다.
+ *       사업자 판매자로 등록 또는 변경 신청합니다. 모든 시나리오에서 상태는 PENDING으로 저장되고 관리자 승인 후 활성화됩니다.
+ *
+ *       시나리오별 동작:
+ *       - 최초 사업자 등록: 신규 row 생성 (PENDING, is_active=false)
+ *       - 개인 → 사업자 전환: 기존 INDIVIDUAL row 삭제 + 신규 BUSINESS row 생성 (PENDING)
+ *       - 사업자 → 사업자 정보 변경: 같은 row 덮어쓰기 + status=PENDING + is_active=false (승인 전까지 일시 비활성화)
+ *
+ *       사업자등록증(businessLicenseUrl)은 사업자 → 사업자 변경 시에만 생략 가능 (기존 URL 유지).
+ *       최초 등록 / 개인→사업자 전환에는 필수.
  *     tags: [Settlement]
  *     security:
  *       - jwt: []
@@ -334,7 +391,6 @@ router.post("/upload/business-license", authenticateJwt, uploadLicense);
  *             required:
  *               - registerToken
  *               - companyName
- *               - businessLicenseUrl
  *               - isTermsAgreed
  *             properties:
  *               registerToken:
@@ -345,7 +401,7 @@ router.post("/upload/business-license", authenticateJwt, uploadLicense);
  *                 example: (주)프롬프트팩토리
  *               businessLicenseUrl:
  *                 type: string
- *                 description: /upload/business-license 응답으로 받은 fileUrl 또는 fileKey
+ *                 description: /upload/business-license 응답으로 받은 fileUrl. 사업자→사업자 변경 시에만 생략 가능
  *               isTermsAgreed:
  *                 type: boolean
  *                 example: true
@@ -357,7 +413,9 @@ router.post("/upload/business-license", authenticateJwt, uploadLicense);
  *             schema:
  *               type: object
  *               properties:
- *                 message: { type: string, example: 사업자 판매자 신청이 완료되었습니다. 관리자 승인 후 최종 등록됩니다. }
+ *                 message: { type: string, description: 시나리오별 안내 메시지, example: 사업자 판매자 신청이 완료되었습니다. 관리자 승인 후 최종 등록됩니다. }
+ *                 status: { type: string, enum: [PENDING], example: PENDING }
+ *                 requiresApproval: { type: boolean, example: true, description: 사업자는 관리자 승인 필요 — 항상 true }
  *                 statusCode: { type: integer, example: 200 }
  *       400:
  *         description: 필수값 누락 또는 약관 미동의
@@ -370,7 +428,7 @@ router.post("/upload/business-license", authenticateJwt, uploadLicense);
  *             schema:
  *               type: object
  *               properties:
- *                 error: { type: string, description: "RegisterTokenAlreadyUsed | AlreadyRegistered | DuplicateBusinessNumber" }
+ *                 error: { type: string, description: "RegisterTokenAlreadyUsed | DuplicateBusinessNumber" }
  *                 message: { type: string }
  *                 statusCode: { type: integer, example: 409 }
  *       500:

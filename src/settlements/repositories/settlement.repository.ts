@@ -19,6 +19,18 @@ export interface CreateBusinessAccountInput {
   businessLicenseUrl: string;
 }
 
+export interface UpdateBusinessAccountInput {
+  representativeName: string;
+  bank: string;
+  accountNumber: string;
+  holderName: string;
+  businessNumber: string;
+  businessType: BusinessKind;
+  companyName: string;
+  // optional — 빈 값이면 기존 URL 유지
+  businessLicenseUrl?: string | null;
+}
+
 export const SettlementRepository = {
   upsertIndividualAccount: async (
     userId: number,
@@ -80,6 +92,34 @@ export const SettlementRepository = {
         status: 'PENDING',
         is_active: false,
       },
+    });
+  },
+
+  // 사업자 → 사업자 정보변경.
+  // 같은 row 덮어쓰기 + status=PENDING + is_active=false (관리자 승인 전까지 일시 비활성화).
+  // businessLicenseUrl이 undefined면 기존 URL 유지.
+  updateBusinessAccountForApproval: async (
+    userId: number,
+    dto: UpdateBusinessAccountInput,
+  ) => {
+    const data: Record<string, unknown> = {
+      bank_code: dto.bank,
+      account_number: dto.accountNumber,
+      account_holder: dto.holderName,
+      business_number: dto.businessNumber,
+      business_type: dto.businessType,
+      company_name: dto.companyName,
+      representative_name: dto.representativeName,
+      seller_type: 'BUSINESS',
+      status: 'PENDING',
+      is_active: false,
+    };
+    if (dto.businessLicenseUrl) {
+      data.business_license_url = dto.businessLicenseUrl;
+    }
+    return await prisma.settlementAccount.update({
+      where: { user_id: userId },
+      data,
     });
   },
 

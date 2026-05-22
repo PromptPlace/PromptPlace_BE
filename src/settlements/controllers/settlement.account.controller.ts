@@ -1,5 +1,9 @@
 import { Request, Response } from 'express';
-import { verifySellerAccount, getAccountInfo } from '../services/settlement.account.service';
+import {
+  verifySellerAccount,
+  getAccountInfo,
+  getSellerAccountDetail,
+} from '../services/settlement.account.service';
 import { VerifyAccountRequestDto, ViewAccountResponseDto } from '../dtos/settlement.dto';
 
 export const verifyAccount = async (req: Request, res: Response) => {
@@ -47,6 +51,33 @@ export const verifyAccount = async (req: Request, res: Response) => {
         statusCode: 400,
       });
     }
+    const status = error.statusCode || 500;
+    return res.status(status).json({
+      error: error.error || 'InternalServerError',
+      message: error.message || '알 수 없는 오류가 발생했습니다.',
+      statusCode: status,
+    });
+  }
+};
+
+export const ViewAccountDetail = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: '로그인이 필요합니다.',
+        statusCode: 401,
+      });
+    }
+    const userId = (req.user as { user_id: number }).user_id;
+    const data = await getSellerAccountDetail(userId);
+    return res.status(200).json({
+      message: '판매자 정보 조회가 완료되었습니다.',
+      data,
+      statusCode: 200,
+    });
+  } catch (error: any) {
     const status = error.statusCode || 500;
     return res.status(status).json({
       error: error.error || 'InternalServerError',
