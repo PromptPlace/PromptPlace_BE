@@ -62,28 +62,5 @@ export const PAYPLE_BANKS: Record<string, string> = {
   "304": "현대캐피탈",
 };
 
-// Payple 명세에서 제거된 코드 — 기존 등록 사용자 호환 보존용.
-// 신규 등록/인증에는 사용 금지. Phase 11 운영 마이그레이션 후 제거 예정.
-export const LEGACY_PAYPLE_BANKS: Record<string, string> = {
-  "008": "수출입은행",
-  "054": "HSBC은행",
-  "055": "도이치은행",
-  "057": "제이피모간체이스은행",
-  "058": "미즈호은행",
-  "059": "엠유에프지은행",
-  "060": "BOA은행",
-  "061": "비엔피파리바은행",
-  "062": "중국공상은행",
-  "063": "중국은행",
-  "067": "중국건설은행",
-  "076": "신용보증기금",
-  "077": "기술보증기금",
-};
-
-export const ALL_KNOWN_BANKS: Record<string, string> = { ...PAYPLE_BANKS, ...LEGACY_PAYPLE_BANKS };
-
 export const isValidPaypleBank = (code: string): boolean =>
   Object.prototype.hasOwnProperty.call(PAYPLE_BANKS, code);
-
-export const isKnownBank = (code: string): boolean =>
-  Object.prototype.hasOwnProperty.call(ALL_KNOWN_BANKS, code);
