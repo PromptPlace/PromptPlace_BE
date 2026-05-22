@@ -55,31 +55,35 @@ export const SettlementHistoryRepository = {
     Array<{
       year: number;
       count: number;
-      total_sales: number;
-      total_settled: number;
-      total_fee: number;
-      succeeded_amount: number;
-      pending_amount: number;
+      total_sales: number;          // gross — 환불 포함 (비교용)
+      total_settled: number;        // net — Succeed 합계 (환불 제외)
+      total_fee: number;            // gross fee (환불 포함)
+      succeeded_amount: number;     // Succeed만
+      pending_amount: number;       // Pending만
+      refunded_amount: number;      // Refunded만
+      refunded_count: number;
     }>
   > {
     const rows = await prisma.$queryRaw<
       Array<{
         year: number;
         count: bigint;
-        total_settled: bigint | null;
         total_fee: bigint | null;
         succeeded_amount: bigint | null;
         pending_amount: bigint | null;
+        refunded_amount: bigint | null;
+        refunded_count: bigint;
         total_sales: bigint | null;
       }>
     >`
       SELECT
         YEAR(s.created_at) AS year,
         COUNT(*) AS count,
-        SUM(s.amount) AS total_settled,
         SUM(s.fee) AS total_fee,
         SUM(CASE WHEN s.status = ${Status.Succeed} THEN s.amount ELSE 0 END) AS succeeded_amount,
         SUM(CASE WHEN s.status = ${Status.Pending} THEN s.amount ELSE 0 END) AS pending_amount,
+        SUM(CASE WHEN s.status = ${Status.Refunded} THEN s.amount ELSE 0 END) AS refunded_amount,
+        SUM(CASE WHEN s.status = ${Status.Refunded} THEN 1 ELSE 0 END) AS refunded_count,
         SUM(p.amount) AS total_sales
       FROM Settlement s
       JOIN Payment pm ON pm.payment_id = s.payment_id
@@ -89,14 +93,19 @@ export const SettlementHistoryRepository = {
       ORDER BY year DESC
     `;
 
-    return rows.map((r) => ({
-      year: Number(r.year),
-      count: Number(r.count),
-      total_sales: Number(r.total_sales ?? 0),
-      total_settled: Number(r.total_settled ?? 0),
-      total_fee: Number(r.total_fee ?? 0),
-      succeeded_amount: Number(r.succeeded_amount ?? 0),
-      pending_amount: Number(r.pending_amount ?? 0),
-    }));
+    return rows.map((r) => {
+      const succeeded = Number(r.succeeded_amount ?? 0);
+      return {
+        year: Number(r.year),
+        count: Number(r.count),
+        total_sales: Number(r.total_sales ?? 0),
+        total_settled: succeeded,                       // net: 환불 제외, 정산 완료만
+        total_fee: Number(r.total_fee ?? 0),
+        succeeded_amount: succeeded,
+        pending_amount: Number(r.pending_amount ?? 0),
+        refunded_amount: Number(r.refunded_amount ?? 0),
+        refunded_count: Number(r.refunded_count ?? 0),
+      };
+    });
   },
 };
