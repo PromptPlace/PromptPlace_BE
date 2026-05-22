@@ -18,8 +18,17 @@ const router = Router();
  * @swagger
  * /api/settlements/verify-account:
  *   post:
- *     summary: 판매자 계좌 인증 및 등록
- *     description: 사용자가 입력한 은행 계좌번호의 예금주명이 포트원 API를 통해 조회한 예금주명과 일치하는지 확인 후, 인증 성공 시 유저의 정산 계좌로 등록 또는 수정(Upsert)합니다.
+ *     summary: 판매자 계좌 인증 및 register-token 발급
+ *     description: |
+ *       페이플 실명-계좌 인증을 호출하고 성공 시 register-token(JWT, 5분 TTL, 1회용)을 발급합니다.
+ *       프론트엔드는 인증 성공 후 받은 registerToken을 register API 호출 시 그대로 전달해야 합니다.
+ *
+ *       sellerType별 요청 필드:
+ *       - INDIVIDUAL: name + birthDate (YYMMDD) + bank/accountNumber/holderName
+ *       - BUSINESS + PERSONAL(개인사업자): name(대표자명) + birthDate(YYMMDD) + bank/accountNumber/holderName
+ *       - BUSINESS + CORPORATE(법인사업자): name(대표자명) + businessNumber(10자리) + bank/accountNumber/holderName(법인명)
+ *
+ *       페이플 호출 한도(일일 5회)는 우리 서비스 측 Redis로 관리합니다.
  *     tags: [Settlement]
  *     security:
  *       - jwt: []
@@ -30,30 +39,48 @@ const router = Router();
  *           schema:
  *             type: object
  *             required:
+ *               - sellerType
  *               - name
  *               - bank
  *               - accountNumber
  *               - holderName
  *             properties:
+ *               sellerType:
+ *                 type: string
+ *                 enum: [INDIVIDUAL, BUSINESS]
+ *                 example: BUSINESS
+ *               businessType:
+ *                 type: string
+ *                 enum: [PERSONAL, CORPORATE]
+ *                 description: sellerType이 BUSINESS일 때 필수. 개인사업자(PERSONAL) / 법인사업자(CORPORATE)
+ *                 example: CORPORATE
  *               name:
  *                 type: string
- *                 description: 일반 개인 판매자 실명 / 개인·법인 사업자 대표자명
+ *                 description: 실명(INDIVIDUAL) / 대표자명(BUSINESS)
  *                 example: 홍길동
+ *               birthDate:
+ *                 type: string
+ *                 description: 예금주 생년월일 6자리(YYMMDD). INDIVIDUAL / BUSINESS+PERSONAL 필수
+ *                 example: "880212"
+ *               businessNumber:
+ *                 type: string
+ *                 description: 사업자등록번호 10자리(숫자만). BUSINESS+CORPORATE 필수
+ *                 example: "1234567890"
  *               bank:
  *                 type: string
- *                 description: 포트원 표준 은행 코드
- *                 example: KOOKMIN
+ *                 description: 페이플 표준 은행 코드 3자리
+ *                 example: "088"
  *               accountNumber:
  *                 type: string
- *                 description: '-'를 제외한 계좌 번호
+ *                 description: 하이픈을 제외한 계좌 번호
  *                 example: "1234567890"
  *               holderName:
  *                 type: string
- *                 description: 계좌 예금주명
+ *                 description: 계좌 예금주명. 법인은 법인명, 그 외엔 실명/대표자명
  *                 example: 홍길동
  *     responses:
  *       200:
- *         description: 계좌 인증 및 등록 성공
+ *         description: 계좌 인증 성공. registerToken 발급
  *         content:
  *           application/json:
  *             schema:
@@ -61,78 +88,19 @@ const router = Router();
  *               properties:
  *                 message:
  *                   type: string
- *                   example: 계좌 인증이 완되었습니다.
+ *                   example: 계좌 인증이 완료되었습니다.
+ *                 registerToken:
+ *                   type: string
+ *                   description: 등록 API 호출용 1회용 JWT(5분 TTL)
+ *                 expiresIn:
+ *                   type: integer
+ *                   description: 토큰 만료 시간(초)
+ *                   example: 300
  *                 statusCode:
  *                   type: integer
  *                   example: 200
- *       401:
- *         description: 인증 실패 - 로그인하지 않은 사용자
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Unauthorized
- *                 message:
- *                   type: string
- *                   example: 로그인이 필요합니다.
- *                 statusCode:
- *                   type: integer
- *                   example: 401
  *       400:
- *         description: 검증 실패 (ValidationError, NameMismatch, AccountHolderMismatch, InvalidAccountInfo)
- *         content:
- *           application/json:
- *             schema:
- *               oneOf:
- *                 - type: object
- *                   properties:
- *                     error:
- *                       type: string
- *                       example: ValidationError
- *                     message:
- *                       type: string
- *                       example: 필수 입력값(생년월일, 은행, 계좌번호, 실명/대표자명, 예금주명)이 모두 입력되지 않았습니다.
- *                     statusCode:
- *                       type: integer
- *                       example: 400
- *                 - type: object
- *                   properties:
- *                     error:
- *                       type: string
- *                       example: NameMismatch
- *                     message:
- *                       type: string
- *                       example: 입력하신 실명/대표자명과 예금주명이 일치하지 않습니다.
- *                     statusCode:
- *                       type: integer
- *                       example: 400
- *                 - type: object
- *                   properties:
- *                     error:
- *                       type: string
- *                       example: AccountHolderMismatch
- *                     message:
- *                       type: string
- *                       example: 인증 실패: 실제 계좌의 예금주명과 다릅니다.
- *                     statusCode:
- *                       type: integer
- *                       example: 400
- *                 - type: object
- *                   properties:
- *                     error:
- *                       type: string
- *                       example: InvalidAccountInfo
- *                     message:
- *                       type: string
- *                       example: 유효하지 않은 계좌번호이거나 지원하지 않는 은행입니다.
- *                     statusCode:
- *                       type: integer
- *                       example: 400
- *       500:
- *         description: 서버 오류 - 알 수 없는 예외 발생
+ *         description: 검증 실패 또는 계좌 인증 실패
  *         content:
  *           application/json:
  *             schema:
@@ -140,13 +108,60 @@ const router = Router();
  *               properties:
  *                 error:
  *                   type: string
- *                   example: InternalServerError
+ *                   description: ValidationError | AccountVerificationError | InvalidAccountInfo
+ *                 subCode:
+ *                   type: string
+ *                   description: |
+ *                     계좌 인증 실패 상세 코드 (프론트 모달 분기용)
+ *                     NAME_MISMATCH / BANK_MISMATCH / ACCOUNT_NOT_FOUND / ACCOUNT_RESTRICTED /
+ *                     UNSUPPORTED_TYPE / BANK_TIMEOUT / BANK_MAINTENANCE / LIMIT_EXCEEDED /
+ *                     INVALID_BIRTHDATE / INVALID_BUSINESS_NUMBER / SYSTEM_ERROR
  *                 message:
  *                   type: string
- *                   example: 알 수 없는 오류가 발생했습니다.
  *                 statusCode:
  *                   type: integer
- *                   example: 500
+ *                   example: 400
+ *             examples:
+ *               nameMismatch:
+ *                 summary: 모달 1 - 예금주명 불일치
+ *                 value: { error: AccountVerificationError, subCode: NAME_MISMATCH, message: "실명/대표자명과 예금주명이 일치하지 않습니다. 다시 확인해주세요.", statusCode: 400 }
+ *               bankMismatch:
+ *                 summary: 모달 2 - 은행 코드/계좌번호 형식 오류
+ *                 value: { error: AccountVerificationError, subCode: BANK_MISMATCH, message: "선택하신 은행과 계좌번호가 일치하지 않습니다. 은행명을 다시 확인해 주세요.", statusCode: 400 }
+ *               accountNotFound:
+ *                 summary: 모달 3 - 없는 계좌
+ *                 value: { error: AccountVerificationError, subCode: ACCOUNT_NOT_FOUND, message: "해당 계좌는 존재하지 않는 계좌입니다. 다시 확인해주세요.", statusCode: 400 }
+ *               accountRestricted:
+ *                 summary: 모달 4 - 거래 불가 계좌 (해약/사고/거래중지)
+ *                 value: { error: AccountVerificationError, subCode: ACCOUNT_RESTRICTED, message: "입력하신 계좌는 현재 정상적인 거래가 불가능한 상태입니다. 은행 확인 후 다시 시도해 주세요.", statusCode: 400 }
+ *               unsupportedType:
+ *                 summary: 모달 5 - 지원하지 않는 계좌 유형
+ *                 value: { error: AccountVerificationError, subCode: UNSUPPORTED_TYPE, message: "해당 계좌는 정산용으로 등록할 수 없는 유형입니다. 원화 입출금이 가능한 보통예금 계좌로 다시 시도해 주세요.", statusCode: 400 }
+ *               bankTimeout:
+ *                 summary: 모달 6 - 타행 통신 오류/지연
+ *                 value: { error: AccountVerificationError, subCode: BANK_TIMEOUT, message: "해당 은행과의 통신이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.", statusCode: 400 }
+ *               bankMaintenance:
+ *                 summary: 모달 7 - 은행 점검 시간
+ *                 value: { error: AccountVerificationError, subCode: BANK_MAINTENANCE, message: "현재 은행 정기 점검 시간(가능시간 : 01시 ~ 23시)입니다. 점검 종료 후 다시 시도해 주세요.", statusCode: 400 }
+ *               limitExceeded:
+ *                 summary: 모달 8 - 일일 인증 횟수 초과(자체 정책 5회)
+ *                 value: { error: AccountVerificationError, subCode: LIMIT_EXCEEDED, message: "일일 계좌 인증 횟수를 초과했습니다. 보안을 위해 내일 다시 시도해 주세요.", statusCode: 400 }
+ *               invalidBirthDate:
+ *                 summary: 신규 모달 A - 생년월일 형식 오류
+ *                 value: { error: AccountVerificationError, subCode: INVALID_BIRTHDATE, message: "입력하신 생년월일이 올바르지 않습니다. YYMMDD 형식으로 다시 입력해 주세요.", statusCode: 400 }
+ *               invalidBusinessNumber:
+ *                 summary: 신규 모달 B - 사업자등록번호 형식 오류
+ *                 value: { error: AccountVerificationError, subCode: INVALID_BUSINESS_NUMBER, message: "입력하신 사업자등록번호가 올바르지 않습니다. 10자리 숫자로 다시 입력해 주세요.", statusCode: 400 }
+ *               systemError:
+ *                 summary: 신규 모달 C - 시스템/인프라 오류
+ *                 value: { error: AccountVerificationError, subCode: SYSTEM_ERROR, message: "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.", statusCode: 400 }
+ *               invalidAccountInfo:
+ *                 summary: 지원하지 않는 은행 코드
+ *                 value: { error: InvalidAccountInfo, message: "유효하지 않은 계좌번호이거나 지원하지 않는 은행입니다.", statusCode: 400 }
+ *       401:
+ *         description: 로그인 필요
+ *       500:
+ *         description: 서버 오류
  */
 router.post("/verify-account", authenticateJwt, verifyAccount);
 
@@ -155,9 +170,8 @@ router.post("/verify-account", authenticateJwt, verifyAccount);
  * /api/settlements/accounts:
  *   get:
  *     summary: 등록된 정산 계좌 정보 조회
- *     description: 현재 로그인한 사용자의 정산용 계좌 정보(은행, 계좌번호, 예금주명)를 조회합니다.
- *     tags:
- *       - Settlement
+ *     description: 현재 로그인한 사용자의 정산 계좌(은행, 계좌번호, 예금주명) 정보를 조회합니다.
+ *     tags: [Settlement]
  *     security:
  *       - jwt: []
  *     responses:
@@ -168,72 +182,20 @@ router.post("/verify-account", authenticateJwt, verifyAccount);
  *             schema:
  *               type: object
  *               properties:
- *                 message:
- *                   type: string
- *                   example: 계좌 정보 조회가 완료되었습니다.
+ *                 message: { type: string, example: 계좌 정보 조회가 완료되었습니다. }
  *                 data:
  *                   type: object
  *                   properties:
- *                     bank:
- *                       type: string
- *                       example: KOOKMIN
- *                     accountNumber:
- *                       type: string
- *                       example: "1234567890"
- *                     holderName:
- *                       type: string
- *                       example: 홍길동
- *                 statusCode:
- *                   type: integer
- *                   example: 200
+ *                     bank: { type: string, example: "088" }
+ *                     accountNumber: { type: string, example: "1234567890" }
+ *                     holderName: { type: string, example: 홍길동 }
+ *                 statusCode: { type: integer, example: 200 }
  *       401:
- *         description: 인증 실패 - 로그인하지 않은 사용자
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Unauthorized
- *                 message:
- *                   type: string
- *                   example: 로그인이 필요합니다.
- *                 statusCode:
- *                   type: integer
- *                   example: 401
+ *         description: 로그인 필요
  *       404:
- *         description: 계좌 정보 없음 - 등록된 계좌가 없는 경우
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: AccountNotFound
- *                 message:
- *                   type: string
- *                   example: 등록된 계좌 정보가 존재하지 않습니다.
- *                 statusCode:
- *                   type: integer
- *                   example: 404
+ *         description: 등록된 계좌 없음
  *       500:
  *         description: 서버 오류
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: InternalServerError
- *                 message:
- *                   type: string
- *                   example: 알 수 없는 오류가 발생했습니다.
- *                 statusCode:
- *                   type: integer
- *                   example: 500
  */
 router.get("/accounts", authenticateJwt, ViewAccount);
 
@@ -241,10 +203,12 @@ router.get("/accounts", authenticateJwt, ViewAccount);
  * @swagger
  * /api/settlements/register/individual:
  *   post:
- *     summary: 개인 판매자 등록 및 정보 수정
- *     description: 개인정보 수집 이용 동의 및 계좌 정보를 입력받아 일반 개인 판매자로 등록하거나 판매자 정보를 수정합니다. (일일 계좌 인증 5회 제한)
- *     tags:
- *       - Settlement
+ *     summary: 개인 판매자 등록
+ *     description: |
+ *       /verify-account에서 발급받은 registerToken과 약관 동의를 받아 개인 판매자로 등록합니다.
+ *       registerToken은 1회용이며 만료/재사용 시 401/409 반환.
+ *       기존 사업자 등록이 있으면 삭제하고 개인으로 재등록됩니다.
+ *     tags: [Settlement]
  *     security:
  *       - jwt: []
  *     requestBody:
@@ -254,175 +218,50 @@ router.get("/accounts", authenticateJwt, ViewAccount);
  *           schema:
  *             type: object
  *             required:
- *               - name
- *               - birthDate
- *               - bank
- *               - accountNumber
- *               - holderName
+ *               - registerToken
  *               - isTermsAgreed
  *             properties:
- *               name:
+ *               registerToken:
  *                 type: string
- *                 description: 실명
- *                 example: 홍길동
- *               birthDate:
- *                 type: string
- *                 description: 예금주 생년월일 6자리 (YYMMDD)
- *                 example: "880212"
- *               bank:
- *                 type: string
- *                 description: 페이플 금융기관 3자리 숫자 코드
- *                 example: "004"
- *               accountNumber:
- *                 type: string
- *                 description: '-'를 제외한 계좌 번호
- *                 example: "1234567890"
- *               holderName:
- *                 type: string
- *                 description: 계좌 예금주명
- *                 example: 홍길동
+ *                 description: /verify-account 응답으로 받은 1회용 JWT
  *               isTermsAgreed:
  *                 type: boolean
- *                 description: 개인정보 수집 이용 동의 여부 (반드시 true)
+ *                 description: 개인정보 수집 이용 동의 (반드시 true)
  *                 example: true
  *     responses:
  *       200:
- *         description: 판매자 등록 및 수정 성공
+ *         description: 등록 성공 (신규 또는 수정)
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 message:
- *                   type: string
- *                 statusCode:
- *                   type: integer
- *                   example: 200
- *             examples:
- *               CreateSuccess:
- *                 summary: 신규 등록 성공
- *                 value:
- *                   message: 개인 판매자 등록이 완료되었습니다.
- *                   statusCode: 200
- *               UpdateSuccess:
- *                 summary: 기존 정보 수정 성공
- *                 value:
- *                   message: 판매자 정보가 성공적으로 수정되었습니다.
- *                   statusCode: 200
+ *                 message: { type: string, example: 개인 판매자 등록이 완료되었습니다. }
+ *                 statusCode: { type: integer, example: 200 }
  *       400:
- *         description: 검증 실패 또는 계좌 인증 실패
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: 에러 코드 (ValidationError 또는 AccountVerificationError)
- *                 subCode:
- *                   type: string
- *                   description: 계좌 인증 실패 상세 코드 (프론트엔드 모달 분기용)
- *                 message:
- *                   type: string
- *                   description: 에러 상세 메시지
- *                 statusCode:
- *                   type: integer
- *                   example: 400
- *             examples:
- *               validationError:
- *                 summary: 필수 입력값 누락
- *                 value:
- *                   error: ValidationError
- *                   message: 필수 입력값이 누락되었거나 이용 약관에 동의하지 않았습니다.
- *                   statusCode: 400
- *               nameMismatch:
- *                 summary: [모달 1] 예금주명 불일치
- *                 value:
- *                   error: AccountVerificationError
- *                   subCode: NAME_MISMATCH
- *                   message: 실명과 예금주명이 일치하는지 다시 확인해주세요.
- *                   statusCode: 400
- *               bankMismatch:
- *                 summary: [모달 2] 은행 불일치
- *                 value:
- *                   error: AccountVerificationError
- *                   subCode: BANK_MISMATCH
- *                   message: 선택하신 은행과 계좌번호가 일치하지 않습니다. 은행명을 다시 확인해 주세요.
- *                   statusCode: 400
- *               accountNotFound:
- *                 summary: [모달 3] 없는 계좌
- *                 value:
- *                   error: AccountVerificationError
- *                   subCode: ACCOUNT_NOT_FOUND
- *                   message: 해당 계좌는 존재하지 않는 계좌입니다. 다시 확인해주세요.
- *                   statusCode: 400
- *               accountRestricted:
- *                 summary: [모달 4] 거래 불가 계좌 (정지/해약 등)
- *                 value:
- *                   error: AccountVerificationError
- *                   subCode: ACCOUNT_RESTRICTED
- *                   message: 입력하신 계좌는 현재 정상적인 거래가 불가능한 상태(해약/사고/정지)입니다. 은행 확인 후 다시 시도해 주세요.
- *                   statusCode: 400
- *               unsupportedType:
- *                 summary: [모달 5] 지원하지 않는 계좌 (가상계좌 등)
- *                 value:
- *                   error: AccountVerificationError
- *                   subCode: UNSUPPORTED_TYPE
- *                   message: 해당 계좌는 정산용으로 등록할 수 없는 유형입니다. 원화 입출금이 가능한 보통예금 계좌로 다시 시도해 주세요.
- *                   statusCode: 400
- *               bankTimeout:
- *                 summary: [모달 6] 타행 통신 오류/지연
- *                 value:
- *                   error: AccountVerificationError
- *                   subCode: BANK_TIMEOUT
- *                   message: 해당 은행과의 통신이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.
- *                   statusCode: 400
- *               bankMaintenance:
- *                 summary: [모달 7] 은행 점검 시간
- *                 value:
- *                   error: AccountVerificationError
- *                   subCode: BANK_MAINTENANCE
- *                   message: 현재 은행 정기 점검 시간(가능시간 : 01시 ~ 23시)입니다. 점검 종료 후 다시 시도해 주세요.
- *                   statusCode: 400
- *               limitExceeded:
- *                 summary: [모달 8] 일일 인증 횟수 초과
- *                 value:
- *                   error: AccountVerificationError
- *                   subCode: LIMIT_EXCEEDED
- *                   message: 일일 계좌 인증 횟수를 초과했습니다. 보안을 위해 내일 다시 시도해 주세요.
- *                   statusCode: 400
+ *         description: 필수값 누락 또는 약관 미동의
  *       401:
- *         description: 인증 실패 - 로그인하지 않은 사용자
+ *         description: registerToken 만료/무효 또는 로그인 필요
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 error:
- *                   type: string
- *                   example: Unauthorized
- *                 message:
- *                   type: string
- *                   example: 로그인이 필요합니다.
- *                 statusCode:
- *                   type: integer
- *                   example: 401
+ *                 error: { type: string, example: InvalidRegisterToken }
+ *                 message: { type: string, example: 등록 토큰이 만료되었거나 유효하지 않습니다. 계좌 인증을 다시 진행해 주세요. }
+ *                 statusCode: { type: integer, example: 401 }
+ *       409:
+ *         description: registerToken 재사용
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error: { type: string, example: RegisterTokenAlreadyUsed }
+ *                 message: { type: string, example: 이미 사용된 등록 토큰입니다. 계좌 인증을 다시 진행해 주세요. }
+ *                 statusCode: { type: integer, example: 409 }
  *       500:
- *         description: 서버 오류 - 알 수 없는 예외 발생
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: InternalServerError
- *                 message:
- *                   type: string
- *                   example: 서버 오류가 발생했습니다.
- *                 statusCode:
- *                   type: integer
- *                   example: 500
+ *         description: 서버 오류
  */
 router.post("/register/individual", authenticateJwt, registerIndividual);
 
@@ -431,9 +270,11 @@ router.post("/register/individual", authenticateJwt, registerIndividual);
  * /api/settlements/upload/business-license:
  *   post:
  *     summary: 사업자등록증 업로드 (개인/법인 사업자)
- *     description: 개인 또는 법인 사업자의 사업자등록증 파일(이미지 또는 PDF, 최대 20MB)을 업로드하고 S3 URL을 반환받습니다.
- *     tags:
- *       - Settlement
+ *     description: |
+ *       사업자등록증 파일(jpg/jpeg/png/pdf, 최대 20MB)을 업로드합니다.
+ *       업로드 시 magic-byte로 실제 파일 형식을 검증하므로 확장자 위장 파일은 415로 거부됩니다.
+ *       S3 객체 키는 예측 불가한 UUID로 생성됩니다.
+ *     tags: [Settlement]
  *     security:
  *       - jwt: []
  *     requestBody:
@@ -442,110 +283,34 @@ router.post("/register/individual", authenticateJwt, registerIndividual);
  *         multipart/form-data:
  *           schema:
  *             type: object
- *             required:
- *               - file
+ *             required: [file]
  *             properties:
  *               file:
  *                 type: string
  *                 format: binary
- *                 description: 업로드할 사업자등록증 파일 (jpg, jpeg, png, pdf) / 최대 20MB
+ *                 description: jpg / jpeg / png / pdf (최대 20MB)
  *     responses:
  *       200:
- *         description: 파일 업로드 성공
+ *         description: 업로드 성공
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 message:
- *                   type: string
- *                   example: 사업자등록증 업로드가 완료되었습니다.
- *                 fileUrl:
- *                   type: string
- *                   example: https://promptplace-storage.s3.ap-northeast-2.amazonaws.com/business-licenses/123-1709865432123.jpg
- *                 statusCode:
- *                   type: integer
- *                   example: 200
+ *                 message: { type: string, example: 사업자등록증 업로드가 완료되었습니다. }
+ *                 fileKey: { type: string, description: S3 객체 키 (DB/Register API에 전달용), example: "business-licenses/0e5b9d7a-...-.pdf" }
+ *                 fileUrl: { type: string, description: 현재 형식의 S3 URL (버킷 private 전환 시 presigned로 교체 예정) }
+ *                 statusCode: { type: integer, example: 200 }
  *       400:
- *         description: 업로드할 파일 누락
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: ValidationError
- *                 message:
- *                   type: string
- *                   example: 업로드할 파일이 첨부되지 않았습니다.
- *                 statusCode:
- *                   type: integer
- *                   example: 400
+ *         description: 파일 누락
  *       401:
- *         description: 인증 실패 - 로그인하지 않은 사용자
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Unauthorized
- *                 message:
- *                   type: string
- *                   example: 로그인이 필요합니다.
- *                 statusCode:
- *                   type: integer
- *                   example: 401
+ *         description: 로그인 필요
  *       413:
- *         description: 파일 용량 제한 초과 (20MB)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: FileTooLarge
- *                 message:
- *                   type: string
- *                   example: 파일 크기는 최대 20MB까지만 허용됩니다.
- *                 statusCode:
- *                   type: integer
- *                   example: 413
+ *         description: 파일 용량 초과 (20MB)
  *       415:
- *         description: 지원하지 않는 파일 형식
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: InvalidFileType
- *                 message:
- *                   type: string
- *                   example: 지원하지 않는 파일 형식입니다. (jpg, jpeg, png, pdf만 가능)
- *                 statusCode:
- *                   type: integer
- *                   example: 415
+ *         description: 지원하지 않는 파일 형식 또는 확장자 위장 (magic-byte 불일치)
  *       500:
- *         description: 서버 오류 - 알 수 없는 예외 발생
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: InternalServerError
- *                 message:
- *                   type: string
- *                   example: 서버 오류가 발생했습니다.
- *                 statusCode:
- *                   type: integer
- *                   example: 500
+ *         description: 서버 오류
  */
 router.post("/upload/business-license", authenticateJwt, uploadLicense);
 
@@ -553,10 +318,11 @@ router.post("/upload/business-license", authenticateJwt, uploadLicense);
  * @swagger
  * /api/settlements/register/business:
  *   post:
- *     summary: 사업자 판매자 등록
- *     description: 개인/법인 사업자의 정보와 사업자등록증 URL을 입력받아 판매자로 등록 신청합니다. (관리자 승인 대기 상태로 저장됨)
- *     tags:
- *       - Settlement
+ *     summary: 사업자 판매자 등록 신청
+ *     description: |
+ *       /verify-account에서 발급받은 registerToken과 추가 사업자 정보(상호명, 사업자등록증)를 받아
+ *       사업자 판매자로 등록 신청합니다. 상태는 PENDING으로 저장되고 관리자 승인 후 활성화됩니다.
+ *     tags: [Settlement]
  *     security:
  *       - jwt: []
  *     requestBody:
@@ -566,137 +332,49 @@ router.post("/upload/business-license", authenticateJwt, uploadLicense);
  *           schema:
  *             type: object
  *             required:
- *               - representativeName
- *               - bank
- *               - accountNumber
- *               - holderName
- *               - businessNumber
+ *               - registerToken
  *               - companyName
  *               - businessLicenseUrl
  *               - isTermsAgreed
  *             properties:
- *               representativeName:
+ *               registerToken:
  *                 type: string
- *                 description: 대표자명
- *                 example: 김대표
- *               bank:
- *                 type: string
- *                 description: 포트원 표준 은행 코드
- *                 example: SHINHAN
- *               accountNumber:
- *                 type: string
- *                 description: '-'를 제외한 계좌 번호
- *                 example: "0987654321"
- *               holderName:
- *                 type: string
- *                 description: 계좌 예금주명
- *                 example: 김대표
- *               businessNumber:
- *                 type: string
- *                 description: 사업자등록번호 ('-' 제외 숫자만)
- *                 example: "1234567890"
+ *                 description: /verify-account 응답으로 받은 1회용 JWT
  *               companyName:
  *                 type: string
- *                 description: 상호명
  *                 example: (주)프롬프트팩토리
  *               businessLicenseUrl:
  *                 type: string
- *                 description: 업로드 API로 발급받은 사업자등록증 이미지 URL
- *                 example: https://promptplace-storage.s3.ap-northeast-2.amazonaws.com/business-licenses/123-1709865432123.jpg
+ *                 description: /upload/business-license 응답으로 받은 fileUrl 또는 fileKey
  *               isTermsAgreed:
  *                 type: boolean
- *                 description: 개인정보 수집 이용 동의 여부 (반드시 true)
  *                 example: true
  *     responses:
  *       200:
- *         description: 판매자 신청 성공 (승인 대기 상태)
+ *         description: 신청 성공 (PENDING 상태)
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 message:
- *                   type: string
- *                   example: 사업자 판매자 신청이 완료되었습니다. 관리자 승인 후 최종 등록됩니다.
- *                 statusCode:
- *                   type: integer
- *                   example: 200
+ *                 message: { type: string, example: 사업자 판매자 신청이 완료되었습니다. 관리자 승인 후 최종 등록됩니다. }
+ *                 statusCode: { type: integer, example: 200 }
  *       400:
- *         description: 검증 실패 - 필수 입력값 누락 또는 약관 미동의
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: ValidationError
- *                 message:
- *                   type: string
- *                   example: 필수 입력값이 누락되었거나 이용 약관에 동의하지 않았습니다.
- *                 statusCode:
- *                   type: integer
- *                   example: 400
+ *         description: 필수값 누락 또는 약관 미동의
  *       401:
- *         description: 인증 실패 - 로그인하지 않은 사용자
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Unauthorized
- *                 message:
- *                   type: string
- *                   example: 로그인이 필요합니다.
- *                 statusCode:
- *                   type: integer
- *                   example: 401
+ *         description: registerToken 만료/무효 또는 로그인 필요
  *       409:
- *         description: 충돌 - 중복된 사업자등록번호 또는 이미 등록된 유저
- *         content:
- *           application/json:
- *             schema:
- *               oneOf:
- *                 - type: object
- *                   properties:
- *                     error:
- *                       type: string
- *                       example: DuplicateBusinessNumber
- *                     message:
- *                       type: string
- *                       example: 이미 등록되었거나 심사 대기 중인 사업자등록번호입니다.
- *                     statusCode:
- *                       type: integer
- *                       example: 409
- *                 - type: object
- *                   properties:
- *                     error:
- *                       type: string
- *                       example: AlreadyRegistered
- *                     message:
- *                       type: string
- *                       example: 이미 판매자로 등록되었거나 승인 심사 대기 중인 회원입니다.
- *                     statusCode:
- *                       type: integer
- *                       example: 409
- *       500:
- *         description: 서버 오류 - 알 수 없는 예외 발생
+ *         description: registerToken 재사용 / 이미 등록 / 사업자번호 중복
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 error:
- *                   type: string
- *                   example: InternalServerError
- *                 message:
- *                   type: string
- *                   example: 서버 오류가 발생했습니다.
- *                 statusCode:
- *                   type: integer
- *                   example: 500
+ *                 error: { type: string, description: "RegisterTokenAlreadyUsed | AlreadyRegistered | DuplicateBusinessNumber" }
+ *                 message: { type: string }
+ *                 statusCode: { type: integer, example: 409 }
+ *       500:
+ *         description: 서버 오류
  */
 router.post("/register/business", authenticateJwt, registerBusiness);
 
@@ -705,7 +383,7 @@ router.post("/register/business", authenticateJwt, registerBusiness);
  * /api/settlements/sales/monthly:
  *   get:
  *     summary: 월별 판매 내역 조회
- *     description: 로그인한 판매자의 특정 연-월에 발생한 판매(Settlement) 내역을 조회합니다. year/month 미지정 시 현재 UTC 기준 년/월을 사용합니다. 결제수단(pay_type)과 카드사명(card_name)은 페이플 일반결제 검증 결과를 그대로 노출합니다.
+ *     description: 로그인한 판매자의 특정 연-월에 발생한 판매(Settlement) 내역을 조회합니다. year/month 미지정 시 현재 UTC 기준 년/월을 사용합니다.
  *     tags:
  *       - Settlement
  *     security:
@@ -714,11 +392,9 @@ router.post("/register/business", authenticateJwt, registerBusiness);
  *       - in: query
  *         name: year
  *         schema: { type: integer, example: 2026 }
- *         description: 조회할 연도 (기본값 현재 UTC 연도)
  *       - in: query
  *         name: month
  *         schema: { type: integer, minimum: 1, maximum: 12, example: 5 }
- *         description: 조회할 월 (1-12, 기본값 현재 UTC 월)
  *     responses:
  *       200:
  *         description: 조회 성공
@@ -734,8 +410,8 @@ router.post("/register/business", authenticateJwt, registerBusiness);
  *                   type: object
  *                   properties:
  *                     count: { type: integer, example: 3 }
- *                     total_sales: { type: integer, description: 원래 판매가 합계, example: 30000 }
- *                     total_settled: { type: integer, description: 정산 금액(수수료 차감 후) 합계, example: 27000 }
+ *                     total_sales: { type: integer, example: 30000 }
+ *                     total_settled: { type: integer, example: 27000 }
  *                     total_fee: { type: integer, example: 3000 }
  *                 items:
  *                   type: array
@@ -748,15 +424,15 @@ router.post("/register/business", authenticateJwt, registerBusiness);
  *                       prompt_title: { type: string }
  *                       buyer_id: { type: integer }
  *                       buyer_nickname: { type: string, nullable: true }
- *                       pay_type: { type: string, nullable: true, description: '페이플 결제 타입 (card/transfer)' }
- *                       card_name: { type: string, nullable: true, description: '카드사명 (페이플 PCD_PAY_CARDNAME)' }
+ *                       pay_type: { type: string, nullable: true }
+ *                       card_name: { type: string, nullable: true }
  *                       sale_price: { type: integer }
  *                       settled_amount: { type: integer }
  *                       fee: { type: integer }
  *                       status: { type: string, enum: [Pending, Succeed, Failed] }
  *                 statusCode: { type: integer, example: 200 }
  *       400:
- *         description: 잘못된 year/month 값
+ *         description: 잘못된 year/month
  *       401:
  *         description: 로그인 필요
  */
@@ -767,7 +443,7 @@ router.get("/sales/monthly", authenticateJwt, getMonthlySales);
  * /api/settlements/yearly:
  *   get:
  *     summary: 연도별 누적 정산 내역 조회
- *     description: 로그인한 판매자의 연도별 누적 정산 합계를 조회합니다. 각 연도 row는 해당 연도의 판매 건수, 원래 판매가 합계(total_sales), 정산 금액 합계(total_settled), 수수료 합계(total_fee), 상태별 정산금(succeeded/pending) 누적치를 포함합니다.
+ *     description: 로그인한 판매자의 연도별 누적 정산 합계를 조회합니다.
  *     tags:
  *       - Settlement
  *     security:
