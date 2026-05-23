@@ -4970,6 +4970,20 @@
                           "purchased_at": {
                             "type": "string",
                             "format": "date-time"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "Succeed",
+                              "Refunded"
+                            ],
+                            "description": "결제 상태. 환불 시 Refunded"
+                          },
+                          "refunded_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true,
+                            "description": "환불 시각. status가 Refunded일 때만 존재"
                           }
                         }
                       }
@@ -7875,6 +7889,27 @@
               "maximum": 12,
               "example": 5
             }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "description": "페이지 번호 1부터 시작",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "description": "페이지당 항목 수 최대 100",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            }
           }
         ],
         "responses": {
@@ -7899,32 +7934,59 @@
                     },
                     "summary": {
                       "type": "object",
+                      "description": "월 전체 합계 (페이지 무관)",
                       "properties": {
                         "count": {
                           "type": "integer",
-                          "example": 3
+                          "description": "월 전체 거래 건수",
+                          "example": 25
                         },
                         "total_sales": {
                           "type": "integer",
                           "description": "원래 판매가 합계 (환불 포함)",
-                          "example": 30000
+                          "example": 250000
                         },
                         "total_settled": {
                           "type": "integer",
                           "description": "net 정산 금액 (환불 제외)",
-                          "example": 18000
+                          "example": 200000
                         },
                         "total_fee": {
                           "type": "integer",
-                          "example": 3000
+                          "example": 25000
                         },
                         "refunded_count": {
                           "type": "integer",
-                          "example": 1
+                          "example": 2
                         },
                         "refunded_amount": {
                           "type": "integer",
-                          "example": 9000
+                          "example": 18000
+                        }
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "limit": {
+                          "type": "integer",
+                          "example": 10
+                        },
+                        "total": {
+                          "type": "integer",
+                          "example": 25
+                        },
+                        "total_pages": {
+                          "type": "integer",
+                          "example": 3
+                        },
+                        "has_next": {
+                          "type": "boolean",
+                          "example": true
                         }
                       }
                     },

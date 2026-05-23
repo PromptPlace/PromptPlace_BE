@@ -101,6 +101,15 @@ router.post('/requests', authenticateJwt, PurchaseRequestController.requestPurch
  *                       purchased_at:
  *                         type: string
  *                         format: date-time
+ *                       status:
+ *                         type: string
+ *                         enum: [Succeed, Refunded]
+ *                         description: 결제 상태. 환불 시 Refunded
+ *                       refunded_at:
+ *                         type: string
+ *                         format: date-time
+ *                         nullable: true
+ *                         description: 환불 시각. status가 Refunded일 때만 존재
  *                 statusCode:
  *                   type: integer
  */
