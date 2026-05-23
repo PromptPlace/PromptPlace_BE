@@ -1,7 +1,7 @@
 import axios from 'axios';
 import redisClient from '../../config/redis';
 import { AppError } from '../../errors/AppError';
-import { redactPaypleLog } from './payple';
+import { redactPaypleLog, buildPaypleHeaders } from './payple';
 
 // Payple 결제 취소(환불) 유틸.
 // PCD_PAYCANCEL_FLAG=Y로 파트너 인증 → 응답의 PCD_PAY_HOST + PCD_PAY_URL로 취소 요청.
@@ -69,7 +69,7 @@ const fetchRefundAuth = async (): Promise<PaypleRefundAuth> => {
   const res = await axios.post(
     url,
     { cst_id: cstId, custKey, PCD_PAYCANCEL_FLAG: 'Y' },
-    { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' } },
+    { headers: buildPaypleHeaders() },
   );
 
   if (res.data?.result !== 'success') {
@@ -123,7 +123,7 @@ export const requestPaypleRefund = async (
   let res;
   try {
     res = await axios.post(url, body, {
-      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+      headers: buildPaypleHeaders(),
     });
   } catch (err: any) {
     console.error('[payple-refund] request network error', {

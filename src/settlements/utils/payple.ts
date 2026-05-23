@@ -21,6 +21,15 @@ export class AccountVerificationError extends AppError {
   }
 }
 
+// Payple 호출 공통 헤더.
+// AWS 등 클라우드 환경에서 도메인 정보가 누락되는 경우를 대비해 Referer 헤더를 함께 전송 (Payple 안내사항).
+export const buildPaypleHeaders = (extra?: Record<string, string>): Record<string, string> => ({
+  'Content-Type': 'application/json',
+  'Cache-Control': 'no-cache',
+  ...(process.env.PAYPLE_REFERER ? { Referer: process.env.PAYPLE_REFERER } : {}),
+  ...extra,
+});
+
 // 민감 정보 redactor — 로그에 노출되면 안 되는 필드
 const REDACTED_FIELDS = new Set([
   // 실명인증/은행/토큰
@@ -106,7 +115,7 @@ const fetchPaypleAccessToken = async (): Promise<string> => {
   const res = await axios.post(
     `${PAYPLE_HUB_URL}/oauth/token`,
     { cst_id, custKey, code },
-    { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' } },
+    { headers: buildPaypleHeaders() },
   );
 
   if (res.data.result !== 'T0000') {
@@ -192,11 +201,7 @@ export const verifyRealNameWithPayple = async (
         account_holder_info: holderInfo,
       },
       {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-        },
+        headers: buildPaypleHeaders({ Authorization: `Bearer ${accessToken}` }),
       },
     );
   } catch (err: any) {

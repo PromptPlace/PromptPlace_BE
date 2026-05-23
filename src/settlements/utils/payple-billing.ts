@@ -1,7 +1,7 @@
 import axios from 'axios';
 import redisClient from '../../config/redis';
 import { AppError } from '../../errors/AppError';
-import { redactPaypleLog } from './payple';
+import { redactPaypleLog, buildPaypleHeaders } from './payple';
 
 // Payple 빌링키 라이프사이클 (#491 후속 작업 대비).
 // 본 파일은 빌링키 조회(PUSERINFO) / 해지(PUSERDEL) 인프라만 정의.
@@ -67,7 +67,7 @@ const fetchBillingAuth = async (work: BillingWork): Promise<BillingAuth> => {
   const res = await axios.post(
     url,
     { cst_id: cstId, custKey, PCD_PAY_WORK: work },
-    { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' } },
+    { headers: buildPaypleHeaders() },
   );
 
   if (res.data?.result !== 'success') {
@@ -113,7 +113,7 @@ export const fetchBillingKeyInfo = async (payerId: string): Promise<BillingKeyIn
       PCD_AUTH_KEY: auth.authKey,
       PCD_PAYER_ID: payerId,
     },
-    { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' } },
+    { headers: buildPaypleHeaders() },
   );
 
   if (res.data?.PCD_PAY_RST !== 'success') {
@@ -165,7 +165,7 @@ export const deleteBillingKey = async (payerId: string): Promise<BillingKeyDelet
       PCD_AUTH_KEY: auth.authKey,
       PCD_PAYER_ID: payerId,
     },
-    { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' } },
+    { headers: buildPaypleHeaders() },
   );
 
   if (res.data?.PCD_PAY_RST !== 'success') {
