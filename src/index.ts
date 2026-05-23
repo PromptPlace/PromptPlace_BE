@@ -17,6 +17,7 @@ import promptRoutes from "./prompts/routes/prompt.route"; // 프롬프트 관련
 import ReviewRouter from "./reviews/routes/review.route";
 import purchaseRouter from "./purchases/routes/purchase.route";
 import refundRouter from "./refunds/routes/refund.route";
+import payoutWebhookRouter from "./settlements/routes/payout-webhook.route";
 import purchaseWebhookRouter from "./purchases/routes/purchase.webhook.route";
 import settlementRouter from "./settlements/routes/settlement.route";
 import withdrawalRouter from "./withdrawals/routes/withdrawal.route";
@@ -40,6 +41,7 @@ import chatRouter from "./chat/routes/chat.route";
 import { initSocket } from "./socket/server";
 import { startPromptStatSnapshotJob } from "./stats/jobs/prompt-stat-snapshot.job";
 import { startSettlementSyncJob } from "./settlements/jobs/settlement-sync.job";
+import { startSettlementPayoutJob } from "./settlements/jobs/settlement-payout.job";
 import morgan = require('morgan');
 const PORT = 3000;
 const app = express();
@@ -50,6 +52,7 @@ const server = http.createServer(app);
 initSocket(server)
 startPromptStatSnapshotJob();
 startSettlementSyncJob();
+startSettlementPayoutJob();
 // 1. 응답 핸들러(json 파서보다 위에)
 app.use(responseHandler);
 app.use((req, res, next) => {
@@ -177,6 +180,7 @@ app.use("/api/tips", tipRouter);
 // 정산 라우터
 app.use("/api/settlements", settlementRouter);
 app.use("/api/settlements", withdrawalRouter);
+app.use("/api/payouts", payoutWebhookRouter);
 
 //공지사항 라우터
 app.use("/api/announcements", announcementRouter);

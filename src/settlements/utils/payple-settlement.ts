@@ -1,7 +1,7 @@
 import axios from 'axios';
 import redisClient from '../../config/redis';
 import { AppError } from '../../errors/AppError';
-import { redactPaypleLog } from './payple';
+import { redactPaypleLog, buildPaypleHeaders } from './payple';
 
 // Payple 정산내역 조회용 파트너 인증 + 조회 유틸.
 // 정산내역 조회는 PCD_SETTLEMENT_FLAG=Y로 인증 받고, 응답의 PCD_PAY_HOST + PCD_PAY_URL로 호출.
@@ -68,7 +68,7 @@ export const fetchPaypleSettlementAuth = async (): Promise<PaypleSettlementAuth>
   const res = await axios.post(
     url,
     { cst_id: cstId, custKey, PCD_SETTLEMENT_FLAG: 'Y' },
-    { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' } },
+    { headers: buildPaypleHeaders() },
   );
 
   if (res.data?.result !== 'success') {
@@ -146,7 +146,7 @@ export const fetchPaypleSettlements = async (
 
   const url = `${auth.payHost}${auth.payUrl}`;
   const res = await axios.post(url, body, {
-    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+    headers: buildPaypleHeaders(),
   });
 
   if (res.data?.PCD_PAY_RST !== 'success') {
