@@ -100,7 +100,7 @@ export const consumePaypleRateLimit = async (userId: number): Promise<void> => {
 };
 
 // Payple OAuth 토큰 발급
-const fetchPaypleAccessToken = async (): Promise<string> => {
+export const fetchPaypleAccessToken = async (): Promise<string> => {
   const PAYPLE_HUB_URL = process.env.PAYPLE_HUB_URL;
   const cst_id = process.env.PAYPLE_CST_ID;
   const custKey = process.env.PAYPLE_CUST_KEY;
