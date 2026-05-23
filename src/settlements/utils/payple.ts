@@ -147,9 +147,14 @@ const toSellerHint = (sellerType: 'INDIVIDUAL' | 'BUSINESS', businessType?: 'PER
 // Payple 실명-계좌 일치 인증.
 // 개인 / 개인사업자 → account_holder_info_type='0', account_holder_info=birthDate(YYMMDD)
 // 법인사업자       → account_holder_info_type='6', account_holder_info=businessNumber(10자리)
+export interface PaypleVerifyResult {
+  accountHolderName: string;
+  billingTranId: string | null;
+}
+
 export const verifyRealNameWithPayple = async (
   params: PaypleVerifyParams,
-): Promise<{ accountHolderName: string }> => {
+): Promise<PaypleVerifyResult> => {
   const { userId, sellerType, businessType, bank, accountNumber, holderName, birthDate, businessNumber } = params;
 
   if (!isValidPaypleBank(bank)) {
@@ -230,7 +235,11 @@ export const verifyRealNameWithPayple = async (
     );
   }
 
-  return { accountHolderName: res.data.account_holder_name as string };
+  // 정산지급대행 빌링키(billing_tran_id) — 향후 지급이체 호출에 필요. SettlementAccount에 저장 (#491).
+  return {
+    accountHolderName: res.data.account_holder_name as string,
+    billingTranId: (res.data.billing_tran_id as string | undefined) ?? null,
+  };
 };
 
 // Payple 실명인증 응답을 사용자 모달 8종 + 신규 3종(INVALID_BIRTHDATE / INVALID_BUSINESS_NUMBER / SYSTEM_ERROR)으로 매핑.

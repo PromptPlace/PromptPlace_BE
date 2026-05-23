@@ -83,6 +83,7 @@ export const registerIndividualSeller = async (
     accountNumber: payload.accountNumber,
     holderName: payload.holderName,
     birthDate: payload.birthDate,
+    billingTranId: payload.billingTranId,
   });
 
   const isUpdate = !!existingAccount && existingAccount.seller_type === 'INDIVIDUAL';
@@ -156,6 +157,7 @@ export const registerBusinessSeller = async (
       companyName: dto.companyName,
       businessLicenseUrl: dto.businessLicenseUrl!,
       birthDate: payload.birthDate,
+      billingTranId: payload.billingTranId,
     });
     return {
       message: '사업자 판매자 신청이 완료되었습니다. 관리자 승인 후 최종 등록됩니다.',
@@ -177,6 +179,7 @@ export const registerBusinessSeller = async (
       companyName: dto.companyName,
       businessLicenseUrl: dto.businessLicenseUrl!,
       birthDate: payload.birthDate,
+      billingTranId: payload.billingTranId,
     });
     return {
       message: '사업자 판매자 변경 신청이 완료되었습니다. 관리자 승인 후 최종 등록됩니다.',
@@ -196,6 +199,7 @@ export const registerBusinessSeller = async (
     companyName: dto.companyName,
     businessLicenseUrl: dto.businessLicenseUrl,
     birthDate: payload.birthDate,
+    billingTranId: payload.billingTranId,
   });
   return {
     message: '사업자 정보 변경 신청이 완료되었습니다. 관리자 승인 후 변경 사항이 반영됩니다.',
