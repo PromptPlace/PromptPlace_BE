@@ -40,6 +40,7 @@ import chatRouter from "./chat/routes/chat.route";
 import { initSocket } from "./socket/server";
 import { startPromptStatSnapshotJob } from "./stats/jobs/prompt-stat-snapshot.job";
 import { startSettlementSyncJob } from "./settlements/jobs/settlement-sync.job";
+import { startSettlementPayoutJob } from "./settlements/jobs/settlement-payout.job";
 import morgan = require('morgan');
 const PORT = 3000;
 const app = express();
@@ -50,6 +51,7 @@ const server = http.createServer(app);
 initSocket(server)
 startPromptStatSnapshotJob();
 startSettlementSyncJob();
+startSettlementPayoutJob();
 // 1. 응답 핸들러(json 파서보다 위에)
 app.use(responseHandler);
 app.use((req, res, next) => {
