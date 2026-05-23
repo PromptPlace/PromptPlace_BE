@@ -7,12 +7,16 @@ coverage
 # 깃 관련 파일
 .git
 .gitignore
+.github
 
 # 환경 변수
 .env
 .env.dev
+.env.local
+.env.*.local
 
 # 로그 파일
+*.log
 npm-debug.log
 yarn-error.log
 pnpm-debug.log
@@ -28,3 +32,18 @@ docker-compose.yml
 
 # 빌드에 필요 없는 파일
 README.md
+*.md
+docs
+
+# 테스트/임시 파일
+tests
+__tests__
+*.test.ts
+*.spec.ts
+
+# IDE 설정
+.vscode
+.idea
+
+# Swagger 산출물 (컨테이너 빌드 시 재생성)
+swagger.json

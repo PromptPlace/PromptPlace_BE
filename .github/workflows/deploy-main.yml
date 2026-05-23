@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy: 
+  deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -53,23 +53,22 @@ jobs:
           ${{ secrets.ENV_CONTENT }}
           EOF'
 
-      - name: Install, Generate & Build on server
-        run: |
-          ssh prod 'cd /opt/app-backup && pnpm install --frozen-lockfile && pnpm exec prisma generate && rm -rf dist && pnpm build'
-
+      # Prisma 마이그레이션 (npx로 prisma CLI 1회 호출 — EC2 build 단계 없이)
       - name: Run Prisma migrations (deploy)
         if: steps.paths-filter.outputs.prisma == 'true'
         run: |
           ssh prod << 'EOF'
           set -euo pipefail
           cd /opt/app-backup
-          pnpm exec prisma migrate deploy
+          export $(grep -v '^#' .env | xargs)
+          npx --yes -p prisma@^6 prisma migrate deploy
           EOF
 
       - name: Stop and Remove old containers
         run: |
           ssh prod 'cd /opt/app-backup && sudo docker rm -f myapp || true && sudo docker rm -f caddy || true'
 
+      # Docker 빌드/배포 (install/generate/build는 Dockerfile 멀티스테이지로 통합)
       - name: Deploy Docker services
-        run: | 
+        run: |
           ssh prod 'cd /opt/app-backup && sudo docker compose -p promptplace -f docker-compose.yml up -d --build app caddy'
