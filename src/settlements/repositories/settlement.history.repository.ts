@@ -17,7 +17,15 @@ export const SettlementHistoryRepository = {
     };
   },
 
-  async findSalesByMonth(userId: number, year: number, month: number) {
+  // 월별 판매 내역 (페이지네이션 적용).
+  // 페이지 데이터만 반환. 합계/카운트는 aggregateSalesByMonth/countSalesByMonth로 별도 조회.
+  async findSalesByMonth(
+    userId: number,
+    year: number,
+    month: number,
+    skip: number,
+    take: number,
+  ) {
     const start = new Date(Date.UTC(year, month - 1, 1));
     const end = new Date(Date.UTC(year, month, 1));
 
@@ -27,6 +35,8 @@ export const SettlementHistoryRepository = {
         created_at: { gte: start, lt: end },
       },
       orderBy: { created_at: 'desc' },
+      skip,
+      take,
       select: {
         settlement_id: true,
         amount: true,
@@ -49,6 +59,62 @@ export const SettlementHistoryRepository = {
         },
       },
     });
+  },
+
+  // 월별 판매 전체 건수 (페이지네이션 메타).
+  async countSalesByMonth(userId: number, year: number, month: number): Promise<number> {
+    const start = new Date(Date.UTC(year, month - 1, 1));
+    const end = new Date(Date.UTC(year, month, 1));
+    return prisma.settlement.count({
+      where: { user_id: userId, created_at: { gte: start, lt: end } },
+    });
+  },
+
+  // 월 전체 합계 (페이지 무관).
+  // summary 의미를 "현재 페이지 합계"가 아닌 "월 전체 합계"로 정합화 (#497).
+  async aggregateSalesByMonth(
+    userId: number,
+    year: number,
+    month: number,
+  ): Promise<{
+    total_sales: number;
+    total_settled: number;
+    total_fee: number;
+    refunded_amount: number;
+    refunded_count: number;
+  }> {
+    const start = new Date(Date.UTC(year, month - 1, 1));
+    const end = new Date(Date.UTC(year, month, 1));
+    const rows = await prisma.$queryRaw<
+      Array<{
+        total_sales: bigint | null;
+        total_settled: bigint | null;
+        total_fee: bigint | null;
+        refunded_amount: bigint | null;
+        refunded_count: bigint | null;
+      }>
+    >`
+      SELECT
+        SUM(p.amount) AS total_sales,
+        SUM(CASE WHEN s.status = ${Status.Refunded} THEN 0 ELSE s.amount END) AS total_settled,
+        SUM(s.fee) AS total_fee,
+        SUM(CASE WHEN s.status = ${Status.Refunded} THEN s.amount ELSE 0 END) AS refunded_amount,
+        SUM(CASE WHEN s.status = ${Status.Refunded} THEN 1 ELSE 0 END) AS refunded_count
+      FROM Settlement s
+      JOIN Payment pm ON pm.payment_id = s.payment_id
+      JOIN Purchase p ON p.purchase_id = pm.purchase_id
+      WHERE s.user_id = ${userId}
+        AND s.created_at >= ${start}
+        AND s.created_at < ${end}
+    `;
+    const r = rows[0] ?? {};
+    return {
+      total_sales: Number(r.total_sales ?? 0),
+      total_settled: Number(r.total_settled ?? 0),
+      total_fee: Number(r.total_fee ?? 0),
+      refunded_amount: Number(r.refunded_amount ?? 0),
+      refunded_count: Number(r.refunded_count ?? 0),
+    };
   },
 
   async aggregateYearlyTotals(userId: number): Promise<

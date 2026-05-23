@@ -16,8 +16,10 @@ export const getMonthlySales = async (req: Request, res: Response) => {
     const now = new Date();
     const year = req.query.year ? Number(req.query.year) : now.getUTCFullYear();
     const month = req.query.month ? Number(req.query.month) : now.getUTCMonth() + 1;
+    const page = req.query.page ? Number(req.query.page) : undefined;
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
 
-    const result = await SettlementHistoryService.getMonthlySales(userId, year, month);
+    const result = await SettlementHistoryService.getMonthlySales(userId, year, month, page, limit);
     return res.status(200).json(result);
   } catch (error: any) {
     const status = error.status || 500;
