@@ -24,6 +24,7 @@ export interface RegisterTokenPayload {
   bank: string;
   accountNumber: string;
   holderName: string;
+  billingTranId?: string | null;  // Payple 정산지급대행 빌링키 (#491). 발급 안 됐을 수 있음
   jti: string;
 }
 

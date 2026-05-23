@@ -7,6 +7,7 @@ export interface UpsertIndividualAccountInput {
   accountNumber: string;
   holderName: string;
   birthDate: string;            // INDIVIDUAL은 Payple 인증에 birthDate 필수
+  billingTranId?: string | null; // Payple 정산지급대행 빌링키 (#491)
 }
 
 export interface CreateBusinessAccountInput {
@@ -19,6 +20,7 @@ export interface CreateBusinessAccountInput {
   companyName: string;
   businessLicenseUrl: string;
   birthDate?: string;           // BUSINESS+PERSONAL일 때만 존재 (대표자 생년월일). CORPORATE는 undefined
+  billingTranId?: string | null; // Payple 정산지급대행 빌링키 (#491)
 }
 
 export interface UpdateBusinessAccountInput {
@@ -32,6 +34,7 @@ export interface UpdateBusinessAccountInput {
   // optional — 빈 값이면 기존 URL 유지
   businessLicenseUrl?: string | null;
   birthDate?: string;           // BUSINESS+PERSONAL일 때만 존재
+  billingTranId?: string | null; // Payple 정산지급대행 빌링키 (#491)
 }
 
 export const SettlementRepository = {
@@ -46,6 +49,7 @@ export const SettlementRepository = {
         account_number: dto.accountNumber,
         account_holder: dto.holderName,
         birth_date: dto.birthDate,
+        billing_tran_id: dto.billingTranId ?? null,
         seller_type: 'INDIVIDUAL',
         business_type: null,
         status: 'APPROVED',
@@ -61,6 +65,7 @@ export const SettlementRepository = {
         account_number: dto.accountNumber,
         account_holder: dto.holderName,
         birth_date: dto.birthDate,
+        billing_tran_id: dto.billingTranId ?? null,
         seller_type: 'INDIVIDUAL',
         status: 'APPROVED',
         is_active: true,
@@ -93,6 +98,7 @@ export const SettlementRepository = {
         representative_name: dto.representativeName,
         business_license_url: dto.businessLicenseUrl,
         birth_date: dto.birthDate ?? null,
+        billing_tran_id: dto.billingTranId ?? null,
         seller_type: 'BUSINESS',
         status: 'PENDING',
         is_active: false,
@@ -116,6 +122,7 @@ export const SettlementRepository = {
       company_name: dto.companyName,
       representative_name: dto.representativeName,
       birth_date: dto.birthDate ?? null,
+      billing_tran_id: dto.billingTranId ?? null,
       seller_type: 'BUSINESS',
       status: 'PENDING',
       is_active: false,

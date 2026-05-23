@@ -94,7 +94,7 @@ export const verifySellerAccount = async (userId: number, dto: VerifyAccountRequ
 
   await consumePaypleRateLimit(userId);
 
-  await verifyRealNameWithPayple({
+  const { billingTranId } = await verifyRealNameWithPayple({
     userId,
     sellerType: dto.sellerType,
     businessType: dto.businessType,
@@ -118,6 +118,7 @@ export const verifySellerAccount = async (userId: number, dto: VerifyAccountRequ
     bank: dto.bank,
     accountNumber: dto.accountNumber,
     holderName: dto.holderName,
+    billingTranId,
   });
 
   return {
