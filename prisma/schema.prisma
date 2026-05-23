@@ -45,6 +45,7 @@ model User {
   settlementAccount         SettlementAccount?
   consents                  UserConsent[]
   refunds                   Refund[]
+  payouts                   SettlementPayout[]
   chatRoomAs1               ChatRoom[]                 @relation("ChatUser1")
   chatRoomAs2               ChatRoom[]                 @relation("ChatUser2")
   sentChatMessages          ChatMessage[]              @relation("UserSentMessages")
@@ -517,6 +518,40 @@ model SettlementAccount {
   @@index([bank_code])
   @@index([account_number])
   @@index([status])
+}
+
+// 정산 사이클별 지급이체 이력 (#491 PR D).
+// 매월 15일 cron이 판매자별 net 금액(Succeed 합계 - Refunded 차감 - 이월)을 계산해 row 생성.
+// 최소 금액 미달 시 Skipped, Payple 이체 성공 시 Succeed, 실패 시 Failed.
+enum PayoutStatus {
+  Pending
+  Succeed
+  Failed
+  Skipped // 최소 금액 미달 또는 빌링키 미보유 등으로 자동 skip
+}
+
+model SettlementPayout {
+  payout_id       Int          @id @default(autoincrement())
+  user_id         Int
+  cycle_start     DateTime
+  cycle_end       DateTime
+  amount_gross    Int          @default(0) // Succeed Settlement 합계 (사이클 범위 내)
+  amount_refund   Int          @default(0) // Refunded Settlement 합계
+  carry_over_prev Int          @default(0) // 이전 사이클에서 이월된 음수 잔액 (절댓값)
+  amount_net      Int // gross - refund - carry_over_prev (최종 지급액, 음수 가능)
+  billing_tran_id String?      @db.VarChar(64) // 시점 빌링키 (SettlementAccount에서 스냅샷)
+  group_key       String?      @db.VarChar(64) // Payple 이체대기 요청 응답
+  api_tran_id     String?      @db.VarChar(64) // Payple webhook의 이체 완료 키
+  status          PayoutStatus @default(Pending)
+  reason          String?      @db.VarChar(200) // Skipped/Failed 사유
+  requested_at    DateTime     @default(now())
+  completed_at    DateTime?
+
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@unique([user_id, cycle_start]) // 한 사이클에 한 row만
+  @@index([status])
+  @@index([cycle_start])
 }
 
 model Review {
