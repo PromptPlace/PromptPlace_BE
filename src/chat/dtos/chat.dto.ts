@@ -144,10 +144,16 @@ export interface ChatRoomListPartnerDto {
   profile_image_url: string;
 }
 
+export interface AttachmentSummaryDto {
+  image_count: number;
+  file_count: number;
+}
+
 export interface ChatRoomListLastMessageDto {
   content: string;
   sent_at: string;
   has_attachments: boolean;
+  attachment_summary: AttachmentSummaryDto | null;
 }
 
 export interface ChatRoomListItemDto{
@@ -183,11 +189,21 @@ export class ChatRoomListResponseDto {
       
       const partnerData = room.participants.find((part: any) => part.user_id !== userId);
 
-      const lastMsg = room.lastMessage ? {
-        content: room.lastMessage.content,
-        sent_at: room.lastMessage.sent_at,
-        has_attachments: room.lastMessage.attachments.length > 0
-      } : null;
+      const lastMsg = room.lastMessage ? (() => {
+        const attachments = room.lastMessage.attachments ?? [];
+        const hasAttachments = attachments.length > 0;
+        return {
+          content: room.lastMessage.content,
+          sent_at: room.lastMessage.sent_at,
+          has_attachments: hasAttachments,
+          attachment_summary: hasAttachments
+            ? {
+                image_count: attachments.filter((a: any) => a.type === "IMAGE").length,
+                file_count: attachments.filter((a: any) => a.type === "FILE").length,
+              }
+            : null,
+        };
+      })() : null;
 
       return {
         room_id: room.room_id,
