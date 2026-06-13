@@ -35,6 +35,23 @@ export const assertAllowedRedirectUri = (redirectUri: string | undefined): strin
   return redirectUri;
 };
 
+// 호환성 fallback: body의 redirect_uri가 없을 때 환경변수의 provider별 callback URL을 사용한다.
+// 프론트 단계적 반영을 위한 임시 호환 경로.
+export const resolveRedirectUri = (
+  provider: "GOOGLE" | "KAKAO" | "NAVER",
+  bodyRedirectUri: string | undefined
+): string => {
+  if (bodyRedirectUri) {
+    return assertAllowedRedirectUri(bodyRedirectUri);
+  }
+  const envKey = `${provider}_CALLBACK_URL` as const;
+  const fallback = process.env[envKey];
+  if (!fallback) {
+    throw new AppError("redirect_uri가 필요합니다.", 400, "BadRequest");
+  }
+  return fallback;
+};
+
 class AuthService {
   async generateTokens(user: any): Promise<Tokens> {
     const accessToken = jwt.sign(
