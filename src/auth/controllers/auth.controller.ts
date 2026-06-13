@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import AuthService from "../services/auth.service";
+import AuthService, { assertAllowedRedirectUri } from "../services/auth.service";
 import { AppError } from "../../errors/AppError";
 import { CompleteSignupDto } from "../dtos/complete-signup.dto";
 import { validate } from "class-validator";
@@ -318,7 +318,7 @@ class AuthController {
 
   async kakaoToken(req: Request, res: Response) {
     try {
-      const { code } = req.body;
+      const { code, redirect_uri } = req.body;
 
       if (!code) {
         return res.status(400).json({
@@ -328,7 +328,8 @@ class AuthController {
         });
       }
 
-      const result = await AuthService.exchangeKakaoToken(code);
+      const validatedRedirectUri = assertAllowedRedirectUri(redirect_uri);
+      const result = await AuthService.exchangeKakaoToken(code, validatedRedirectUri);
 
       res.status(200).json({
         message: "카카오 로그인이 완료되었습니다.",
@@ -354,7 +355,7 @@ class AuthController {
 
   async googleToken(req: Request, res: Response) {
     try {
-      const { code } = req.body;
+      const { code, redirect_uri } = req.body;
 
       if (!code) {
         return res.status(400).json({
@@ -364,7 +365,8 @@ class AuthController {
         });
       }
 
-      const result = await AuthService.exchangeGoogleToken(code);
+      const validatedRedirectUri = assertAllowedRedirectUri(redirect_uri);
+      const result = await AuthService.exchangeGoogleToken(code, validatedRedirectUri);
 
       res.status(200).json({
         message: "구글 로그인이 완료되었습니다.",
@@ -390,7 +392,7 @@ class AuthController {
 
   async naverToken(req: Request, res: Response) {
     try {
-      const { code } = req.body;
+      const { code, redirect_uri } = req.body;
 
       if (!code) {
         return res.status(400).json({
@@ -400,7 +402,8 @@ class AuthController {
         });
       }
 
-      const result = await AuthService.exchangeNaverToken(code);
+      const validatedRedirectUri = assertAllowedRedirectUri(redirect_uri);
+      const result = await AuthService.exchangeNaverToken(code, validatedRedirectUri);
 
       res.status(200).json({
         message: "네이버 로그인이 완료되었습니다.",

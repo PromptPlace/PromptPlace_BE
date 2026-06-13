@@ -14,25 +14,25 @@ interface Tokens {
   refreshToken: string;
 }
 
-const getCallbackUrl = (provider: 'KAKAO' | 'GOOGLE' | 'NAVER') => {
-  const isDev = process.env.NODE_ENV !== 'production';
+const parseAllowedRedirectUris = (): Set<string> => {
+  const raw = process.env.OAUTH_ALLOWED_REDIRECT_URIS ?? "";
+  return new Set(
+    raw
+      .split(",")
+      .map((uri) => uri.trim())
+      .filter(Boolean)
+  );
+};
 
-  switch (provider) {
-    case 'KAKAO':
-      return isDev
-        ? process.env.KAKAO_CALLBACK_URL_DEV
-        : process.env.KAKAO_CALLBACK_URL;
-    case 'GOOGLE':
-      return isDev
-        ? process.env.GOOGLE_CALLBACK_URL_DEV
-        : process.env.GOOGLE_CALLBACK_URL;
-    case 'NAVER':
-      return isDev
-        ? process.env.NAVER_CALLBACK_URL_DEV
-        : process.env.NAVER_CALLBACK_URL;
-    default:
-      throw new Error('Unknown provider');
+export const assertAllowedRedirectUri = (redirectUri: string | undefined): string => {
+  if (!redirectUri) {
+    throw new AppError("redirect_uri가 필요합니다.", 400, "BadRequest");
   }
+  const allowed = parseAllowedRedirectUris();
+  if (!allowed.has(redirectUri)) {
+    throw new AppError("허용되지 않은 redirect_uri입니다.", 400, "BadRequest");
+  }
+  return redirectUri;
 };
 
 class AuthService {
@@ -109,10 +109,10 @@ class AuthService {
     };
   }
 
-  async exchangeKakaoToken(code: string) {
+  async exchangeKakaoToken(code: string, redirectUri: string) {
     try {
       // 기존 Passport 카카오 전략을 활용하여 사용자 정보 처리
-      const user = await this.handleKakaoUserFromCode(code);
+      const user = await this.handleKakaoUserFromCode(code, redirectUri);
 
       const { accessToken, refreshToken } = await this.generateTokens(user);
 
@@ -137,10 +137,10 @@ class AuthService {
     }
   }
 
-  async exchangeGoogleToken(code: string) {
+  async exchangeGoogleToken(code: string, redirectUri: string) {
     try {
       // 기존 Passport 구글 전략을 활용하여 사용자 정보 처리
-      let user = await this.handleGoogleUserFromCode(code);
+      let user = await this.handleGoogleUserFromCode(code, redirectUri);
 
       if (!isActive(user.status)) {
         const inactive = user.inactive_date
@@ -191,10 +191,10 @@ class AuthService {
     }
   }
 
-  async exchangeNaverToken(code: string) {
+  async exchangeNaverToken(code: string, redirectUri: string) {
     try {
       // 기존 Passport 네이버 전략을 활용하여 사용자 정보 처리
-      let user = await this.handleNaverUserFromCode(code);
+      let user = await this.handleNaverUserFromCode(code, redirectUri);
 
       if (!isActive(user.status)) {
         const inactive = user.inactive_date
@@ -247,7 +247,7 @@ class AuthService {
   }
 
   // 카카오 인증코드로 사용자 처리 (기존 로직 재사용)
-  private async handleKakaoUserFromCode(code: string): Promise<any> {
+  private async handleKakaoUserFromCode(code: string, redirectUri: string): Promise<any> {
     try {
       // 카카오에서 액세스 토큰 받기
       const tokenResponse = await fetch("https://kauth.kakao.com/oauth/token", {
@@ -258,7 +258,7 @@ class AuthService {
           client_id: process.env.KAKAO_CLIENT_ID!,
           client_secret: process.env.KAKAO_CLIENT_SECRET!,
           code: code,
-          redirect_uri: getCallbackUrl('KAKAO')!,
+          redirect_uri: redirectUri,
         }),
       });
 
@@ -312,7 +312,7 @@ class AuthService {
   }
 
   // 구글 인증코드로 사용자 처리 (기존 로직 재사용)
-  private async handleGoogleUserFromCode(code: string): Promise<any> {
+  private async handleGoogleUserFromCode(code: string, redirectUri: string): Promise<any> {
     try {
       // 구글에서 액세스 토큰 받기
       const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
@@ -323,7 +323,7 @@ class AuthService {
           client_id: process.env.GOOGLE_CLIENT_ID!,
           client_secret: process.env.GOOGLE_CLIENT_SECRET!,
           code: code,
-          redirect_uri: getCallbackUrl('GOOGLE')!,
+          redirect_uri: redirectUri,
         }),
       });
 
@@ -380,7 +380,7 @@ class AuthService {
   }
 
   // 네이버 인증코드로 사용자 처리 (기존 로직 재사용)
-  private async handleNaverUserFromCode(code: string): Promise<any> {
+  private async handleNaverUserFromCode(code: string, redirectUri: string): Promise<any> {
     try {
       // 네이버에서 액세스 토큰 받기
       const tokenResponse = await fetch(
@@ -393,7 +393,7 @@ class AuthService {
             client_id: process.env.NAVER_CLIENT_ID!,
             client_secret: process.env.NAVER_CLIENT_SECRET!,
             code: code,
-            redirect_uri: getCallbackUrl('NAVER')!,
+            redirect_uri: redirectUri,
           }),
         }
       );
