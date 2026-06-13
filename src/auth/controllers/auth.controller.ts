@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import AuthService, { assertAllowedRedirectUri } from "../services/auth.service";
+import AuthService, { resolveRedirectUri } from "../services/auth.service";
 import { AppError } from "../../errors/AppError";
 import { CompleteSignupDto } from "../dtos/complete-signup.dto";
 import { validate } from "class-validator";
@@ -328,8 +328,8 @@ class AuthController {
         });
       }
 
-      const validatedRedirectUri = assertAllowedRedirectUri(redirect_uri);
-      const result = await AuthService.exchangeKakaoToken(code, validatedRedirectUri);
+      const resolvedRedirectUri = resolveRedirectUri("KAKAO", redirect_uri);
+      const result = await AuthService.exchangeKakaoToken(code, resolvedRedirectUri);
 
       res.status(200).json({
         message: "카카오 로그인이 완료되었습니다.",
@@ -365,8 +365,8 @@ class AuthController {
         });
       }
 
-      const validatedRedirectUri = assertAllowedRedirectUri(redirect_uri);
-      const result = await AuthService.exchangeGoogleToken(code, validatedRedirectUri);
+      const resolvedRedirectUri = resolveRedirectUri("GOOGLE", redirect_uri);
+      const result = await AuthService.exchangeGoogleToken(code, resolvedRedirectUri);
 
       res.status(200).json({
         message: "구글 로그인이 완료되었습니다.",
@@ -402,8 +402,8 @@ class AuthController {
         });
       }
 
-      const validatedRedirectUri = assertAllowedRedirectUri(redirect_uri);
-      const result = await AuthService.exchangeNaverToken(code, validatedRedirectUri);
+      const resolvedRedirectUri = resolveRedirectUri("NAVER", redirect_uri);
+      const result = await AuthService.exchangeNaverToken(code, resolvedRedirectUri);
 
       res.status(200).json({
         message: "네이버 로그인이 완료되었습니다.",
