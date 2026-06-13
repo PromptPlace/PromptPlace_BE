@@ -290,11 +290,16 @@ router.post("/complete-signup", AuthController.completeSignup);
  *             type: object
  *             required:
  *               - code
+ *               - redirect_uri
  *             properties:
  *               code:
  *                 type: string
  *                 description: 카카오 OAuth 인증코드
  *                 example: "abc123def456ghi789"
+ *               redirect_uri:
+ *                 type: string
+ *                 description: OAuth 인증 시작 시 사용한 redirect_uri (서버 화이트리스트에 등록되어 있어야 함)
+ *                 example: "https://promptplace-develop.vercel.app/auth/callback"
  *     responses:
  *       200:
  *         description: 카카오 로그인 성공
@@ -425,11 +430,16 @@ router.post("/kakao/token", AuthController.kakaoToken);
  *             type: object
  *             required:
  *               - code
+ *               - redirect_uri
  *             properties:
  *               code:
  *                 type: string
  *                 description: 구글 OAuth 인증코드
  *                 example: "4/0AfJohXn..."
+ *               redirect_uri:
+ *                 type: string
+ *                 description: OAuth 인증 시작 시 사용한 redirect_uri (서버 화이트리스트에 등록되어 있어야 함)
+ *                 example: "https://promptplace-develop.vercel.app/auth/callback"
  *     responses:
  *       200:
  *         description: 구글 로그인 성공
@@ -560,11 +570,16 @@ router.post("/google/token", AuthController.googleToken);
  *             type: object
  *             required:
  *               - code
+ *               - redirect_uri
  *             properties:
  *               code:
  *                 type: string
  *                 description: 네이버 OAuth 인증코드
  *                 example: "abc123def456ghi789"
+ *               redirect_uri:
+ *                 type: string
+ *                 description: OAuth 인증 시작 시 사용한 redirect_uri (서버 화이트리스트에 등록되어 있어야 함)
+ *                 example: "https://promptplace-develop.vercel.app/auth/callback"
  *     responses:
  *       200:
  *         description: 네이버 로그인 성공
