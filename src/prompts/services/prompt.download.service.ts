@@ -95,7 +95,8 @@ async getDownloadedPrompts(userId: number): Promise<DownloadedPromptResponseDTO[
     const THIRTY_DAYS_AGO = new Date();
     THIRTY_DAYS_AGO.setDate(THIRTY_DAYS_AGO.getDate() - 30);
 
-    return downloads.map(({ prompt }) => {
+    return downloads.map((purchase) => {
+        const { prompt } = purchase;
         const userReviewRaw = prompt.reviews[0];
         const hasReview = !!userReviewRaw;
         const isRecentReview = hasReview && new Date(userReviewRaw.created_at) >= THIRTY_DAYS_AGO;
@@ -111,17 +112,19 @@ async getDownloadedPrompts(userId: number): Promise<DownloadedPromptResponseDTO[
         return {
             message: "다운로드한 프롬프트 목록 조회 성공",
             statusCode: 200,
-            
+
             prompt_id: prompt.prompt_id,
+            purchase_id: purchase.purchase_id,
+            is_refunded: !!purchase.refund,
             title: prompt.title,
              description: prompt.description,
             price: prompt.price,
             models: prompt.models.map((m) => m.model.name),
             imageUrls: imageUrls,
-            
+
             has_review: hasReview,
-            is_recent_review: isRecentReview, 
-    
+            is_recent_review: isRecentReview,
+
             userNickname: userNickname,
             userProfileImageUrl: userProfileImageUrl,
             userReview: userReview,
