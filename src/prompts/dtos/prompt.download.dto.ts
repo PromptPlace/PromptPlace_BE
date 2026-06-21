@@ -10,6 +10,8 @@ export interface PromptDownloadResponseDTO {
 export interface DownloadedPromptResponseDTO {
   message: string;
   prompt_id: number;
+  purchase_id: number;
+  is_refunded: boolean;
   title: string;
   description: string;
   models: string[];
