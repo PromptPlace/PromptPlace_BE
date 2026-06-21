@@ -98,6 +98,8 @@ router.get('/:promptId/downloads', authenticateJwt, PromptDownloadController.get
  *                     type: object
  *                     properties:
  *                       prompt_id: { type: integer }
+ *                       purchase_id: { type: integer, description: 환불 API 호출에 필요한 구매 ID }
+ *                       is_refunded: { type: boolean, description: 환불 완료 여부 }
  *                       title: { type: string }
  *                       description: { type: string, nullable: true }
  *                       price: { type: integer }

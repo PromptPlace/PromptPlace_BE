@@ -28,6 +28,7 @@ export const PromptDownloadRepository = {
     return prisma.purchase.findMany({
       where: { user_id: userId },
       include: {
+        refund: { select: { refund_id: true } },
         prompt: {
           select: {
             prompt_id: true,
