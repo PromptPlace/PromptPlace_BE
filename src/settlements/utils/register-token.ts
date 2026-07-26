@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { AppError } from '../../errors/AppError';
 import redisClient from '../../config/redis';
+import { k } from '../../utils/redis-key';
 import { SellerKind, BusinessKind } from '../dtos/settlement.dto';
 
 const TOKEN_TTL_SECONDS = 5 * 60;
@@ -68,7 +69,7 @@ export const consumeRegisterToken = async (token: string): Promise<RegisterToken
     throw new InvalidRegisterTokenError();
   }
 
-  const blacklistKey = `register_token_used:${payload.jti}`;
+  const blacklistKey = k(`register_token_used:${payload.jti}`);
   const setRes = await redisClient.set(blacklistKey, '1', {
     NX: true,
     EX: TOKEN_TTL_SECONDS + 60,

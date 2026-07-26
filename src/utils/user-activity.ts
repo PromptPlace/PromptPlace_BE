@@ -1,11 +1,12 @@
 import redisClient from '../config/redis';
 import prisma from '../config/prisma';
+import { k } from './redis-key';
 
 const THROTTLE_SECONDS = 300;
 
 export const recordUserActivity = async (userId: number): Promise<void> => {
   try {
-    const key = `user_active:${userId}`;
+    const key = k(`user_active:${userId}`);
     const setResult = await redisClient.set(key, '1', {
       NX: true,
       EX: THROTTLE_SECONDS,

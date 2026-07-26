@@ -1,5 +1,6 @@
 import prisma from '../../config/prisma';
 import redisClient from '../../config/redis';
+import { k } from '../../utils/redis-key';
 import {
   fetchPaypleSettlements,
   PaypleSettlementItem,
@@ -122,7 +123,7 @@ export const runSettlementSyncForDate = async (
   const maxPages = options.maxPagesPerRun ?? DEFAULT_MAX_PAGES_PER_RUN;
   const pageLimit = options.pageLimit ?? DEFAULT_PAGE_LIMIT;
   const counters = newCounters(date);
-  const lastKeyKey = `${LAST_KEY_PREFIX}:${date}`;
+  const lastKeyKey = k(`${LAST_KEY_PREFIX}:${date}`);
 
   let lastKey = (await redisClient.get(lastKeyKey)) ?? undefined;
 
@@ -200,7 +201,7 @@ export const runSettlementSyncJob = async (): Promise<void> => {
     return;
   }
 
-  const lockAcquired = await redisClient.set(SYNC_LOCK_KEY, '1', {
+  const lockAcquired = await redisClient.set(k(SYNC_LOCK_KEY), '1', {
     NX: true,
     EX: SYNC_LOCK_TTL_SECONDS,
   });
@@ -222,6 +223,6 @@ export const runSettlementSyncJob = async (): Promise<void> => {
   } catch (err: any) {
     console.error('[settlement-sync] job failed', { error: err?.message });
   } finally {
-    await redisClient.del(SYNC_LOCK_KEY);
+    await redisClient.del(k(SYNC_LOCK_KEY));
   }
 };
