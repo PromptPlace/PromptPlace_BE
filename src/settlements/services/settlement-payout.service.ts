@@ -1,4 +1,5 @@
 import redisClient from '../../config/redis';
+import { k } from '../../utils/redis-key';
 import { SettlementPayoutRepository } from '../repositories/settlement-payout.repository';
 import { requestPayoutStandby, executePayout } from '../utils/payple-payout';
 
@@ -135,7 +136,7 @@ export const runPayoutCycle = async (): Promise<void> => {
     return;
   }
 
-  const lockAcquired = await redisClient.set(CYCLE_LOCK_KEY, '1', {
+  const lockAcquired = await redisClient.set(k(CYCLE_LOCK_KEY), '1', {
     NX: true,
     EX: CYCLE_LOCK_TTL_SECONDS,
   });
@@ -177,6 +178,6 @@ export const runPayoutCycle = async (): Promise<void> => {
   } catch (err: any) {
     console.error('[payout-cycle] cycle failed', { error: err?.message });
   } finally {
-    await redisClient.del(CYCLE_LOCK_KEY);
+    await redisClient.del(k(CYCLE_LOCK_KEY));
   }
 };

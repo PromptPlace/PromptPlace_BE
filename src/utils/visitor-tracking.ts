@@ -1,6 +1,7 @@
 import { createHash } from 'crypto';
 import { Request } from 'express';
 import redisClient from '../config/redis';
+import { k } from './redis-key';
 
 const HLL_KEY_PREFIX = 'visitors:hll:';
 const HLL_TTL_SECONDS = 60 * 60 * 24 * 400;
@@ -13,7 +14,7 @@ export const toKstDateString = (date: Date): string =>
   new Date(date.getTime() + KST_OFFSET_MS).toISOString().slice(0, 10);
 
 export const buildHllKey = (kstDate: string): string =>
-  `${HLL_KEY_PREFIX}${kstDate}`;
+  k(`${HLL_KEY_PREFIX}${kstDate}`);
 
 export const isBotUserAgent = (ua: string | undefined): boolean => {
   if (!ua) return true;

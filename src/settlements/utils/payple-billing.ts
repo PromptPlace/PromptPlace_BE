@@ -1,5 +1,6 @@
 import axios from 'axios';
 import redisClient from '../../config/redis';
+import { k } from '../../utils/redis-key';
 import { AppError } from '../../errors/AppError';
 import { redactPaypleLog, buildPaypleHeaders } from './payple';
 
@@ -49,7 +50,7 @@ const getBillingAuthPath = (): string =>
 
 const fetchBillingAuth = async (work: BillingWork): Promise<BillingAuth> => {
   const { cstId, custKey } = loadCredentialsFromEnv();
-  const cacheKey = `payple:billing:auth:${work}`;
+  const cacheKey = k(`payple:billing:auth:${work}`);
 
   const cached = await redisClient.get(cacheKey);
   if (cached) {
