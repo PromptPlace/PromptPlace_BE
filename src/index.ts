@@ -6,6 +6,7 @@ import { errorHandler } from "./middlewares/errorHandler";
 import { visitorTracker } from "./middlewares/visitorTracker";
 import "reflect-metadata";
 import passport from "./config/passport";
+import redisClient from "./config/redis";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 import { swaggerOptions } from "./docs/swagger/options";
@@ -210,7 +211,22 @@ app.use(errorHandler as ErrorRequestHandler);
 
 // 도커 헬스체크 라우터
 app.get('/health', (req, res) => {
-  res.status(200).send('OK');  
+  res.status(200).send('OK');
+});
+
+// ponytail: Upstash free 유휴 자동 삭제 방지용. 외부 cron 이 주기적으로 호출.
+app.get('/health/redis', async (_req, res) => {
+  try {
+    const pong = await Promise.race([
+      redisClient.ping(),
+      new Promise<string>((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 2000),
+      ),
+    ]);
+    res.status(200).send(pong);
+  } catch {
+    res.status(503).send('REDIS_UNAVAILABLE');
+  }
 });
 
 app.use(morgan('dev')); // 사용자 요청 로그 출력

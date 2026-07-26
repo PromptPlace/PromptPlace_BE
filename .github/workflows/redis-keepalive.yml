@@ -1,0 +1,13 @@
+name: redis-keepalive
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'  # 매주 월요일 03:00 UTC (12:00 KST)
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping dev Redis via /health/redis
+        run: curl -fsS -m 10 https://promptplace-dev.kro.kr/health/redis
