@@ -11,3 +11,5 @@ jobs:
     steps:
       - name: Ping dev Redis via /health/redis
         run: curl -fsS -m 10 https://promptplace-dev.kro.kr/health/redis
+      - name: Ping prod Redis via /health/redis
+        run: curl -fsS -m 10 https://promptplace.kro.kr/health/redis
