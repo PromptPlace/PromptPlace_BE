@@ -2,6 +2,7 @@ import axios from 'axios';
 import crypto from 'crypto';
 import { AppError } from '../../errors/AppError';
 import redisClient from '../../config/redis';
+import { k as nsKey } from '../../utils/redis-key';
 import { isValidPaypleBank } from '../constants/bank';
 
 export type SellerTypeHint = 'INDIVIDUAL' | 'BUSINESS_PERSONAL' | 'BUSINESS_CORPORATE';
@@ -86,7 +87,7 @@ const getSecondsUntilMidnight = (): number => {
 };
 
 export const consumePaypleRateLimit = async (userId: number): Promise<void> => {
-  const key = `payple_limit:${userId}`;
+  const key = nsKey(`payple_limit:${userId}`);
   const ttl = getSecondsUntilMidnight();
   // NX + EX를 한 번의 atomic 호출로. 키가 없으면 0으로 초기화 + TTL.
   await redisClient.set(key, '0', { NX: true, EX: ttl });

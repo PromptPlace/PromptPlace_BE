@@ -1,5 +1,6 @@
 import axios from 'axios';
 import redisClient from '../../config/redis';
+import { k } from '../../utils/redis-key';
 import { AppError } from '../../errors/AppError';
 import { redactPaypleLog, buildPaypleHeaders } from './payple';
 
@@ -53,7 +54,7 @@ const getRefundAuthPath = (): string =>
 const fetchRefundAuth = async (): Promise<PaypleRefundAuth> => {
   const { cstId, custKey } = loadCredentialsFromEnv();
 
-  const cached = await redisClient.get(AUTH_CACHE_KEY);
+  const cached = await redisClient.get(k(AUTH_CACHE_KEY));
   if (cached) {
     try {
       const parsed: PaypleRefundAuthCache = JSON.parse(cached);
@@ -82,7 +83,7 @@ const fetchRefundAuth = async (): Promise<PaypleRefundAuth> => {
     payHost: res.data.PCD_PAY_HOST,
     payUrl: res.data.PCD_PAY_URL,
   };
-  await redisClient.set(AUTH_CACHE_KEY, JSON.stringify(cacheable), { EX: AUTH_CACHE_TTL_SECONDS });
+  await redisClient.set(k(AUTH_CACHE_KEY), JSON.stringify(cacheable), { EX: AUTH_CACHE_TTL_SECONDS });
   return { ...cacheable, cstId, custKey };
 };
 
