@@ -29,7 +29,7 @@ export const getMemberStats = async (): Promise<MemberStatsResponse> => {
   let total = 0;
 
   for (const row of grouped) {
-    const channel = SOCIAL_TYPE_TO_CHANNEL[row.social_type];
+    const channel = SOCIAL_TYPE_TO_CHANNEL[row.social_type?.toUpperCase()];
     if (!channel) continue;
     byChannel[channel].count = row._count._all;
     total += row._count._all;
