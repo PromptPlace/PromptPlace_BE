@@ -3,6 +3,8 @@ export type PaypleClientPayType = 'card' | 'transfer';
 export interface PurchaseRequestDTO {
   prompt_id: number;
   pay_type?: PaypleClientPayType;
+  // "디지털콘텐츠 특성상 열람(제공 개시) 후에는 단순 변심 환불이 불가합니다" 동의 (#533)
+  refund_policy_agreed: boolean;
 }
 
 export interface PurchaseRequestResponseDTO {

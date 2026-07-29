@@ -3944,7 +3944,32 @@
                           },
                           "is_refunded": {
                             "type": "boolean",
-                            "description": "환불 완료 여부"
+                            "description": "환불 확정 여부 (APPROVED/COMPLETED)"
+                          },
+                          "refund_status": {
+                            "type": "string",
+                            "nullable": true,
+                            "enum": [
+                              "REQUESTED",
+                              "APPROVED",
+                              "REJECTED",
+                              "COMPLETED"
+                            ],
+                            "description": "환불 진행 상태 (환불 이력 없으면 null)"
+                          },
+                          "refundable": {
+                            "type": "boolean",
+                            "description": "즉시 환불 버튼 활성화 여부 — 미열람 + 구매 후 7일 이내(KST 날짜 기준)"
+                          },
+                          "refund_deadline": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true,
+                            "description": "즉시 환불 마감 시각"
+                          },
+                          "manual_refund_available": {
+                            "type": "boolean",
+                            "description": "환불 신청 버튼 활성화 여부 — 열람함 + 구매 후 3개월 이내"
                           },
                           "title": {
                             "type": "string"
@@ -4858,7 +4883,8 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "prompt_id"
+                  "prompt_id",
+                  "refund_policy_agreed"
                 ],
                 "properties": {
                   "prompt_id": {
@@ -4873,6 +4899,11 @@
                     ],
                     "default": "card",
                     "description": "결제 수단 (card=카드, transfer=계좌이체)"
+                  },
+                  "refund_policy_agreed": {
+                    "type": "boolean",
+                    "example": true,
+                    "description": "환불정책 동의 체크박스. 결제 화면에 아래 문구와 함께 노출해야 하며,\ntrue가 아니면 400 `RefundPolicyNotAgreed`로 주문서가 생성되지 않습니다.\n\n\"디지털콘텐츠 특성상 열람(제공 개시) 후에는 단순 변심 환불이 불가합니다\"\n"
                   }
                 }
               }
@@ -5130,10 +5161,300 @@
         }
       }
     },
+    "/api/admin/refunds/pending": {
+      "get": {
+        "summary": "검토 대기 환불 신청 목록",
+        "description": "status가 REQUESTED인 환불 신청만 조회합니다.",
+        "tags": [
+          "AdminRefund"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공"
+          },
+          "401": {
+            "description": "로그인 필요"
+          },
+          "403": {
+            "description": "관리자 권한 필요"
+          }
+        }
+      }
+    },
+    "/api/admin/refunds": {
+      "get": {
+        "summary": "환불 전체 이력 조회",
+        "description": "status로 필터링합니다. `APPROVED`는 담당자 승인 후 PG 결제 취소가 실패해\n수동 송금 처리가 필요한 건입니다.\n",
+        "tags": [
+          "AdminRefund"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "REQUESTED",
+                "APPROVED",
+                "REJECTED",
+                "COMPLETED"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공"
+          },
+          "401": {
+            "description": "로그인 필요"
+          },
+          "403": {
+            "description": "관리자 권한 필요"
+          }
+        }
+      }
+    },
+    "/api/admin/refunds/{refundId}": {
+      "get": {
+        "summary": "환불 신청 상세 조회",
+        "description": "담당자가 부실 여부를 판단할 수 있도록 프롬프트 본문(`prompt_detail.prompt`)과\n상세페이지 설명(`prompt_detail.description`), 지원 모델 목록을 함께 반환합니다.\n",
+        "tags": [
+          "AdminRefund"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "refundId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공"
+          },
+          "404": {
+            "description": "환불 건 없음"
+          }
+        }
+      }
+    },
+    "/api/admin/refunds/{refundId}/approve": {
+      "patch": {
+        "summary": "환불 신청 승인",
+        "description": "상태를 APPROVED로 확정한 뒤 Payple 결제 취소를 호출합니다.\n- 취소 성공 → `status: COMPLETED`\n- 취소 실패(카드사 취소 가능 기간 초과 등) → `status: APPROVED` 유지 +\n  `payple_cancel_failed: true`. 승인을 되돌리지 않으므로 계좌 송금 등으로\n  수동 처리 후 `/complete-manual`을 호출해야 합니다.\n",
+        "tags": [
+          "AdminRefund"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "refundId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "처리 완료 (payple_cancel_failed 확인 필요)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "refund_id": {
+                      "type": "integer"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "COMPLETED",
+                        "APPROVED"
+                      ]
+                    },
+                    "payple_cancel_failed": {
+                      "type": "boolean"
+                    },
+                    "payple_fail_code": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "환불 건 없음"
+          },
+          "409": {
+            "description": "이미 처리된 환불 건"
+          },
+          "500": {
+            "description": "`RefundStateSyncFailed` — PG 취소는 성공했으나 상태 반영에 실패.\n돈은 이미 나갔으므로 재송금 금지, `/complete-manual`로 상태만 맞춰야 합니다.\n"
+          }
+        }
+      }
+    },
+    "/api/admin/refunds/{refundId}/reject": {
+      "patch": {
+        "summary": "환불 신청 거절",
+        "tags": [
+          "AdminRefund"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "refundId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "reason"
+                ],
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "거절 사유"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "거절 완료"
+          },
+          "400": {
+            "description": "거절 사유 누락"
+          },
+          "409": {
+            "description": "이미 처리된 환불 건"
+          }
+        }
+      }
+    },
+    "/api/admin/refunds/{refundId}/complete-manual": {
+      "patch": {
+        "summary": "수동 송금 완료 처리",
+        "description": "PG 취소가 실패해 APPROVED에서 멈춘 건을 계좌 송금 등으로 처리한 뒤\nCOMPLETED로 전이시킵니다. Payment/Settlement도 이 시점에 Refunded로 전이됩니다.\n",
+        "tags": [
+          "AdminRefund"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "refundId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "완료 처리됨"
+          },
+          "409": {
+            "description": "APPROVED 상태가 아님"
+          }
+        }
+      }
+    },
     "/api/prompts/purchases/{purchaseId}/refund-eligibility": {
       "get": {
         "summary": "환불 가능 여부 조회",
-        "description": "구매 건이 환불 가능한지 검증. 환불 가능 조건은 다음을 모두 만족:\n- 본인 구매\n- 유료 구매\n- 결제 상태 Succeed\n- 환불 이력 없음\n- 다운로드 이력 없음 (`Purchase.downloaded_at` 미값)\n- 구매 후 7일(168시간) 이내\n",
+        "description": "구매 건이 환불 가능한지 검증. 환불 가능 조건은 다음을 모두 만족:\n- 본인 구매\n- 유료 구매\n- 결제 상태 Succeed\n- 환불 이력 없음\n- 다운로드 이력 없음 (`Purchase.downloaded_at` 미값)\n- 구매 후 7일 이내 — **KST 날짜 기준, 첫날 제외.** 7/23 구매 시 7/30 23:59:59까지\n\n이미 열람한 건은 `manual_refund_available`로 수동 환불 신청 가능 여부를 확인하세요.\n",
         "tags": [
           "Refund"
         ],
@@ -5170,8 +5491,12 @@
                       "type": "string",
                       "enum": [
                         "EXPIRED_7DAYS",
+                        "EXPIRED_3MONTHS",
                         "ALREADY_DOWNLOADED",
+                        "NOT_DOWNLOADED",
                         "ALREADY_REFUNDED",
+                        "REFUND_IN_REVIEW",
+                        "REFUND_REJECTED",
                         "NOT_OWNER",
                         "NOT_PURCHASED",
                         "PAYMENT_NOT_SUCCEEDED",
@@ -5182,6 +5507,21 @@
                     "remaining_seconds": {
                       "type": "integer",
                       "description": "eligible=true일 때 환불 가능 잔여 시간(초)"
+                    },
+                    "refund_deadline": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true,
+                      "description": "자동 환불 마감 시각 (KST 기준 D+7 종료)"
+                    },
+                    "manual_refund_available": {
+                      "type": "boolean",
+                      "description": "열람 후 수동 환불 신청 가능 여부 (구매 후 3개월 이내)"
+                    },
+                    "manual_refund_deadline": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
                     },
                     "statusCode": {
                       "type": "integer",
@@ -5265,6 +5605,92 @@
           },
           "502": {
             "description": "Payple 환불 호출 실패 (PaypleRefundFailed)"
+          }
+        }
+      }
+    },
+    "/api/prompts/purchases/{purchaseId}/refund-request": {
+      "post": {
+        "summary": "수동 환불 신청 (열람 후)",
+        "description": "이미 열람한 프롬프트의 환불을 신청합니다. 단순 변심은 불가하며,\n담당자가 아래 사유에 해당하는지 확인 후 승인/거절합니다.\n- 본문이 비어 있거나 의미 있는 지시문이라 볼 수 없는 경우\n- 본문 분량·구성이 상세페이지 안내 수준에 현저히 미달하는 경우\n- 명시된 AI 모델에서 실행해도 상세페이지 예시와 같은 범주의 결과물을 얻을 수 없는 경우\n- 작성자가 직접 작성하지 않고 외부에서 가져온 경우\n\n신청 가능 조건: 열람함(`downloaded_at` 있음) + 구매 후 3개월 이내 + 기존 환불 이력 없음.\n아직 열람하지 않았고 7일이 지나지 않았다면 검토 없이 즉시 환불되므로\n`POST /refund`를 사용해야 하며, 이 경우 400 `UseAutoRefund`를 반환합니다.\n",
+        "tags": [
+          "Refund"
+        ],
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "purchaseId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "reason"
+                ],
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 500,
+                    "description": "환불 신청 사유"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "신청 접수 완료",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "refund_id": {
+                      "type": "integer"
+                    },
+                    "status": {
+                      "type": "string",
+                      "example": "REQUESTED"
+                    },
+                    "requested_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "신청 불가 (RefundNotEligible / UseAutoRefund / ValidationError)"
+          },
+          "401": {
+            "description": "로그인 필요"
+          },
+          "404": {
+            "description": "환불 대상 결제 정보를 찾을 수 없음"
           }
         }
       }
@@ -9095,6 +9521,10 @@
     {
       "name": "Purchase",
       "description": "결제/구매 관련 API"
+    },
+    {
+      "name": "AdminRefund",
+      "description": "관리자 - 환불 신청 검토 (열람 후 환불, 최장 3개월)"
     },
     {
       "name": "Refund",

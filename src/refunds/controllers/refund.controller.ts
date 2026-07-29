@@ -1,5 +1,9 @@
 import { Request, Response } from 'express';
-import { getRefundEligibility, refundPurchase } from '../services/refund.service';
+import {
+  getRefundEligibility,
+  refundPurchase,
+  requestManualRefund,
+} from '../services/refund.service';
 
 const getUserId = (req: Request): number | null => {
   if (!req.user) return null;
@@ -45,6 +49,29 @@ export const refundPurchaseHandler = async (req: Request, res: Response) => {
   }
   try {
     const result = await refundPurchase(userId, purchaseId);
+    return res.status(200).json(result);
+  } catch (error: any) {
+    const status = error.statusCode || 500;
+    return res.status(status).json({
+      error: error.error || 'InternalServerError',
+      message: error.message || '서버 오류가 발생했습니다.',
+      statusCode: status,
+    });
+  }
+};
+
+// 열람 후 수동 환불 신청 — 담당자 검토 대기 상태로 접수만 한다. (#533)
+export const requestManualRefundHandler = async (req: Request, res: Response) => {
+  const userId = getUserId(req);
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized', message: '로그인이 필요합니다.', statusCode: 401 });
+  }
+  const purchaseId = parsePurchaseId(req.params.purchaseId);
+  if (!purchaseId) {
+    return res.status(400).json({ error: 'ValidationError', message: 'purchaseId가 올바르지 않습니다.', statusCode: 400 });
+  }
+  try {
+    const result = await requestManualRefund(userId, purchaseId, req.body?.reason);
     return res.status(200).json(result);
   } catch (error: any) {
     const status = error.statusCode || 500;

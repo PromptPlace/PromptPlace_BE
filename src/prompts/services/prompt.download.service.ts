@@ -2,6 +2,12 @@ import { PromptDownloadRepository } from '../repositories/prompt.download.reposi
 import { PromptDownloadResponseDTO, DownloadedPromptResponseDTO } from '../dtos/prompt.download.dto';
 import { AppError } from '../../errors/AppError';
 import prisma from "../../config/prisma";
+import {
+  checkAutoRefund,
+  checkManualRefund,
+  isRefundSettled,
+  toPolicyInput,
+} from '../../refunds/utils/refund-policy';
 
 export const PromptDownloadService = {
 async getPromptContent(userId: number, promptId: number): Promise<PromptDownloadResponseDTO> {
@@ -22,11 +28,12 @@ async getPromptContent(userId: number, promptId: number): Promise<PromptDownload
       },
       include: {
         payment: true,
-        refund: { select: { refund_id: true } },
+        refund: { select: { refund_id: true, status: true } },
       },
     });
 
-    if (purchase?.refund) {
+    // 신청(REQUESTED) 단계는 아직 검토 중이므로 열람을 막지 않는다. 확정된 건만 차단. (#533)
+    if (isRefundSettled(purchase?.refund?.status)) {
       throw new AppError('환불된 프롬프트는 다시 다운로드할 수 없습니다.', 403, 'Refunded');
     }
 
@@ -97,6 +104,11 @@ async getDownloadedPrompts(userId: number): Promise<DownloadedPromptResponseDTO[
 
     return downloads.map((purchase) => {
         const { prompt } = purchase;
+        // 환불 버튼 활성화 판정 — 단건 환불 API와 동일한 정책 함수를 쓴다 (#533)
+        const policyInput = toPolicyInput(purchase);
+        const autoVerdict = checkAutoRefund(policyInput, userId);
+        const manualVerdict = checkManualRefund(policyInput, userId);
+
         const userReviewRaw = prompt.reviews[0];
         const hasReview = !!userReviewRaw;
         const isRecentReview = hasReview && new Date(userReviewRaw.created_at) >= THIRTY_DAYS_AGO;
@@ -115,7 +127,11 @@ async getDownloadedPrompts(userId: number): Promise<DownloadedPromptResponseDTO[
 
             prompt_id: prompt.prompt_id,
             purchase_id: purchase.purchase_id,
-            is_refunded: !!purchase.refund,
+            is_refunded: isRefundSettled(purchase.refund?.status),
+            refund_status: purchase.refund?.status ?? null,
+            refundable: autoVerdict.eligible,
+            refund_deadline: autoVerdict.refund_deadline,
+            manual_refund_available: manualVerdict.eligible,
             title: prompt.title,
              description: prompt.description,
             price: prompt.price,

@@ -1,7 +1,7 @@
 import { PurchaseRequestRepository } from '../repositories/purchase.request.repository';
 import { PurchaseCompleteRepository } from '../repositories/purchase.complete.repository';
 import prisma from '../../config/prisma';
-import { PayplePaymentResult, verifyPayplePayment } from '../utils/payple';
+import { PayplePaymentResult, parseAgreedAt, verifyPayplePayment } from '../utils/payple';
 import { calculateSettlementFee } from '../utils/fee';
 
 export const WebhookService = {
@@ -44,6 +44,9 @@ export const WebhookService = {
           prompt_id: prompt.prompt_id,
           amount: serverPrice,
           is_free: false,
+          // 웹훅이 /complete보다 먼저 도착하면 여기서 Purchase가 만들어지므로
+          // 동의 시각도 같이 기록해야 유실되지 않는다 (#533)
+          refund_policy_agreed_at: parseAgreedAt(verified.customData?.agreed_at),
         });
 
         const payment = await PurchaseCompleteRepository.createPaymentTx(tx, {
