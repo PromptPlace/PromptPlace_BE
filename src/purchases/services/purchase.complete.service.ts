@@ -3,7 +3,7 @@ import { PurchaseRequestRepository } from '../repositories/purchase.request.repo
 import { PurchaseCompleteRepository } from '../repositories/purchase.complete.repository';
 import { AppError } from '../../errors/AppError';
 import prisma from '../../config/prisma';
-import { verifyPayplePayment } from '../utils/payple';
+import { parseAgreedAt, verifyPayplePayment } from '../utils/payple';
 import { calculateSettlementFee } from '../utils/fee';
 
 export const PurchaseCompleteService = {
@@ -32,6 +32,8 @@ export const PurchaseCompleteService = {
         prompt_id: prompt.prompt_id,
         amount: serverPrice,
         is_free: false,
+        // 주문서 생성 시 검증된 환불정책 동의 시각 (#533)
+        refund_policy_agreed_at: parseAgreedAt(verifiedPayment.customData?.agreed_at),
       });
 
       const payment = await PurchaseCompleteRepository.createPaymentTx(tx, {

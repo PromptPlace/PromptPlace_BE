@@ -28,7 +28,9 @@ export const PromptDownloadRepository = {
     return prisma.purchase.findMany({
       where: { user_id: userId },
       include: {
-        refund: { select: { refund_id: true } },
+        // 환불 가능 여부 판정에 필요한 필드 (#533) — 판정 자체는 refund-policy가 담당
+        refund: { select: { refund_id: true, status: true } },
+        payment: { select: { status: true } },
         prompt: {
           select: {
             prompt_id: true,

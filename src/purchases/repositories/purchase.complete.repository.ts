@@ -8,6 +8,7 @@ export const PurchaseCompleteRepository = {
     prompt_id: number;
     amount: number;
     is_free: false;
+    refund_policy_agreed_at?: Date | null;
   }) {
     return tx.purchase.create({ data });
   },

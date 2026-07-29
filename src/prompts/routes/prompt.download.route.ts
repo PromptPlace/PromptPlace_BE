@@ -99,7 +99,23 @@ router.get('/:promptId/downloads', authenticateJwt, PromptDownloadController.get
  *                     properties:
  *                       prompt_id: { type: integer }
  *                       purchase_id: { type: integer, description: 환불 API 호출에 필요한 구매 ID }
- *                       is_refunded: { type: boolean, description: 환불 완료 여부 }
+ *                       is_refunded: { type: boolean, description: '환불 확정 여부 (APPROVED/COMPLETED)' }
+ *                       refund_status:
+ *                         type: string
+ *                         nullable: true
+ *                         enum: [REQUESTED, APPROVED, REJECTED, COMPLETED]
+ *                         description: 환불 진행 상태 (환불 이력 없으면 null)
+ *                       refundable:
+ *                         type: boolean
+ *                         description: '즉시 환불 버튼 활성화 여부 — 미열람 + 구매 후 7일 이내(KST 날짜 기준)'
+ *                       refund_deadline:
+ *                         type: string
+ *                         format: date-time
+ *                         nullable: true
+ *                         description: 즉시 환불 마감 시각
+ *                       manual_refund_available:
+ *                         type: boolean
+ *                         description: '환불 신청 버튼 활성화 여부 — 열람함 + 구매 후 3개월 이내'
  *                       title: { type: string }
  *                       description: { type: string, nullable: true }
  *                       price: { type: integer }
