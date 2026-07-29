@@ -114,7 +114,7 @@ export type PaypleVerifiedPayment = {
   bankName?: string | null;
   bankNum?: string | null;
   cashReceiptUrl?: string | null;
-  customData: { prompt_id?: number; user_id?: number };
+  customData: { prompt_id?: number; user_id?: number; agreed_at?: string };
 };
 
 function parseCustomDefine(define?: string): any {

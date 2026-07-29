@@ -30,6 +30,7 @@ const router = Router();
  *             type: object
  *             required:
  *               - prompt_id
+ *               - refund_policy_agreed
  *             properties:
  *               prompt_id:
  *                 type: integer
@@ -39,6 +40,14 @@ const router = Router();
  *                 enum: [card, transfer]
  *                 default: card
  *                 description: 결제 수단 (card=카드, transfer=계좌이체)
+ *               refund_policy_agreed:
+ *                 type: boolean
+ *                 example: true
+ *                 description: |
+ *                   환불정책 동의 체크박스. 결제 화면에 아래 문구와 함께 노출해야 하며,
+ *                   true가 아니면 400 `RefundPolicyNotAgreed`로 주문서가 생성되지 않습니다.
+ *
+ *                   "디지털콘텐츠 특성상 열람(제공 개시) 후에는 단순 변심 환불이 불가합니다"
  *     responses:
  *       200:
  *         description: 주문서 생성 성공 (페이플 일반결제 연동 데이터 반환)

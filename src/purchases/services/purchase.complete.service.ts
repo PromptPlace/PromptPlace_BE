@@ -6,6 +6,13 @@ import prisma from '../../config/prisma';
 import { verifyPayplePayment } from '../utils/payple';
 import { calculateSettlementFee } from '../utils/fee';
 
+// 주문서에 실은 동의 시각. 손상된 값이면 기록을 생략하고 결제는 그대로 진행한다 (#533)
+const parseAgreedAt = (raw?: string): Date | null => {
+  if (!raw) return null;
+  const parsed = new Date(raw);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
 export const PurchaseCompleteService = {
   async completePurchase(userId: number, dto: PurchaseCompleteRequestDTO): Promise<PurchaseCompleteResponseDTO> {
     const verifiedPayment = await verifyPayplePayment(dto, { amount: -1 });
@@ -32,6 +39,8 @@ export const PurchaseCompleteService = {
         prompt_id: prompt.prompt_id,
         amount: serverPrice,
         is_free: false,
+        // 주문서 생성 시 검증된 환불정책 동의 시각 (#533)
+        refund_policy_agreed_at: parseAgreedAt(verifiedPayment.customData?.agreed_at),
       });
 
       const payment = await PurchaseCompleteRepository.createPaymentTx(tx, {

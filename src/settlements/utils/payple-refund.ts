@@ -130,7 +130,10 @@ export const requestPaypleRefund = async (
     console.error('[payple-refund] request network error', {
       response: redactPaypleLog(err?.response?.data),
     });
-    throw new AppError('Payple 환불 요청 통신에 실패했습니다.', 502, 'PaypleRefundFailed');
+    throw Object.assign(
+      new AppError('Payple 환불 요청 통신에 실패했습니다.', 502, 'PaypleRefundFailed'),
+      { paypleCode: 'NETWORK_ERROR' },
+    );
   }
 
   if (res.data?.PCD_PAY_RST !== 'success') {
@@ -138,10 +141,14 @@ export const requestPaypleRefund = async (
       code: res.data?.PCD_PAY_CODE,
       response: redactPaypleLog(res.data),
     });
-    throw new AppError(
-      `Payple 환불에 실패했습니다. (${res.data?.PCD_PAY_CODE ?? 'UNKNOWN'}) ${res.data?.PCD_PAY_MSG ?? ''}`,
-      502,
-      'PaypleRefundFailed',
+    // 관리자 승인 흐름에서 실패 코드를 기록해야 하므로 구조화해서 함께 전달한다 (#533)
+    throw Object.assign(
+      new AppError(
+        `Payple 환불에 실패했습니다. (${res.data?.PCD_PAY_CODE ?? 'UNKNOWN'}) ${res.data?.PCD_PAY_MSG ?? ''}`,
+        502,
+        'PaypleRefundFailed',
+      ),
+      { paypleCode: String(res.data?.PCD_PAY_CODE ?? 'UNKNOWN').slice(0, 40) },
     );
   }
 

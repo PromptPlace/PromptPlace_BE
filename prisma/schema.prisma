@@ -396,6 +396,7 @@ model Purchase {
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
   downloaded_at DateTime? // 첫 다운로드 시점 — 환불 가능 조건 판단용 (#485)
+  refund_policy_agreed_at DateTime? // 결제 시 "열람 후 단순변심 환불 불가" 동의 시점 (#533)
   payment       Payment?
   refund        Refund?
   prompt        Prompt    @relation(fields: [prompt_id], references: [prompt_id])
@@ -444,23 +445,42 @@ model Payment {
   cash_receipt_url String?
 }
 
+// 환불 처리 상태 (#533)
+// 열람 전 7일 이내 자동 환불은 곧바로 COMPLETED로 생성되고,
+// 열람 후 수동 환불은 REQUESTED → APPROVED/REJECTED → COMPLETED 로 진행된다.
+enum RefundStatus {
+  REQUESTED // 사용자 신청, 담당자 검토 대기
+  APPROVED // 승인됐으나 Payple 취소 미완료 (카드사 기간 초과 등) — 수동 송금 대상
+  REJECTED // 담당자 거절
+  COMPLETED // 환불 완료
+}
+
 model Refund {
-  refund_id             Int      @id @default(autoincrement())
-  purchase_id           Int      @unique
-  payment_id            Int      @unique
+  refund_id             Int          @id @default(autoincrement())
+  purchase_id           Int          @unique
+  payment_id            Int          @unique
   user_id               Int
   amount                Int
-  reason                String?  @db.VarChar(200)
-  initiator             String   @db.VarChar(20) // 'USER' | 'ADMIN'
-  payple_pay_code       String?  @db.VarChar(20) // PCD_PAY_CODE (e.g. PAYC0000)
-  payple_card_trade_num String?  @db.VarChar(64) // PCD_PAY_CARDTRADENUM 감사 추적용
-  refunded_at           DateTime @default(now())
+  reason                String?      @db.VarChar(200)
+  initiator             String       @db.VarChar(20) // 'USER' | 'ADMIN'
+  payple_pay_code       String?      @db.VarChar(20) // PCD_PAY_CODE (e.g. PAYC0000)
+  payple_card_trade_num String?      @db.VarChar(64) // PCD_PAY_CARDTRADENUM 감사 추적용
+  refunded_at           DateTime? // 실제 환불 완료 시각 — REQUESTED/REJECTED 단계에서는 null (#533)
+  // 수동 환불 워크플로 (#533)
+  status                RefundStatus @default(COMPLETED) // 기존 자동 환불 레코드는 COMPLETED
+  request_reason        String?      @db.VarChar(500) // 사용자 신청 사유
+  reject_reason         String?      @db.VarChar(500) // 담당자 거절 사유
+  reviewed_by           Int? // 처리한 관리자 user_id — 감사용이라 FK 없이 값만 보관
+  reviewed_at           DateTime?
+  payple_fail_code      String?      @db.VarChar(40) // 승인 후 Payple 취소 실패 시 응답 코드
+  requested_at          DateTime     @default(now())
 
   purchase Purchase @relation(fields: [purchase_id], references: [purchase_id], onDelete: Cascade)
   payment  Payment  @relation(fields: [payment_id], references: [payment_id], onDelete: Cascade)
   user     User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@index([user_id])
+  @@index([status])
 }
 
 model Settlement {

@@ -18,6 +18,7 @@ import promptRoutes from "./prompts/routes/prompt.route"; // 프롬프트 관련
 import ReviewRouter from "./reviews/routes/review.route";
 import purchaseRouter from "./purchases/routes/purchase.route";
 import refundRouter from "./refunds/routes/refund.route";
+import adminRefundRouter from "./refunds/routes/admin-refund.route";
 import payoutWebhookRouter from "./settlements/routes/payout-webhook.route";
 import purchaseWebhookRouter from "./purchases/routes/purchase.webhook.route";
 import settlementRouter from "./settlements/routes/settlement.route";
@@ -173,6 +174,8 @@ app.use("/api/prompts", promptLikeRouter);
 app.use("/api/admin/prompts", adminPromptRouter);
 app.use("/api/admin/sellers", adminSellerRouter);
 app.use("/api/admin/stats", adminStatsRouter);
+app.use("/api/admin/refunds", adminRefundRouter);
+// adminMemberRouter는 /api/admin 전체를 받으므로 하위 경로 라우터보다 뒤에 마운트.
 app.use("/api/admin", adminMemberRouter);
 
 // 팁 라우터
