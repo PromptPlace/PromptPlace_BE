@@ -2,8 +2,12 @@ import { PromptDownloadRepository } from '../repositories/prompt.download.reposi
 import { PromptDownloadResponseDTO, DownloadedPromptResponseDTO } from '../dtos/prompt.download.dto';
 import { AppError } from '../../errors/AppError';
 import prisma from "../../config/prisma";
-import { checkAutoRefund, checkManualRefund, isRefundSettled } from '../../refunds/utils/refund-policy';
-import { toPolicyInput } from '../../refunds/services/refund.service';
+import {
+  checkAutoRefund,
+  checkManualRefund,
+  isRefundSettled,
+  toPolicyInput,
+} from '../../refunds/utils/refund-policy';
 
 export const PromptDownloadService = {
 async getPromptContent(userId: number, promptId: number): Promise<PromptDownloadResponseDTO> {

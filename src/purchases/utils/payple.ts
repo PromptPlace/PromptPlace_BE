@@ -126,6 +126,15 @@ function parseCustomDefine(define?: string): any {
   }
 }
 
+// 주문서(PCD_USER_DEFINE1)에 실어 보낸 환불정책 동의 시각.
+// 결제 완료 경로가 클라이언트 /complete와 웹훅 두 갈래라 양쪽이 같은 파서를 쓴다. (#533)
+// 값이 손상됐으면 기록만 생략하고 결제 자체는 진행한다.
+export function parseAgreedAt(raw?: string): Date | null {
+  if (!raw) return null;
+  const parsed = new Date(raw);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
 function parsePaypleTime(t?: string): Date {
   if (!t) return new Date();
   const m = t.match(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/);

@@ -5358,6 +5358,9 @@
           },
           "409": {
             "description": "이미 처리된 환불 건"
+          },
+          "500": {
+            "description": "`RefundStateSyncFailed` — PG 취소는 성공했으나 상태 반영에 실패.\n돈은 이미 나갔으므로 재송금 금지, `/complete-manual`로 상태만 맞춰야 합니다.\n"
           }
         }
       }

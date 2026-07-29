@@ -3,15 +3,8 @@ import { PurchaseRequestRepository } from '../repositories/purchase.request.repo
 import { PurchaseCompleteRepository } from '../repositories/purchase.complete.repository';
 import { AppError } from '../../errors/AppError';
 import prisma from '../../config/prisma';
-import { verifyPayplePayment } from '../utils/payple';
+import { parseAgreedAt, verifyPayplePayment } from '../utils/payple';
 import { calculateSettlementFee } from '../utils/fee';
-
-// 주문서에 실은 동의 시각. 손상된 값이면 기록을 생략하고 결제는 그대로 진행한다 (#533)
-const parseAgreedAt = (raw?: string): Date | null => {
-  if (!raw) return null;
-  const parsed = new Date(raw);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-};
 
 export const PurchaseCompleteService = {
   async completePurchase(userId: number, dto: PurchaseCompleteRequestDTO): Promise<PurchaseCompleteResponseDTO> {

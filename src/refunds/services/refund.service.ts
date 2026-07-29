@@ -7,11 +7,7 @@ import {
   RefundRequestResultDto,
 } from '../dtos/refund.dto';
 import { requestPaypleRefund } from '../../settlements/utils/payple-refund';
-import {
-  checkAutoRefund,
-  checkManualRefund,
-  RefundPolicyInput,
-} from '../utils/refund-policy';
+import { checkAutoRefund, checkManualRefund, toPolicyInput } from '../utils/refund-policy';
 
 // 정책 판정에 필요한 필드 — 목록 API도 동일한 필드를 읽도록 여기서 공개한다. (#533)
 export const PURCHASE_POLICY_SELECT = {
@@ -26,24 +22,6 @@ export const PURCHASE_POLICY_SELECT = {
   },
   refund: { select: { refund_id: true, status: true } },
 } as const;
-
-interface PurchaseWithPolicyFields {
-  user_id: number;
-  created_at: Date;
-  downloaded_at: Date | null;
-  is_free: boolean;
-  payment?: { status: string } | null;
-  refund?: { status: string } | null;
-}
-
-export const toPolicyInput = (purchase: PurchaseWithPolicyFields): RefundPolicyInput => ({
-  purchase_user_id: purchase.user_id,
-  created_at: purchase.created_at,
-  downloaded_at: purchase.downloaded_at,
-  is_free: purchase.is_free,
-  payment_status: purchase.payment?.status,
-  refund_status: (purchase.refund?.status as RefundPolicyInput['refund_status']) ?? null,
-});
 
 const loadPurchase = async (purchaseId: number) =>
   prisma.purchase.findUnique({

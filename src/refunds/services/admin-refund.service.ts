@@ -150,49 +150,33 @@ export const approveRefund = async (
   });
 
   if (!refund) throw new AppError('환불 건을 찾을 수 없습니다.', 404, 'NotFound');
-  if (refund.status !== 'REQUESTED') {
+  if (!refund.payment) {
+    throw new AppError('환불 대상 결제 정보를 찾을 수 없습니다.', 404, 'NotFound');
+  }
+
+  // 상태 검사와 전이를 한 번의 조건부 UPDATE로 묶는다.
+  // 따로 하면 동시 승인 시 둘 다 검사를 통과해 Payple 취소가 두 번 나간다.
+  const claimed = await prisma.refund.updateMany({
+    where: { refund_id: refundId, status: 'REQUESTED' },
+    data: { status: 'APPROVED', reviewed_by: adminId, reviewed_at: new Date() },
+  });
+  if (claimed.count === 0) {
     throw new AppError(
       `이미 처리된 환불 건입니다. (현재 상태: ${refund.status})`,
       409,
       'RefundAlreadyReviewed',
     );
   }
-  if (!refund.payment) {
-    throw new AppError('환불 대상 결제 정보를 찾을 수 없습니다.', 404, 'NotFound');
-  }
 
-  await prisma.refund.update({
-    where: { refund_id: refundId },
-    data: { status: 'APPROVED', reviewed_by: adminId, reviewed_at: new Date() },
-  });
-
+  // Payple 호출만 감싼다. DB 반영 실패까지 여기서 잡으면 "이미 취소된 건"이
+  // 취소 실패로 보고돼 담당자가 수동 송금 → 이중 환불이 된다.
+  let result;
   try {
-    const result = await requestPaypleRefund({
+    result = await requestPaypleRefund({
       payOid: refund.payment.pcd_pay_oid,
       payDate: formatYyyymmdd(refund.payment.created_at),
       refundTotal: refund.amount,
     });
-
-    await prisma.$transaction(async (tx) => {
-      await tx.refund.update({
-        where: { refund_id: refundId },
-        data: {
-          status: 'COMPLETED',
-          refunded_at: new Date(),
-          payple_pay_code: result.payCode,
-          payple_card_trade_num: result.cardTradeNum ?? null,
-          payple_fail_code: null,
-        },
-      });
-      await markPaymentRefunded(tx, refund.payment_id);
-    });
-
-    return {
-      message: '환불이 승인되어 결제 취소까지 완료되었습니다.',
-      refund_id: refundId,
-      status: 'COMPLETED',
-      statusCode: 200,
-    };
   } catch (err: any) {
     const failCode = (err?.paypleCode as string | undefined) ?? 'UNKNOWN';
     console.error('[admin-refund] payple cancel failed after approval', {
@@ -214,6 +198,42 @@ export const approveRefund = async (
       statusCode: 200,
     };
   }
+
+  // 여기부터는 PG에서 실제로 환불이 나간 상태다.
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.refund.update({
+        where: { refund_id: refundId },
+        data: {
+          status: 'COMPLETED',
+          refunded_at: new Date(),
+          payple_pay_code: result.payCode,
+          payple_card_trade_num: result.cardTradeNum ?? null,
+          payple_fail_code: null,
+        },
+      });
+      await markPaymentRefunded(tx, refund.payment_id);
+    });
+  } catch (dbErr) {
+    // 돈은 이미 돌아갔으므로 재송금은 절대 금물. 상태만 수동으로 맞춰야 한다.
+    console.error('[admin-refund] PG 취소 성공 후 DB 반영 실패 — 수동 완료 처리 필요', {
+      refundId,
+      payCode: result.payCode,
+      error: dbErr,
+    });
+    throw new AppError(
+      'PG 결제 취소는 완료됐으나 상태 반영에 실패했습니다. 중복 송금하지 말고 수동 완료 처리해주세요.',
+      500,
+      'RefundStateSyncFailed',
+    );
+  }
+
+  return {
+    message: '환불이 승인되어 결제 취소까지 완료되었습니다.',
+    refund_id: refundId,
+    status: 'COMPLETED',
+    statusCode: 200,
+  };
 };
 
 export const rejectRefund = async (
@@ -235,16 +255,9 @@ export const rejectRefund = async (
     select: { status: true },
   });
   if (!refund) throw new AppError('환불 건을 찾을 수 없습니다.', 404, 'NotFound');
-  if (refund.status !== 'REQUESTED') {
-    throw new AppError(
-      `이미 처리된 환불 건입니다. (현재 상태: ${refund.status})`,
-      409,
-      'RefundAlreadyReviewed',
-    );
-  }
 
-  await prisma.refund.update({
-    where: { refund_id: refundId },
+  const claimed = await prisma.refund.updateMany({
+    where: { refund_id: refundId, status: 'REQUESTED' },
     data: {
       status: 'REJECTED',
       reject_reason: trimmed,
@@ -252,6 +265,13 @@ export const rejectRefund = async (
       reviewed_at: new Date(),
     },
   });
+  if (claimed.count === 0) {
+    throw new AppError(
+      `이미 처리된 환불 건입니다. (현재 상태: ${refund.status})`,
+      409,
+      'RefundAlreadyReviewed',
+    );
+  }
 
   return {
     message: '환불 신청을 거절했습니다.',
@@ -271,19 +291,23 @@ export const completeManualRefund = async (
     select: { status: true, payment_id: true },
   });
   if (!refund) throw new AppError('환불 건을 찾을 수 없습니다.', 404, 'NotFound');
-  if (refund.status !== 'APPROVED') {
-    throw new AppError(
-      `수동 완료 처리는 승인(APPROVED) 상태에서만 가능합니다. (현재 상태: ${refund.status})`,
-      409,
-      'RefundNotApproved',
-    );
-  }
+
+  // PG 밖에서 돈이 오간 건이므로 누가 완료 처리했는지 로그로 남긴다.
+  console.log('[admin-refund] manual completion', { refundId, adminId });
 
   await prisma.$transaction(async (tx) => {
-    await tx.refund.update({
-      where: { refund_id: refundId },
-      data: { status: 'COMPLETED', refunded_at: new Date(), reviewed_by: adminId },
+    // reviewed_by는 승인한 담당자를 가리키므로 완료 처리로 덮어쓰지 않는다.
+    const claimed = await tx.refund.updateMany({
+      where: { refund_id: refundId, status: 'APPROVED' },
+      data: { status: 'COMPLETED', refunded_at: new Date() },
     });
+    if (claimed.count === 0) {
+      throw new AppError(
+        `수동 완료 처리는 승인(APPROVED) 상태에서만 가능합니다. (현재 상태: ${refund.status})`,
+        409,
+        'RefundNotApproved',
+      );
+    }
     await markPaymentRefunded(tx, refund.payment_id);
   });
 

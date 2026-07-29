@@ -6,6 +6,8 @@ import {
   checkManualRefund,
   getAutoRefundDeadline,
   getManualRefundDeadline,
+  isRefundSettled,
+  toPolicyInput,
   RefundPolicyInput,
 } from './refund-policy';
 
@@ -102,6 +104,39 @@ const paid = (createdAt: Date, downloadedAt: Date | null = null): RefundPolicyIn
   );
   // 소유권 위반은 다른 사유보다 먼저 걸러져야 함 (정보 노출 방지)
   assert.strictEqual(checkAutoRefund({ ...base, is_free: true }, 999, now).reason, 'NOT_OWNER');
+}
+
+// --- 환불 확정 판정: 재다운로드 차단 / is_refunded 표시의 기준 ---
+{
+  // 검토 중(REQUESTED)이나 거절(REJECTED)은 아직 환불이 아니므로 열람을 막으면 안 된다.
+  assert.strictEqual(isRefundSettled('REQUESTED'), false);
+  assert.strictEqual(isRefundSettled('REJECTED'), false);
+  assert.strictEqual(isRefundSettled('APPROVED'), true);
+  assert.strictEqual(isRefundSettled('COMPLETED'), true);
+  assert.strictEqual(isRefundSettled(null), false);
+  assert.strictEqual(isRefundSettled(undefined), false);
+}
+
+// --- Prisma 행 → 판정 입력 변환 ---
+{
+  const row = {
+    user_id: 7,
+    created_at: kst('2026-07-23T15:00:00'),
+    downloaded_at: null,
+    is_free: false,
+    payment: { status: 'Succeed' },
+    refund: null,
+  };
+  assert.strictEqual(checkAutoRefund(toPolicyInput(row), 7, kst('2026-07-24T00:00:00')).eligible, true);
+  // 결제가 성공하지 않은 행은 목록에서도 환불 버튼이 켜지면 안 된다.
+  assert.strictEqual(
+    checkAutoRefund(
+      toPolicyInput({ ...row, payment: { status: 'Pending' } }),
+      7,
+      kst('2026-07-24T00:00:00'),
+    ).eligible,
+    false,
+  );
 }
 
 console.log('refund-policy: 모든 경계 검증 통과');

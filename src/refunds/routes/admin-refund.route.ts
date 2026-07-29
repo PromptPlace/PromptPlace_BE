@@ -130,6 +130,10 @@ router.get('/:refundId', authenticateJwt, isAdmin, getRefundDetailHandler);
  *                 statusCode: { type: integer, example: 200 }
  *       409: { description: 이미 처리된 환불 건 }
  *       404: { description: 환불 건 없음 }
+ *       500:
+ *         description: |
+ *           `RefundStateSyncFailed` — PG 취소는 성공했으나 상태 반영에 실패.
+ *           돈은 이미 나갔으므로 재송금 금지, `/complete-manual`로 상태만 맞춰야 합니다.
  */
 router.patch('/:refundId/approve', authenticateJwt, isAdmin, approveRefundHandler);
 

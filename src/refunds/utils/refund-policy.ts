@@ -72,6 +72,26 @@ export interface RefundPolicyInput {
   refund_status: RefundStatusValue | null;
 }
 
+// Prisma로 조회한 Purchase 행을 판정 입력으로 옮긴다.
+// 정책을 쓰는 쪽(환불 API / 다운로드 목록)이 모두 같은 형태로 넘기도록 여기에 둔다.
+export interface PurchaseWithPolicyFields {
+  user_id: number;
+  created_at: Date;
+  downloaded_at: Date | null;
+  is_free: boolean;
+  payment?: { status: string } | null;
+  refund?: { status: string } | null;
+}
+
+export const toPolicyInput = (purchase: PurchaseWithPolicyFields): RefundPolicyInput => ({
+  purchase_user_id: purchase.user_id,
+  created_at: purchase.created_at,
+  downloaded_at: purchase.downloaded_at,
+  is_free: purchase.is_free,
+  payment_status: purchase.payment?.status,
+  refund_status: (purchase.refund?.status as RefundStatusValue) ?? null,
+});
+
 export interface RefundVerdict {
   eligible: boolean;
   reason?: RefundIneligibleReason;
