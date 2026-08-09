@@ -48,6 +48,9 @@ const REDACTED_FIELDS = new Set([
   'PCD_PAYER_NAME',
   'PCD_PAY_BANKNUM',
   'PCD_PAY_CARDNUM',
+  // 결제결과 웹훅 페이로드에 실려 오는 개인정보 — 원문 로그 금지
+  'PCD_PAYER_HP',
+  'PCD_PAYER_EMAIL',
   'PCD_LASTKEY',
   'AuthKey',
   // 결제 취소 (payple-refund.ts에서 재사용)
