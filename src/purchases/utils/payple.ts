@@ -94,6 +94,7 @@ export interface PayplePaymentResult {
   PCD_AUTH_KEY?: string;
   PCD_PAY_HOST?: string;
   PCD_PAY_URL?: string;
+  PCD_PAY_COFURL?: string;
   PCD_PAY_ISTAX?: string;
   PCD_PAY_TAXTOTAL?: string | number;
   PCD_PAY_CARDRECEIPT?: string;
@@ -143,6 +144,31 @@ function parsePaypleTime(t?: string): Date {
   return new Date(`${y}-${mo}-${d}T${h}:${mi}:${s}+09:00`);
 }
 
+// 재검증 요청을 보낼 URL 확정.
+// 브라우저 리턴 페이로드는 PCD_PAY_HOST + PCD_PAY_URL 조합으로 오지만,
+// 웹훅 페이로드는 PCD_PAY_URL이 빈 문자열이고 전체 URL이 PCD_PAY_COFURL로 온다.
+// 두 값 모두 요청 본문에서 오므로 payple.kr 도메인인지 반드시 확인한다 — 확인이 없으면
+// 인증 없는 웹훅 엔드포인트를 통해 임의 호스트로 요청을 유도할 수 있다 (SSRF).
+export function resolvePaypleConfirmUrl(result: PayplePaymentResult): string {
+  const raw = result.PCD_PAY_URL
+    ? `${result.PCD_PAY_HOST ?? ''}${result.PCD_PAY_URL}`
+    : result.PCD_PAY_COFURL ?? '';
+
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    throw new AppError('페이플 결제 검증에 필요한 키가 누락되었습니다.', 400, 'InvalidPaymentData');
+  }
+
+  const host = parsed.hostname;
+  if (parsed.protocol !== 'https:' || (host !== 'payple.kr' && !host.endsWith('.payple.kr'))) {
+    throw new AppError('페이플 결제 검증 요청 대상이 올바르지 않습니다.', 400, 'InvalidPaymentData');
+  }
+
+  return parsed.toString();
+}
+
 export async function verifyPayplePayment(
   result: PayplePaymentResult,
   expected: { amount: number }
@@ -163,17 +189,17 @@ export async function verifyPayplePayment(
 
   const reqKey = result.PCD_PAY_REQKEY;
   const authKey = result.PCD_AUTH_KEY;
-  const payHost = result.PCD_PAY_HOST;
-  const payUrl = result.PCD_PAY_URL;
 
-  if (!reqKey || !authKey || !payHost || !payUrl) {
+  if (!reqKey || !authKey) {
     throw new AppError('페이플 결제 검증에 필요한 키가 누락되었습니다.', 400, 'InvalidPaymentData');
   }
+
+  const confirmUrl = resolvePaypleConfirmUrl(result);
 
   let verified: PayplePaymentResult;
   try {
     const { data } = await axios.post<PayplePaymentResult>(
-      `${payHost}${payUrl}`,
+      confirmUrl,
       {
         PCD_CST_ID: PAYPLE_PAY_CST_ID,
         PCD_CUST_KEY: PAYPLE_PAY_CUST_KEY,

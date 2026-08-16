@@ -10,6 +10,7 @@ import { PatchPromptImageDto } from "../dtos/patch-prompt-image.dto";
 import { DeletePromptImageDto } from "../dtos/delete-prompt-image.dto";
 import { validate } from "class-validator";
 import { plainToInstance } from "class-transformer";
+import {AdminSellerRepository} from "../../settlements/repositories/admin-seller.repository";
 
 export const searchPrompts = async (req: Request, res: Response) => {
   try {
@@ -207,6 +208,32 @@ export const createPrompt = async (req: Request, res: Response) => {
           ", "
         )})가 누락되었거나 형식이 올바르지 않습니다.`,
       });
+    }
+
+    // + 추가 : 유료 프롬프트 가격 설정 정의
+    
+    if (!dto.is_free) {
+      // 유료 선택 시: 가격 제한 최소 100원, 최대 100,000원
+      if (dto.price < 100 || dto.price > 100000) {
+        return res.fail({
+          statusCode: 400,
+          error: "BadRequest",
+          message: "유료 프롬프트의 가격은 최소 100원, 최대 100,000원으로 설정해야 합니다.",
+        });
+      }
+      
+      const isApprovedSeller = await AdminSellerRepository.findApprovedSellerAnyType(userId); 
+      
+      if (!isApprovedSeller) {
+        return res.fail({
+          statusCode: 403,
+          error: "Forbidden",
+          message: "판매자로 승인된 사용자만 유료 프롬프트를 올릴 수 있습니다.",
+        });
+      }
+    } else {
+      // 무료 선택 시: 혹시 모를 클라이언트의 잘못된 값 전달 방지를 위해 가격을 0으로 강제 초기화
+      dto.price = 0;
     }
 
     // 3. 서비스 호출
