@@ -81,12 +81,11 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // origin이 undefined일 수 있으므로 체크 필요
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
+      // ponytail: 미허용 origin 은 throw(=500) 대신 false — CORS 헤더만 빼고 요청은 통과시킨다.
+      // 브라우저는 여전히 응답을 읽지 못하므로 보호 수준은 같고, 페이플 결제창(cpay.payple.kr)이
+      // PCD_RST_URL 로 보내는 폼 POST 리다이렉트 같은 서드파티 네비게이션이 500 으로 죽지 않는다.
+      // origin 이 undefined 일 수 있으므로(서버-투-서버 호출) 그대로 허용.
+      callback(null, !origin || allowedOrigins.includes(origin));
     },
     credentials: true,
   })
