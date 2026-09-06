@@ -24,7 +24,7 @@ export class MemberService {
       throw new AppError(
         "자기 자신을 팔로우할 수 없습니다.",
         400,
-        "BadRequest"
+        "BadRequest",
       );
     }
 
@@ -35,7 +35,7 @@ export class MemberService {
 
     const existingFollow = await this.memberRepository.findFollowing(
       followerId,
-      followingId
+      followingId,
     );
     if (existingFollow) {
       throw new AppError("이미 팔로우한 사용자입니다.", 409, "Conflict");
@@ -47,7 +47,7 @@ export class MemberService {
   async unfollowUser(followerId: number, followingId: number) {
     const following = await this.memberRepository.findFollowing(
       followerId,
-      followingId
+      followingId,
     );
 
     if (!following) {
@@ -63,9 +63,8 @@ export class MemberService {
       throw new AppError("해당 사용자를 찾을 수 없습니다.", 404, "NotFound");
     }
 
-    const followers = await this.memberRepository.findFollowersByMemberId(
-      memberId
-    );
+    const followers =
+      await this.memberRepository.findFollowersByMemberId(memberId);
 
     return followers
       .filter((f) => f.follower) // null 체크
@@ -86,9 +85,8 @@ export class MemberService {
       throw new AppError("해당 사용자를 찾을 수 없습니다.", 404, "NotFound");
     }
 
-    const followings = await this.memberRepository.findFollowingsByMemberId(
-      memberId
-    );
+    const followings =
+      await this.memberRepository.findFollowingsByMemberId(memberId);
 
     return followings
       .filter((f) => f.following) // null 체크
@@ -111,7 +109,7 @@ export class MemberService {
     return await this.memberRepository.getMyPrompts(
       userId,
       cursor,
-      actualLimit
+      actualLimit,
     );
   }
 
@@ -140,7 +138,7 @@ export class MemberService {
       has_unread_messages: (member._count?.receivedMessages ?? 0) > 0,
       created_at: member.created_at,
       updated_at: member.updated_at,
-      status: member.status ? 1 : 0,
+      status: member.settlementAccount?.status || null,
       role: member.role,
     };
   }
@@ -149,9 +147,8 @@ export class MemberService {
     const { nickname, email } = updateMemberDto;
 
     if (nickname) {
-      const existingUser = await this.memberRepository.findUserByNickname(
-        nickname
-      );
+      const existingUser =
+        await this.memberRepository.findUserByNickname(nickname);
       if (existingUser && existingUser.user_id !== userId) {
         throw new AppError("이미 사용 중인 닉네임입니다.", 409, "Conflict");
       }
@@ -166,7 +163,7 @@ export class MemberService {
 
     const updatedUser = await this.memberRepository.updateUser(
       userId,
-      updateMemberDto
+      updateMemberDto,
     );
     return {
       user_id: updatedUser.user_id,
@@ -190,7 +187,7 @@ export class MemberService {
       throw new AppError(
         "수정할 한줄 소개를 찾을 수 없습니다.",
         404,
-        "NotFound"
+        "NotFound",
       );
     }
 
@@ -204,7 +201,7 @@ export class MemberService {
   async updateHistory(
     userId: number,
     historyId: number,
-    updateHistoryDto: UpdateHistoryDto
+    updateHistoryDto: UpdateHistoryDto,
   ) {
     const history = await this.memberRepository.findHistoryById(historyId);
 
@@ -216,7 +213,7 @@ export class MemberService {
       throw new AppError(
         "해당 이력을 수정할 권한이 없습니다.",
         403,
-        "Forbidden"
+        "Forbidden",
       );
     }
 
@@ -234,7 +231,7 @@ export class MemberService {
       throw new AppError(
         "해당 이력을 삭제할 권한이 없습니다.",
         403,
-        "Forbidden"
+        "Forbidden",
       );
     }
 
@@ -273,7 +270,7 @@ export class MemberService {
       throw new AppError(
         "해당 SNS를 수정할 권한이 없습니다.",
         403,
-        "Forbidden"
+        "Forbidden",
       );
     }
 
@@ -291,7 +288,7 @@ export class MemberService {
       throw new AppError(
         "해당 SNS 정보를 삭제할 권한이 없습니다.",
         403,
-        "Forbidden"
+        "Forbidden",
       );
     }
 
@@ -349,7 +346,7 @@ export class MemberService {
       throw new AppError(
         "자기 자신을 팔로우할 수 없습니다.",
         400,
-        "BadRequest"
+        "BadRequest",
       );
     }
 
@@ -362,7 +359,7 @@ export class MemberService {
     // 3. 이미 팔로우하고 있는지 확인
     const existingFollow = await this.memberRepository.findFollow(
       followerId,
-      followingId
+      followingId,
     );
     if (existingFollow) {
       throw new AppError("이미 팔로우한 사용자입니다.", 409, "Conflict");
@@ -371,7 +368,7 @@ export class MemberService {
     // 팔로우 생성
     const follow = await this.memberRepository.createFollow(
       followerId,
-      followingId
+      followingId,
     );
 
     // 팔로우 알림 이벤트 발생
@@ -390,7 +387,7 @@ export class MemberService {
     // 2. 팔로우 관계가 존재하는지 확인
     const existingFollow = await this.memberRepository.findFollow(
       followerId,
-      followingId
+      followingId,
     );
     if (!existingFollow) {
       throw new AppError("팔로우 관계를 찾을 수 없습니다.", 404, "NotFound");
@@ -423,7 +420,7 @@ export class MemberService {
       throw new AppError(
         "페이지 번호는 1 이상이어야 합니다.",
         400,
-        "BadRequest"
+        "BadRequest",
       );
     }
 
@@ -431,7 +428,7 @@ export class MemberService {
       throw new AppError(
         "페이지당 조회할 회원 수는 1-100 사이여야 합니다.",
         400,
-        "BadRequest"
+        "BadRequest",
       );
     }
 
@@ -447,7 +444,7 @@ export class MemberService {
       throw new AppError(
         "해당 회원은 이미 정지 상태입니다.",
         400,
-        "BadRequest"
+        "BadRequest",
       );
     }
     return this.memberRepository.BanUser(memberId);
@@ -462,7 +459,7 @@ export class MemberService {
       throw new AppError(
         "해당 회원은 이미 활동 가능 상태입니다.",
         400,
-        "BadRequest"
+        "BadRequest",
       );
     }
     return this.memberRepository.UnBanUser(memberId);
@@ -477,7 +474,7 @@ export class MemberService {
       throw new AppError(
         "해당 회원은 이미 삭제된 상태입니다.",
         400,
-        "BadRequest"
+        "BadRequest",
       );
     }
     return this.memberRepository.deleteUser(memberId);

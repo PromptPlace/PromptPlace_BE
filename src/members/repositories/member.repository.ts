@@ -221,6 +221,11 @@ export class MemberRepository {
       include: {
         intro: true,
         profileImage: true, // 프로필 이미지 포함
+        settlementAccount: {
+          select: {
+            status: true, // 정산 계좌에서 status 필드만 선택적으로 조회
+          },
+        },
         _count: {
           select: {
             receivedMessages: {
@@ -291,7 +296,7 @@ export class MemberRepository {
           follower,
           follower_cnt: followerCount,
         };
-      })
+      }),
     );
 
     return followingsWithFollower;
@@ -327,7 +332,7 @@ export class MemberRepository {
           following: followingUser,
           following_cnt: followerCount,
         };
-      })
+      }),
     );
 
     return followingsWithFollowing;
@@ -380,7 +385,7 @@ export class MemberRepository {
           follower_cnt: followerCount,
           profile_image_url: member.profileImage?.url || null, // 이미 S3 URL이 저장되어 있음
         };
-      })
+      }),
     );
 
     return {
@@ -510,7 +515,7 @@ export class MemberRepository {
 export const getMemberPromptsRepo = async (
   memberId: number,
   cursor?: number,
-  limit: number = 10
+  limit: number = 10,
 ) => {
   const whereCondition: any = { user_id: memberId };
 

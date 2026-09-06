@@ -10,7 +10,7 @@ import { PatchPromptImageDto } from "../dtos/patch-prompt-image.dto";
 import { DeletePromptImageDto } from "../dtos/delete-prompt-image.dto";
 import { validate } from "class-validator";
 import { plainToInstance } from "class-transformer";
-import {AdminSellerRepository} from "../../settlements/repositories/admin-seller.repository";
+import { AdminSellerRepository } from "../../settlements/repositories/admin-seller.repository";
 
 export const searchPrompts = async (req: Request, res: Response) => {
   try {
@@ -25,8 +25,10 @@ export const searchPrompts = async (req: Request, res: Response) => {
     } = req.body;
 
     // category가 문자열인 경우 배열로 변환
-    const modelArray = typeof model === "string" ? [model] : (model as string[]) || [];
-    const categoryArray = typeof category === "string" ? [category] : (category as string[]) || [];
+    const modelArray =
+      typeof model === "string" ? [model] : (model as string[]) || [];
+    const categoryArray =
+      typeof category === "string" ? [category] : (category as string[]) || [];
 
     const dto: SearchPromptDto = {
       model: modelArray,
@@ -105,7 +107,7 @@ export const presignUrl = async (req: Request, res: Response) => {
     }
     const { url, key: newKey } = await promptService.getPresignedUrl(
       key,
-      contentType
+      contentType,
     );
     return res.status(200).json({ url, key: newKey });
   } catch (error) {
@@ -119,8 +121,8 @@ export const createPromptImage = async (req: Request, res: Response) => {
     if (!req.user) {
       return res.fail({
         statusCode: 401,
-        error: 'Unauthorized',
-        message: '인증이 필요합니다.'
+        error: "Unauthorized",
+        message: "인증이 필요합니다.",
       });
     }
 
@@ -132,10 +134,14 @@ export const createPromptImage = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "image_url이 필요합니다." });
     }
 
-    const result = await promptService.createPromptImage(Number(promptId), userId, {
-      image_url,
-      order_index,
-    });
+    const result = await promptService.createPromptImage(
+      Number(promptId),
+      userId,
+      {
+        image_url,
+        order_index,
+      },
+    );
     return res.status(201).json({
       statusCode: 201,
       message: "프롬프트 이미지 매핑 성공",
@@ -143,18 +149,18 @@ export const createPromptImage = async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('프롬프트를 찾을 수 없습니다')) {
+      if (error.message.includes("프롬프트를 찾을 수 없습니다")) {
         return res.fail({
           statusCode: 404,
-          error: 'NotFound',
-          message: '해당 프롬프트를 찾을 수 없습니다.'
+          error: "NotFound",
+          message: "해당 프롬프트를 찾을 수 없습니다.",
         });
       }
-      if (error.message.includes('권한이 없습니다')) {
+      if (error.message.includes("권한이 없습니다")) {
         return res.fail({
           statusCode: 403,
-          error: 'Forbidden',
-          message: '해당 프롬프트에 대한 권한이 없습니다.'
+          error: "Forbidden",
+          message: "해당 프롬프트에 대한 권한이 없습니다.",
         });
       }
     }
@@ -179,14 +185,19 @@ export const createPrompt = async (req: Request, res: Response) => {
     const invalidFields: string[] = [];
 
     // 문자열 필수 필드: 빈 문자열 불가
-    if (typeof dto.title !== 'string' || !dto.title.trim()) invalidFields.push('title');
-    if (typeof dto.prompt !== 'string' || !dto.prompt.trim()) invalidFields.push('prompt');
-    if (typeof dto.description !== 'string' || !dto.description.trim()) invalidFields.push('description');
-
+    if (typeof dto.title !== "string" || !dto.title.trim())
+      invalidFields.push("title");
+    if (typeof dto.prompt !== "string" || !dto.prompt.trim())
+      invalidFields.push("prompt");
+    if (typeof dto.description !== "string" || !dto.description.trim())
+      invalidFields.push("description");
 
     // model_version: 선택적, 50자 제한
-    if (dto.model_version && (typeof dto.model_version !== 'string' || dto.model_version.length > 50)) {
-      invalidFields.push('model_version');
+    if (
+      dto.model_version &&
+      (typeof dto.model_version !== "string" || dto.model_version.length > 50)
+    ) {
+      invalidFields.push("model_version");
     }
 
     // 숫자 필수 필드: 0 허용, 숫자형이어야 함
@@ -199,31 +210,32 @@ export const createPrompt = async (req: Request, res: Response) => {
       invalidFields.push("is_free");
     }
 
-
     if (invalidFields.length > 0) {
       return res.fail({
         statusCode: 400,
         error: "BadRequest",
         message: `필수 필드(${invalidFields.join(
-          ", "
+          ", ",
         )})가 누락되었거나 형식이 올바르지 않습니다.`,
       });
     }
 
     // + 추가 : 유료 프롬프트 가격 설정 정의
-    
+
     if (!dto.is_free) {
       // 유료 선택 시: 가격 제한 최소 100원, 최대 100,000원
       if (dto.price < 100 || dto.price > 100000) {
         return res.fail({
           statusCode: 400,
           error: "BadRequest",
-          message: "유료 프롬프트의 가격은 최소 100원, 최대 100,000원으로 설정해야 합니다.",
+          message:
+            "유료 프롬프트의 가격은 최소 100원, 최대 100,000원으로 설정해야 합니다.",
         });
       }
-      
-      const isApprovedSeller = await AdminSellerRepository.findApprovedSellerAnyType(userId); 
-      
+
+      const isApprovedSeller =
+        await AdminSellerRepository.findApprovedSellerAnyType(userId);
+
       if (!isApprovedSeller) {
         return res.fail({
           statusCode: 403,
@@ -434,7 +446,10 @@ export const adminDeletePrompt = async (req: Request, res: Response) => {
 
     return res.success(null, "프롬프트 삭제 성공(관리자)");
   } catch (error) {
-    if (error instanceof Error && error.message.includes("프롬프트를 찾을 수 없습니다")) {
+    if (
+      error instanceof Error &&
+      error.message.includes("프롬프트를 찾을 수 없습니다")
+    ) {
       return res.fail({
         statusCode: 404,
         error: "NotFound",
@@ -455,7 +470,11 @@ export const adminDeletePrompt = async (req: Request, res: Response) => {
 export const updatePromptImage = async (req: Request, res: Response) => {
   try {
     if (!req.user) {
-      return res.fail({ statusCode: 401, error: 'Unauthorized', message: '인증이 필요합니다.' });
+      return res.fail({
+        statusCode: 401,
+        error: "Unauthorized",
+        message: "인증이 필요합니다.",
+      });
     }
     const { promptId } = req.params;
     const userId = (req.user as { user_id: number }).user_id;
@@ -463,23 +482,38 @@ export const updatePromptImage = async (req: Request, res: Response) => {
 
     const errors = await validate(dto);
     if (errors.length > 0) {
-      const message = errors.map(err => Object.values(err.constraints || {})).join(', ');
+      const message = errors
+        .map((err) => Object.values(err.constraints || {}))
+        .join(", ");
       return res.fail({ statusCode: 400, message });
     }
 
-    const result = await promptService.updatePromptImage(Number(promptId), userId, dto);
-    
+    const result = await promptService.updatePromptImage(
+      Number(promptId),
+      userId,
+      dto,
+    );
+
     return res.success(result, "프롬프트 이미지 순서 변경 성공");
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('프롬프트를 찾을 수 없습니다')) {
-        return res.fail({ statusCode: 404, message: '해당 프롬프트를 찾을 수 없습니다.' });
+      if (error.message.includes("프롬프트를 찾을 수 없습니다")) {
+        return res.fail({
+          statusCode: 404,
+          message: "해당 프롬프트를 찾을 수 없습니다.",
+        });
       }
-      if (error.message.includes('권한이 없습니다')) {
-        return res.fail({ statusCode: 403, message: '해당 프롬프트에 대한 권한이 없습니다.' });
+      if (error.message.includes("권한이 없습니다")) {
+        return res.fail({
+          statusCode: 403,
+          message: "해당 프롬프트에 대한 권한이 없습니다.",
+        });
       }
-      if (error.message.includes('이미지를 찾을 수 없습니다')) {
-        return res.fail({ statusCode: 404, message: '해당 이미지를 찾을 수 없습니다.' });
+      if (error.message.includes("이미지를 찾을 수 없습니다")) {
+        return res.fail({
+          statusCode: 404,
+          message: "해당 이미지를 찾을 수 없습니다.",
+        });
       }
     }
     return errorHandler(error, req, res, () => {});
@@ -487,37 +521,52 @@ export const updatePromptImage = async (req: Request, res: Response) => {
 };
 
 export const deletePromptImage = async (req: Request, res: Response) => {
-    try {
-        if (!req.user) {
-            return res.fail({ statusCode: 401, error: 'Unauthorized', message: '인증이 필요합니다.' });
-        }
-        const { promptId } = req.params;
-        const userId = (req.user as { user_id: number }).user_id;
-        const dto = plainToInstance(DeletePromptImageDto, req.body);
-
-        const errors = await validate(dto);
-        if (errors.length > 0) {
-            const message = errors.map(err => Object.values(err.constraints || {})).join(', ');
-            return res.fail({ statusCode: 400, message });
-        }
-
-        await promptService.deletePromptImage(Number(promptId), userId, dto);
-        
-        return res.success(null, "프롬프트 이미지 삭제 성공");
-    } catch (error) {
-        if (error instanceof Error) {
-            if (error.message.includes('프롬프트를 찾을 수 없습니다')) {
-                return res.fail({ statusCode: 404, message: '해당 프롬프트를 찾을 수 없습니다.' });
-            }
-            if (error.message.includes('권한이 없습니다')) {
-                return res.fail({ statusCode: 403, message: '해당 프롬프트에 대한 권한이 없습니다.' });
-            }
-            if (error.message.includes('삭제할 이미지를 찾을 수 없습니다')) {
-                return res.fail({ statusCode: 404, message: '삭제할 이미지를 찾을 수 없습니다.' });
-            }
-        }
-        return errorHandler(error, req, res, () => {});
+  try {
+    if (!req.user) {
+      return res.fail({
+        statusCode: 401,
+        error: "Unauthorized",
+        message: "인증이 필요합니다.",
+      });
     }
+    const { promptId } = req.params;
+    const userId = (req.user as { user_id: number }).user_id;
+    const dto = plainToInstance(DeletePromptImageDto, req.body);
+
+    const errors = await validate(dto);
+    if (errors.length > 0) {
+      const message = errors
+        .map((err) => Object.values(err.constraints || {}))
+        .join(", ");
+      return res.fail({ statusCode: 400, message });
+    }
+
+    await promptService.deletePromptImage(Number(promptId), userId, dto);
+
+    return res.success(null, "프롬프트 이미지 삭제 성공");
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes("프롬프트를 찾을 수 없습니다")) {
+        return res.fail({
+          statusCode: 404,
+          message: "해당 프롬프트를 찾을 수 없습니다.",
+        });
+      }
+      if (error.message.includes("권한이 없습니다")) {
+        return res.fail({
+          statusCode: 403,
+          message: "해당 프롬프트에 대한 권한이 없습니다.",
+        });
+      }
+      if (error.message.includes("삭제할 이미지를 찾을 수 없습니다")) {
+        return res.fail({
+          statusCode: 404,
+          message: "삭제할 이미지를 찾을 수 없습니다.",
+        });
+      }
+    }
+    return errorHandler(error, req, res, () => {});
+  }
 };
 
 export const getGroupedCategories = async (req: Request, res: Response) => {
