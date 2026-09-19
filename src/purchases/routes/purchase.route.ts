@@ -62,7 +62,7 @@ const router = Router();
  *                 PCD_CUST_KEY: { type: string, description: "페이플 가맹점 Key" }
  *                 PCD_AUTH_KEY: { type: string, description: "페이플 인증 토큰" }
  *                 PCD_PAY_TYPE: { type: string, enum: [card, transfer] }
- *                 PCD_PAY_WORK: { type: string, enum: [PAY] }
+ *                 PCD_PAY_WORK: { type: string, enum: [CERT] }
  *                 PCD_PAY_HOST: { type: string, description: "페이플 결제 호스트 (재검증 시 사용)" }
  *                 PCD_PAY_URL: { type: string, description: "페이플 결제 URL (재검증 시 사용)" }
  *                 PCD_PAY_OID: { type: string, description: "서버 생성 주문 번호" }
@@ -129,7 +129,7 @@ router.get('/', authenticateJwt, PurchaseHistoryController.list);
  * /api/prompts/purchases/complete:
  *   post:
  *     summary: 결제 완료 처리 (페이플 검증 및 저장)
- *     description: 페이플 결제 완료 후 프론트가 받은 PCD_* 결과 객체를 서버로 그대로 전달하면, PCD_PAY_REQKEY로 페이플에 재검증 후 구매를 확정합니다.
+ *     description: 페이플 인증 결과의 PCD_* 객체를 전달하면 서버가 PCD_PAY_REQKEY로 결제를 승인하고 구매를 확정합니다.
  *     tags: [Purchase]
  *     security:
  *       - jwt: []
@@ -142,17 +142,22 @@ router.get('/', authenticateJwt, PurchaseHistoryController.list);
  *             required:
  *               - PCD_PAY_RST
  *               - PCD_PAY_OID
+ *               - PCD_PAY_WORK
  *               - PCD_PAY_REQKEY
  *               - PCD_AUTH_KEY
+ *               - PCD_PAY_COFURL
+ *               - PCD_USER_DEFINE1
  *             properties:
  *               PCD_PAY_RST: { type: string, enum: [success, error, close] }
  *               PCD_PAY_CODE: { type: string }
  *               PCD_PAY_MSG: { type: string }
  *               PCD_PAY_OID: { type: string, description: "주문 번호 (요청 시 발급된 값)" }
+ *               PCD_PAY_WORK: { type: string, enum: [CERT] }
  *               PCD_PAY_REQKEY: { type: string, description: "페이플 재검증 키" }
  *               PCD_AUTH_KEY: { type: string, description: "페이플 인증 토큰" }
  *               PCD_PAY_HOST: { type: string }
  *               PCD_PAY_URL: { type: string }
+ *               PCD_PAY_COFURL: { type: string, description: "페이플 인증 결과의 최종 승인 URL" }
  *               PCD_PAY_TOTAL: { type: number }
  *               PCD_PAY_TYPE: { type: string }
  *               PCD_USER_DEFINE1: { type: string }

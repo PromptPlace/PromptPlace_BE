@@ -3,7 +3,6 @@ import crypto from 'crypto';
 import { AppError } from '../../errors/AppError';
 import redisClient from '../../config/redis';
 import { k as nsKey } from '../../utils/redis-key';
-import { isValidPaypleBank } from '../constants/bank';
 
 export type SellerTypeHint = 'INDIVIDUAL' | 'BUSINESS_PERSONAL' | 'BUSINESS_CORPORATE';
 
@@ -161,7 +160,7 @@ export const verifyRealNameWithPayple = async (
 ): Promise<PaypleVerifyResult> => {
   const { userId, sellerType, businessType, bank, accountNumber, holderName, birthDate, businessNumber } = params;
 
-  if (!isValidPaypleBank(bank)) {
+  if (!/^\d{3}$/.test(bank)) {
     throw new AccountVerificationError(
       '유효하지 않은 계좌번호이거나 지원하지 않는 은행입니다.',
       'BANK_MISMATCH',
@@ -232,7 +231,9 @@ export const verifyRealNameWithPayple = async (
     throw new AccountVerificationError(parsed.message, parsed.subCode);
   }
 
-  if (res.data.account_holder_name !== holderName) {
+  const normalizedName = (name: string) => name.normalize('NFC').replace(/\s+/g, '');
+  if (typeof res.data.account_holder_name !== 'string' ||
+      normalizedName(res.data.account_holder_name) !== normalizedName(holderName)) {
     throw new AccountVerificationError(
       '실명/대표자명과 예금주명이 일치하지 않습니다. 다시 확인해주세요.',
       'NAME_MISMATCH',

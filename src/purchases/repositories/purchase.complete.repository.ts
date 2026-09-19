@@ -1,8 +1,15 @@
 import { Prisma, Status } from '@prisma/client';
+import prisma from '../../config/prisma';
 
 type Tx = Prisma.TransactionClient;
 
 export const PurchaseCompleteRepository = {
+  findPaymentByOid(oid: string) {
+    return prisma.payment.findUnique({
+      where: { pcd_pay_oid: oid },
+      include: { purchase: true },
+    });
+  },
   createPurchaseTx(tx: Tx, data: {
     user_id: number;
     prompt_id: number;

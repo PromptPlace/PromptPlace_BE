@@ -26,7 +26,7 @@ export const PurchaseRequestService = {
     const payType = dto.pay_type === 'transfer' ? 'transfer' : 'card';
     const payOid = `pay-${uuidv4()}`;
 
-    const auth = await requestPaypleAuth(payType, 'PAY');
+    const auth = await requestPaypleAuth(payType, 'CERT');
 
     return {
       message: '주문서가 생성되었습니다.',
@@ -35,7 +35,7 @@ export const PurchaseRequestService = {
       PCD_CUST_KEY: process.env.PAYPLE_PAY_CUST_KEY || '',
       PCD_AUTH_KEY: auth.authKey,
       PCD_PAY_TYPE: payType,
-      PCD_PAY_WORK: 'PAY',
+      PCD_PAY_WORK: 'CERT',
       PCD_PAY_HOST: auth.payHost,
       PCD_PAY_URL: auth.payUrl,
       PCD_PAY_OID: payOid,

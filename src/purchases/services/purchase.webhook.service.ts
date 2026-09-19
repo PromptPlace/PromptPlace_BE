@@ -9,34 +9,40 @@ export const WebhookService = {
     console.log(`[Webhook] Payple Result Received: ${result.PCD_PAY_OID}`);
 
     try {
-      const verified = await verifyPayplePayment(result, { amount: -1 });
-
-      const promptId = Number(verified.customData?.prompt_id);
-      if (!promptId) {
+      if (result.PCD_PAY_OID) {
+        const processed = await PurchaseCompleteRepository.findPaymentByOid(result.PCD_PAY_OID);
+        if (processed?.status === 'Succeed') return;
+      }
+      let metadata: { prompt_id?: number; user_id?: number } = {};
+      try { metadata = JSON.parse(result.PCD_USER_DEFINE1 ?? '{}'); } catch { /* invalid metadata */ }
+      const promptId = Number(metadata.prompt_id);
+      if (!Number.isSafeInteger(promptId) || promptId <= 0) {
         console.error('[Webhook] Prompt ID missing in PCD_USER_DEFINE1');
-        return;
+        throw new Error('Prompt ID missing in authentication result');
       }
 
-      const userId = Number(verified.customData?.user_id);
-      if (!userId) {
+      const userId = Number(metadata.user_id);
+      if (!Number.isSafeInteger(userId) || userId <= 0) {
         console.error('[Webhook] User ID missing in PCD_USER_DEFINE1');
-        return;
+        throw new Error('User ID missing in authentication result');
       }
 
       const existing = await PurchaseRequestRepository.findExistingPurchase(userId, promptId);
       if (existing) {
-        console.log(`[Webhook] Already processed purchase. PCD_PAY_OID: ${verified.payOid}`);
-        return;
+        const prior = await PurchaseCompleteRepository.findPaymentByOid(result.PCD_PAY_OID);
+        if (prior?.purchase_id === existing.purchase_id && prior.status === 'Succeed') return;
+        throw new Error('Prompt already purchased with another payment');
       }
 
       const prompt = await PurchaseRequestRepository.findPromptWithSeller(promptId);
       if (!prompt) throw new Error('Prompt not found');
 
       const serverPrice = prompt.price;
-      if (verified.amount !== serverPrice) {
+      if (Number(result.PCD_PAY_TOTAL) !== serverPrice) {
         console.error('[Webhook] Fraud detected: Amount mismatch');
-        return;
+        throw new Error('Payment amount mismatch');
       }
+      const verified = await verifyPayplePayment(result, { amount: serverPrice });
 
       await prisma.$transaction(async (tx) => {
         const purchase = await PurchaseCompleteRepository.createPurchaseTx(tx, {
