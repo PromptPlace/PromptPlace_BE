@@ -14,7 +14,7 @@ export interface PurchaseRequestResponseDTO {
   PCD_CUST_KEY: string;
   PCD_AUTH_KEY: string;
   PCD_PAY_TYPE: PaypleClientPayType;
-  PCD_PAY_WORK: 'PAY';
+  PCD_PAY_WORK: 'CERT';
   PCD_PAY_HOST: string;
   PCD_PAY_URL: string;
   PCD_PAY_OID: string;

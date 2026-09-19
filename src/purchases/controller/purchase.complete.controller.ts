@@ -11,12 +11,15 @@ export const PurchaseCompleteController = {
       if (
         !dto ||
         typeof dto.PCD_PAY_OID !== 'string' ||
+        dto.PCD_PAY_WORK !== 'CERT' ||
         typeof dto.PCD_PAY_REQKEY !== 'string' ||
-        typeof dto.PCD_AUTH_KEY !== 'string'
+        typeof dto.PCD_AUTH_KEY !== 'string' ||
+        typeof dto.PCD_PAY_COFURL !== 'string' ||
+        typeof dto.PCD_USER_DEFINE1 !== 'string'
       ) {
         return res.status(400).json({
           error: 'BadRequest',
-          message: 'PCD_PAY_OID, PCD_PAY_REQKEY, PCD_AUTH_KEY는 필수입니다.',
+          message: 'CERT 인증 결과의 주문번호, 승인 키, 승인 URL, 주문 정보는 필수입니다.',
           statusCode: 400,
         });
       }
