@@ -93,8 +93,7 @@ export const handlePaypleWebhook = async (req: Request, res: Response) => {
   }
 
   try {
-    // 멱등성은 handlePaypleResult의 findExistingPurchase가 보장한다.
-    // /complete와 웹훅이 동시에 도착해도 구매가 중복 생성되지 않는다.
+    // 이미 저장된 주문은 서비스에서 확인해 중복 처리를 피한다.
     await WebhookService.handlePaypleResult(body as PayplePaymentResult);
     return res.status(200).send('OK');
   } catch (err: any) {

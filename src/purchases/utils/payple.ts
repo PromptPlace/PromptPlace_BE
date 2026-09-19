@@ -75,6 +75,7 @@ export async function requestPaypleAuth(
 
 export interface PayplePaymentResult {
   PCD_PAY_RST: 'success' | 'error' | 'close';
+  PCD_PAY_WORK?: string;
   PCD_PAY_CODE: string;
   PCD_PAY_MSG: string;
   PCD_PAY_OID: string;
@@ -121,7 +122,8 @@ export type PaypleVerifiedPayment = {
 function parseCustomDefine(define?: string): any {
   if (!define) return {};
   try {
-    return JSON.parse(define);
+    const parsed = JSON.parse(define);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
   } catch {
     return {};
   }
@@ -144,15 +146,11 @@ function parsePaypleTime(t?: string): Date {
   return new Date(`${y}-${mo}-${d}T${h}:${mi}:${s}+09:00`);
 }
 
-// 재검증 요청을 보낼 URL 확정.
-// 브라우저 리턴 페이로드는 PCD_PAY_HOST + PCD_PAY_URL 조합으로 오지만,
-// 웹훅 페이로드는 PCD_PAY_URL이 빈 문자열이고 전체 URL이 PCD_PAY_COFURL로 온다.
-// 두 값 모두 요청 본문에서 오므로 payple.kr 도메인인지 반드시 확인한다 — 확인이 없으면
+// CERT 인증 결과에 포함된 최종 승인 URL을 사용한다.
+// URL은 요청 본문에서 오므로 payple.kr 도메인인지 반드시 확인한다 — 확인이 없으면
 // 인증 없는 웹훅 엔드포인트를 통해 임의 호스트로 요청을 유도할 수 있다 (SSRF).
 export function resolvePaypleConfirmUrl(result: PayplePaymentResult): string {
-  const raw = result.PCD_PAY_URL
-    ? `${result.PCD_PAY_HOST ?? ''}${result.PCD_PAY_URL}`
-    : result.PCD_PAY_COFURL ?? '';
+  const raw = result.PCD_PAY_COFURL ?? '';
 
   let parsed: URL;
   try {
@@ -185,6 +183,10 @@ export async function verifyPayplePayment(
       400,
       'PaymentNotPaid'
     );
+  }
+
+  if (result.PCD_PAY_WORK !== 'CERT' || !result.PCD_PAY_OID) {
+    throw new AppError('페이플 결제 인증 결과가 올바르지 않습니다.', 400, 'InvalidPaymentData');
   }
 
   const reqKey = result.PCD_PAY_REQKEY;
@@ -234,18 +236,32 @@ export async function verifyPayplePayment(
     );
   }
 
+  if (verified.PCD_PAY_OID !== result.PCD_PAY_OID ||
+      verified.PCD_PAY_REQKEY !== reqKey ||
+      verified.PCD_PAY_TYPE !== result.PCD_PAY_TYPE) {
+    throw new AppError('페이플 승인 결과가 요청과 일치하지 않습니다.', 502, 'InvalidPaymentData');
+  }
+
   const verifiedAmount = Number(verified.PCD_PAY_TOTAL);
-  if (Number.isNaN(verifiedAmount)) {
+  if (!Number.isSafeInteger(verifiedAmount) || verifiedAmount <= 0) {
     throw new AppError('페이플 결제 금액 파싱 실패', 502, 'BadGateway');
   }
   if (expected.amount !== -1 && verifiedAmount !== expected.amount) {
     throw new AppError('결제 금액 검증 실패 (위변조 의심)', 400, 'PaymentAmountMismatch');
   }
 
-  const customData = {
-    ...parseCustomDefine(verified.PCD_USER_DEFINE1),
-    ...parseCustomDefine(verified.PCD_USER_DEFINE2),
-  };
+  const customData = parseCustomDefine(verified.PCD_USER_DEFINE1);
+  const requestedData = parseCustomDefine(result.PCD_USER_DEFINE1);
+
+  if (!Number.isSafeInteger(Number(customData.prompt_id)) ||
+      !Number.isSafeInteger(Number(customData.user_id)) ||
+      Number(customData.prompt_id) <= 0 || Number(customData.user_id) <= 0) {
+    throw new AppError('페이플 승인 결과에 주문 정보가 없습니다.', 502, 'InvalidPaymentData');
+  }
+  if (Number(customData.prompt_id) !== Number(requestedData.prompt_id) ||
+      Number(customData.user_id) !== Number(requestedData.user_id)) {
+    throw new AppError('페이플 승인 결과의 주문 정보가 요청과 일치하지 않습니다.', 502, 'InvalidPaymentData');
+  }
 
   return {
     payOid: verified.PCD_PAY_OID,

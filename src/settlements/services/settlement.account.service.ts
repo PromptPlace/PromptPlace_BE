@@ -9,13 +9,11 @@ import {
 import { maskBusinessNumber } from '../utils/masking';
 import { SettlementRepository } from '../repositories/settlement.repository';
 import {
-  AccountVerificationError,
   consumePaypleRateLimit,
   verifyRealNameWithPayple,
 } from '../utils/payple';
 import { issueRegisterToken } from '../utils/register-token';
 import { recordSellerRegistrationConsent } from './seller-consent.service';
-import { isValidPaypleBank } from '../constants/bank';
 
 const ALLOWED_SELLER_TYPES: readonly SellerKind[] = ['INDIVIDUAL', 'BUSINESS'];
 const ALLOWED_BUSINESS_TYPES: readonly BusinessKind[] = ['PERSONAL', 'CORPORATE'];
@@ -70,7 +68,7 @@ const validateDto = (dto: VerifyAccountRequestDto): void => {
       );
     }
   }
-  if (!isValidPaypleBank(dto.bank)) {
+  if (typeof dto.bank !== 'string' || !/^\d{3}$/.test(dto.bank)) {
     throw new AppError(
       '유효하지 않은 계좌번호이거나 지원하지 않는 은행입니다.',
       400,
@@ -78,15 +76,8 @@ const validateDto = (dto: VerifyAccountRequestDto): void => {
     );
   }
 
-  // 법인사업자가 아닌 경우(INDIVIDUAL, BUSINESS+PERSONAL): name === holderName
-  // 법인사업자는 holderName이 법인명이므로 사전 비교 안 함 (Payple 응답으로 검증)
-  const isCorporate = dto.sellerType === 'BUSINESS' && dto.businessType === 'CORPORATE';
-  if (!isCorporate && dto.name !== dto.holderName) {
-    throw new AccountVerificationError(
-      '실명/대표자명과 예금주명이 일치하지 않습니다. 다시 확인해주세요.',
-      'NAME_MISMATCH',
-    );
-  }
+  // 계좌 실명은 Payple 조회 결과로 확인한다. 사업자 대표자명과 예금주명은
+  // 다를 수 있으므로 입력 문자열만 비교해 인증을 막지 않는다.
 };
 
 export const verifySellerAccount = async (userId: number, dto: VerifyAccountRequestDto) => {

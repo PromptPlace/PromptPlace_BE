@@ -8,21 +8,48 @@ import { calculateSettlementFee } from '../utils/fee';
 
 export const PurchaseCompleteService = {
   async completePurchase(userId: number, dto: PurchaseCompleteRequestDTO): Promise<PurchaseCompleteResponseDTO> {
-    const verifiedPayment = await verifyPayplePayment(dto, { amount: -1 });
+    // 다른 사용자의 인증 결과로 승인 요청을 보내지 않는다.
+    let callbackUserId: number | undefined;
+    let callbackPromptId: number | undefined;
+    try {
+      const metadata = JSON.parse(dto.PCD_USER_DEFINE1 ?? '{}');
+      callbackUserId = Number(metadata.user_id);
+      callbackPromptId = Number(metadata.prompt_id);
+    } catch { /* invalid metadata */ }
+    if (callbackUserId !== userId) {
+      throw new AppError('결제 요청 사용자와 로그인 사용자가 다릅니다.', 403, 'Forbidden');
+    }
 
-    const promptId = Number(verifiedPayment.customData?.prompt_id);
-    if (!promptId) throw new AppError('결제 정보에 상품 ID가 없습니다.', 400, 'InvalidPaymentData');
+    const processed = await PurchaseCompleteRepository.findPaymentByOid(dto.PCD_PAY_OID);
+    if (processed?.status === 'Succeed' && processed.purchase.user_id === userId) {
+      return { message: '결제 성공', status: 'Succeed', purchase_id: processed.purchase_id, statusCode: 200 };
+    }
 
-    const prompt = await PurchaseRequestRepository.findPromptWithSeller(promptId);
+    if (!Number.isSafeInteger(callbackPromptId) || !callbackPromptId || callbackPromptId <= 0) {
+      throw new AppError('결제 정보에 상품 ID가 없습니다.', 400, 'InvalidPaymentData');
+    }
+    const prompt = await PurchaseRequestRepository.findPromptWithSeller(callbackPromptId);
     if (!prompt) throw new AppError('프롬프트를 찾을 수 없습니다.', 404, 'NotFound');
-
     const serverPrice = prompt.price;
-    if (verifiedPayment.amount !== serverPrice) {
+    if (Number(dto.PCD_PAY_TOTAL) !== serverPrice) {
       throw new AppError('결제 금액 위변조가 감지되었습니다.', 400, 'FraudDetected');
+    }
+    if (await PurchaseRequestRepository.findExistingPurchase(userId, prompt.prompt_id)) {
+      throw new AppError('이미 구매한 프롬프트입니다.', 409, 'AlreadyPurchased');
+    }
+
+    const verifiedPayment = await verifyPayplePayment(dto, { amount: serverPrice });
+
+    if (Number(verifiedPayment.customData.user_id) !== userId) {
+      throw new AppError('결제 승인 사용자와 로그인 사용자가 다릅니다.', 403, 'Forbidden');
     }
 
     const already = await PurchaseRequestRepository.findExistingPurchase(userId, prompt.prompt_id);
     if (already) {
+      const prior = await PurchaseCompleteRepository.findPaymentByOid(verifiedPayment.payOid);
+      if (prior?.status === 'Succeed' && prior.purchase_id === already.purchase_id) {
+        return { message: '결제 성공', status: 'Succeed', purchase_id: prior.purchase_id, statusCode: 200 };
+      }
       throw new AppError('이미 구매한 프롬프트입니다.', 409, 'AlreadyPurchased');
     }
 
