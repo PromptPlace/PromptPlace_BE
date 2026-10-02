@@ -3,6 +3,7 @@ import { authenticateJwt } from '../../config/passport';
 import { PurchaseRequestController } from '../controller/purchase.request.controller';
 import { PurchaseHistoryController } from '../controller/purchase.controller';
 import { PurchaseCompleteController } from '../controller/purchase.complete.controller';
+import { PurchaseResultController } from '../controller/purchase.result.controller';
 
 const router = Router();
 
@@ -74,6 +75,50 @@ const router = Router();
  *                   example: '{"prompt_id":12,"user_id":5}'
  */
 router.post('/requests', authenticateJwt, PurchaseRequestController.requestPurchase);
+
+/**
+ * @swagger
+ * /api/prompts/purchases/results/{orderId}:
+ *   get:
+ *     summary: 주문번호로 결제 결과 조회
+ *     description: 로그인한 사용자의 주문번호(PCD_PAY_OID)에 해당하는 서버 저장 결제 결과를 조회합니다. 다른 사용자의 주문과 존재하지 않는 주문은 동일하게 404를 반환합니다.
+ *     tags: [Purchase]
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           maxLength: 64
+ *           pattern: '^[A-Za-z0-9._-]+$'
+ *         description: 결제 요청 시 발급된 PCD_PAY_OID
+ *         example: pay-550e8400-e29b-41d4-a716-446655440000
+ *     responses:
+ *       200:
+ *         description: 결제 결과 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string, example: "결제 결과 조회 성공" }
+ *                 statusCode: { type: integer, example: 200 }
+ *                 order_id: { type: string, description: "페이플 주문번호(PCD_PAY_OID)" }
+ *                 status: { type: string, enum: [Pending, Succeed, Failed, Refunded] }
+ *                 purchase_id: { type: integer }
+ *                 prompt_id: { type: integer }
+ *                 amount: { type: integer }
+ *                 created_at: { type: string, format: date-time }
+ *       400:
+ *         description: 주문번호 형식 오류
+ *       401:
+ *         description: 인증 필요
+ *       404:
+ *         description: 로그인 사용자의 결제 결과를 찾을 수 없음
+ */
+router.get('/results/:orderId', authenticateJwt, PurchaseResultController.getResult);
 
 /**
  * @swagger
