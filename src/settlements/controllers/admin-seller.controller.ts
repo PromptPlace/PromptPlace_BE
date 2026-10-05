@@ -38,6 +38,7 @@ export const getPendingSellerList = async (
       req.query.page,
       req.query.limit,
     );
+    res.set('Cache-Control', 'private, no-store');
     return res.success(result, '승인 대기 사업자 판매자 목록을 조회했습니다.');
   } catch (error) {
     return next(error);
@@ -52,6 +53,7 @@ export const getPendingSellerDetail = async (
   try {
     const userId = parseUserIdParam(req.params.userId);
     const result = await getPendingBusinessSellerDetail(userId);
+    res.set('Cache-Control', 'private, no-store');
     return res.success(result, '승인 대기 사업자 판매자 상세 정보를 조회했습니다.');
   } catch (error) {
     return next(error);
@@ -142,6 +144,7 @@ export const getBusinessSellerDetailHandler = async (
   try {
     const userId = parseUserIdParam(req.params.userId);
     const result = await getBusinessSellerDetail(userId);
+    res.set('Cache-Control', 'private, no-store');
     return res.success(result, '사업자 판매자 상세 정보를 조회했습니다.');
   } catch (error) {
     return next(error);

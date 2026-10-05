@@ -29,7 +29,9 @@ export interface RegisterIndividualSellerRequestDto {
 export interface RegisterBusinessSellerRequestDto {
   registerToken: string;
   companyName: string;
-  // 정보 변경 시 새 파일 업로드 안 하고 기존 등록증 유지하고 싶으면 생략 가능
+  // 업로드 API가 반환한 private S3 객체 키. 정보 변경 시에는 생략 가능.
+  businessLicenseKey?: string;
+  // 이전 클라이언트 호환용. 값은 URL이 아니라 객체 키여야 하며, 과거 같은 버킷 URL만 변환한다.
   businessLicenseUrl?: string;
   isTermsAgreed: boolean;
 }

@@ -48,6 +48,9 @@ import morgan = require('morgan');
 const PORT = 3000;
 const app = express();
 
+// 앱 컨테이너 앞의 Caddy/ALB 사설망 hop만 신뢰해 req.ip를 원본 IP로 복원한다.
+app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
+
 // Express 앱을 http 서버로 감싸기
 const server = http.createServer(app); 
 

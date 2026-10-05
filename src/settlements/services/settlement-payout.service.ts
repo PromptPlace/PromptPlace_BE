@@ -2,6 +2,7 @@ import redisClient from '../../config/redis';
 import { k } from '../../utils/redis-key';
 import { SettlementPayoutRepository } from '../repositories/settlement-payout.repository';
 import { requestPayoutStandby, executePayout } from '../utils/payple-payout';
+import { isWebhookIpAllowlistConfigured } from '../utils/payout-webhook-security';
 
 // 정산 사이클 cron — 매월 15일 KST 09:00.
 // 정책 (#491):
@@ -133,6 +134,17 @@ const processOneSeller = async (
 export const runPayoutCycle = async (): Promise<void> => {
   if (process.env.PAYPLE_PAYOUT_CYCLE_ENABLED === 'false') {
     console.log('[payout-cycle] disabled by env');
+    return;
+  }
+
+  if (
+    !isWebhookIpAllowlistConfigured(
+      process.env.PAYPLE_PAYOUT_WEBHOOK_ALLOWED_IPS,
+    )
+  ) {
+    console.error(
+      '[payout-cycle] disabled: PAYPLE_PAYOUT_WEBHOOK_ALLOWED_IPS is missing or invalid',
+    );
     return;
   }
 

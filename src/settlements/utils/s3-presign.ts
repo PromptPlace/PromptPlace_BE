@@ -1,5 +1,6 @@
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { AppError } from '../../errors/AppError';
 import { s3Client } from './s3-client';
 
 const DEFAULT_TTL_SECONDS = 5 * 60;
@@ -10,9 +11,19 @@ export const getPresignedDownloadUrl = async (
   objectKey: string,
   expiresInSeconds: number = DEFAULT_TTL_SECONDS,
 ): Promise<string> => {
+  const bucket = process.env.S3_BUCKET;
+  if (!bucket) {
+    throw new AppError(
+      'S3_BUCKET 환경변수가 설정되지 않았습니다.',
+      500,
+      'ConfigError',
+    );
+  }
+
   const command = new GetObjectCommand({
-    Bucket: process.env.S3_BUCKET!,
+    Bucket: bucket,
     Key: objectKey,
+    ResponseCacheControl: 'private, no-store',
   });
   return await getSignedUrl(s3Client, command, { expiresIn: expiresInSeconds });
 };

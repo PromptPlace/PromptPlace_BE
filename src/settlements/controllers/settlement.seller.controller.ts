@@ -123,12 +123,13 @@ export const uploadLicense = async (req: Request, res: Response) => {
         });
       }
 
-      const result = await uploadBusinessLicenseFile(req.file);
+      const result = await uploadBusinessLicenseFile(user.user_id, req.file);
 
       return res.status(200).json({
         message: result.message,
         fileKey: result.fileKey,
-        fileUrl: result.fileUrl,
+        // 이전 클라이언트 호환용이며 실제 URL이 아닌 동일한 private 객체 키다.
+        fileUrl: result.fileKey,
         statusCode: 200,
       });
     } catch (error: any) {
@@ -168,7 +169,7 @@ export const registerBusiness = async (req: Request, res: Response) => {
     if (tokenError) {
       return res.status(tokenError.status).json(tokenError.body);
     }
-    if (error.name === 'ValidationError') {
+    if (error.name === 'ValidationError' || error.error === 'ValidationError') {
       return res.status(400).json({
         error: 'ValidationError',
         message: error.message,

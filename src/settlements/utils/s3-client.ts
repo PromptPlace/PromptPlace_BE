@@ -12,15 +12,15 @@ export const uploadFileToS3 = async (
   key: string,
   buffer: Buffer,
   contentType: string,
-): Promise<string> => {
+): Promise<void> => {
   const command = new PutObjectCommand({
     Bucket: process.env.S3_BUCKET!,
     Key: key,
     Body: buffer,
     ContentType: contentType,
+    CacheControl: 'private, no-store',
+    ServerSideEncryption: 'AES256',
   });
 
   await s3Client.send(command);
-
-  return `https://${process.env.S3_BUCKET!}.s3.${process.env.S3_REGION}.amazonaws.com/${key}`;
 };

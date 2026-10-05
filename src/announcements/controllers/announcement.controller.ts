@@ -15,6 +15,8 @@ interface RawPaginationQuery {
   size?: string;
 }
 
+type FlatParamsRequest = Request<Record<string, string>>;
+
 //비회원 이용 가능 
 export const getAnnouncementList = async (
   req: Request<any, any, any, RawPaginationQuery>,
@@ -35,7 +37,7 @@ export const getAnnouncementList = async (
   }
 };
 
-export const getAnnouncement = async (req: Request, res: Response) => {
+export const getAnnouncement = async (req: FlatParamsRequest, res: Response) => {
   try {
     const result = await getAnnouncementService(req.params.announcementId);
     return res.success({
@@ -51,7 +53,7 @@ export const getAnnouncement = async (req: Request, res: Response) => {
   }
 };
 
-export const createAnnouncement = async (req: Request, res: Response) => {
+export const createAnnouncement = async (req: FlatParamsRequest, res: Response) => {
   if (!req.user) {
     res.fail({
       statusCode: 401,
@@ -76,7 +78,7 @@ export const createAnnouncement = async (req: Request, res: Response) => {
   }
 };
 
-export const patchAnnouncement = async (req: Request, res: Response) => {
+export const patchAnnouncement = async (req: FlatParamsRequest, res: Response) => {
   try {
     const result = await patchAnnouncementService(req.params.announcementId, req.body);
     return res.success({
@@ -92,7 +94,7 @@ export const patchAnnouncement = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteAnnouncement = async (req: Request, res: Response) => {
+export const deleteAnnouncement = async (req: FlatParamsRequest, res: Response) => {
   try {
     const result = await deleteAnnouncementService(req.params.announcementId);
     return res.success({

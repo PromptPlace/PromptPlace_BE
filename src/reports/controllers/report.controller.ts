@@ -5,9 +5,11 @@ import {
     getReportedPromptByIdService,
 } from '../services/report.service';
 
+type FlatParamsRequest = Request<Record<string, string>>;
+
 // 신고 등록
 export const postReport = async (
-  req: Request,
+  req: FlatParamsRequest,
   res: Response
 ): Promise<void> => {
   if (!req.user) {
@@ -48,7 +50,7 @@ export const postReport = async (
 
 // 신고된 프롬프트 목록 조회
 export const getReportedPrompts = async (
-  req: Request,
+  req: FlatParamsRequest,
   res: Response
 ): Promise<void> => {
     if (!req.user) {
@@ -88,7 +90,7 @@ export const getReportedPrompts = async (
 
 // 특정 신고 조회
 export const getReportedPromptById = async (
-  req: Request,
+  req: FlatParamsRequest,
   res: Response
 ): Promise<void> => {
   if (!req.user) {
