@@ -208,6 +208,7 @@ router.get("/accounts", authenticateJwt, ViewAccount);
  *     description: |
  *       정보 변경 화면에서 기존 등록 데이터를 prefill 하기 위한 상세 조회 API.
  *       사업자는 추가 필드(businessType/businessNumber/companyName/representativeName/businessLicenseUrl/status) 포함.
+ *       businessLicenseUrl은 인증된 본인에게만 발급되는 5분 만료 presigned GET URL입니다.
  *       businessNumber는 마스킹(`123-45-****0`)되어 응답되며, 변경 시 사용자가 실제 값을 다시 입력해야 함.
  *       birthDate는 본인 조회용 평문으로 응답 (정보 변경 시 계좌 재인증을 위해 prefill 필요).
  *     tags: [Settlement]
@@ -237,7 +238,7 @@ router.get("/accounts", authenticateJwt, ViewAccount);
  *                     businessNumber: { type: string, nullable: true, description: 마스킹된 사업자번호, example: "123-45-****0" }
  *                     representativeName: { type: string, nullable: true }
  *                     companyName: { type: string, nullable: true }
- *                     businessLicenseUrl: { type: string, nullable: true }
+ *                     businessLicenseUrl: { type: string, nullable: true, description: 5분 만료 presigned GET URL }
  *                 statusCode: { type: integer, example: 200 }
  *       401:
  *         description: 로그인 필요
@@ -324,7 +325,8 @@ router.post("/register/individual", authenticateJwt, registerIndividual);
  *     description: |
  *       사업자등록증 파일(jpg/jpeg/png/pdf, 최대 20MB)을 업로드합니다.
  *       업로드 시 magic-byte로 실제 파일 형식을 검증하므로 확장자 위장 파일은 415로 거부됩니다.
- *       S3 객체 키는 예측 불가한 UUID로 생성됩니다.
+ *       S3 객체는 사용자별 prefix와 예측 불가한 UUID로 생성되며 private으로 저장됩니다.
+ *       직접 URL은 반환하지 않고 등록 API에 전달할 객체 키만 반환합니다.
  *     tags: [Settlement]
  *     security:
  *       - jwt: []
@@ -349,8 +351,8 @@ router.post("/register/individual", authenticateJwt, registerIndividual);
  *               type: object
  *               properties:
  *                 message: { type: string, example: 사업자등록증 업로드가 완료되었습니다. }
- *                 fileKey: { type: string, description: S3 객체 키 (DB/Register API에 전달용), example: "business-licenses/0e5b9d7a-...-.pdf" }
- *                 fileUrl: { type: string, description: 현재 형식의 S3 URL (버킷 private 전환 시 presigned로 교체 예정) }
+ *                 fileKey: { type: string, description: S3 객체 키 (DB/Register API에 전달용), example: "business-licenses/12/0e5b9d7a-...-.pdf" }
+ *                 fileUrl: { type: string, deprecated: true, description: 이전 클라이언트 호환용 alias. 실제 URL이 아니라 fileKey와 같은 객체 키 }
  *                 statusCode: { type: integer, example: 200 }
  *       400:
  *         description: 파일 누락
@@ -379,7 +381,7 @@ router.post("/upload/business-license", authenticateJwt, uploadLicense);
  *       - 개인 → 사업자 전환: 기존 INDIVIDUAL row 삭제 + 신규 BUSINESS row 생성 (PENDING)
  *       - 사업자 → 사업자 정보 변경: 같은 row 덮어쓰기 + status=PENDING + is_active=false (승인 전까지 일시 비활성화)
  *
- *       사업자등록증(businessLicenseUrl)은 사업자 → 사업자 변경 시에만 생략 가능 (기존 URL 유지).
+ *       사업자등록증 객체 키(businessLicenseKey)는 사업자 → 사업자 변경 시에만 생략 가능 (기존 파일 유지).
  *       최초 등록 / 개인→사업자 전환에는 필수.
  *     tags: [Settlement]
  *     security:
@@ -401,9 +403,10 @@ router.post("/upload/business-license", authenticateJwt, uploadLicense);
  *               companyName:
  *                 type: string
  *                 example: (주)프롬프트팩토리
- *               businessLicenseUrl:
+ *               businessLicenseKey:
  *                 type: string
- *                 description: /upload/business-license 응답으로 받은 fileUrl. 사업자→사업자 변경 시에만 생략 가능
+ *                 description: /upload/business-license 응답으로 받은 fileKey. 사업자→사업자 변경 시에만 생략 가능
+ *                 example: business-licenses/12/0e5b9d7a-...-.pdf
  *               isTermsAgreed:
  *                 type: boolean
  *                 example: true

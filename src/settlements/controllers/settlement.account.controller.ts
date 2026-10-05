@@ -72,6 +72,7 @@ export const ViewAccountDetail = async (req: Request, res: Response) => {
     }
     const userId = (req.user as { user_id: number }).user_id;
     const data = await getSellerAccountDetail(userId);
+    res.set('Cache-Control', 'private, no-store');
     return res.status(200).json({
       message: '판매자 정보 조회가 완료되었습니다.',
       data,

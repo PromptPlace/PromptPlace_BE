@@ -14,6 +14,8 @@ interface RawPaginationQuery {
   size?: string;
 }
 
+type FlatParamsRequest = Request<Record<string, string>>;
+
 //비회원 이용 가능 - 인증 필요 X
 export const getTipList = async (
   req: Request<any, any, any, RawPaginationQuery>,
@@ -35,7 +37,7 @@ export const getTipList = async (
 };
 
 // 팁 생성 - 관리자 인증 필요
-export const getTip = async (req: Request, res: Response) => {
+export const getTip = async (req: FlatParamsRequest, res: Response) => {
   try {
     const result = await getTipService(req.params.tipId);
     return res.success({
@@ -52,7 +54,7 @@ export const getTip = async (req: Request, res: Response) => {
 };
 
 // 팁 생성 - 관리자 인증 필요
-export const createTip = async (req: Request, res: Response) => {
+export const createTip = async (req: FlatParamsRequest, res: Response) => {
   if (!req.user) {
     res.fail({
       statusCode: 401,
@@ -77,7 +79,7 @@ export const createTip = async (req: Request, res: Response) => {
   }
 };
 
-export const patchTip = async (req: Request, res: Response) => {
+export const patchTip = async (req: FlatParamsRequest, res: Response) => {
   try {
     const result = await patchTipService(req.params.tipId, req.body);
     return res.success({
@@ -93,7 +95,7 @@ export const patchTip = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteTip = async (req: Request, res: Response) => {
+export const deleteTip = async (req: FlatParamsRequest, res: Response) => {
   try {
     const result = await deleteTipService(req.params.tipId);
     return res.success({

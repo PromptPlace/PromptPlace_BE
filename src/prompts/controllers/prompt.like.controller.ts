@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import { PromptLikeService } from '../services/prompt.like.service';
 
-export const likePrompt = async (req: Request, res: Response): Promise<void> => {
+type FlatParamsRequest = Request<Record<string, string>>;
+
+export const likePrompt = async (req: FlatParamsRequest, res: Response): Promise<void> => {
   const user = req.user;
   if (!user) {
     res.fail({
@@ -30,7 +32,7 @@ export const likePrompt = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-export const getLikedPrompts = async (req: Request, res: Response): Promise<void> => {
+export const getLikedPrompts = async (req: FlatParamsRequest, res: Response): Promise<void> => {
   const user = req.user;
   if (!user) {
     res.fail({
@@ -55,7 +57,7 @@ export const getLikedPrompts = async (req: Request, res: Response): Promise<void
   }
 };
 
-export const unlikePrompt = async (req: Request, res: Response): Promise<void> => {
+export const unlikePrompt = async (req: FlatParamsRequest, res: Response): Promise<void> => {
   if (!req.user) {
     res.fail({
       statusCode: 401,

@@ -11,6 +11,7 @@ import {
   SellerCancellationResult,
   SellerListResponse,
 } from '../dtos/admin-seller.dto';
+import { getBusinessLicenseDownloadUrl } from '../utils/business-license-storage';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
@@ -34,9 +35,9 @@ type SellerWithUser = Awaited<
   ReturnType<typeof AdminSellerRepository.findPendingBusinessSellerByUserId>
 >;
 
-const toListItem = (
+const toListItem = async (
   account: NonNullable<SellerWithUser>,
-): PendingSellerListItem => ({
+): Promise<PendingSellerListItem> => ({
   user: {
     user_id: account.user.user_id,
     name: account.user.name,
@@ -47,14 +48,16 @@ const toListItem = (
   business_number: account.business_number,
   company_name: account.company_name,
   representative_name: account.representative_name,
-  business_license_url: account.business_license_url,
+  business_license_url: await getBusinessLicenseDownloadUrl(
+    account.business_license_url,
+  ),
   created_at: account.created_at,
 });
 
-const toDetail = (
+const toDetail = async (
   account: NonNullable<SellerWithUser>,
-): PendingSellerDetail => ({
-  ...toListItem(account),
+): Promise<PendingSellerDetail> => ({
+  ...(await toListItem(account)),
   bank_code: account.bank_code,
   account_number: account.account_number,
   account_holder: account.account_holder,
@@ -74,7 +77,7 @@ export const listPendingBusinessSellers = async (
   const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
   return {
-    items: accounts.map(toListItem),
+    items: await Promise.all(accounts.map(toListItem)),
     pagination: {
       page,
       limit,
@@ -99,7 +102,7 @@ export const getPendingBusinessSellerDetail = async (
     );
   }
 
-  return toDetail(account);
+  return await toDetail(account);
 };
 
 export const approvePendingBusinessSeller = async (userId: number) => {
@@ -286,7 +289,9 @@ export const getBusinessSellerDetail = async (
     business_number: account.business_number,
     representative_name: account.representative_name,
     company_name: account.company_name,
-    business_license_url: account.business_license_url,
+    business_license_url: await getBusinessLicenseDownloadUrl(
+      account.business_license_url,
+    ),
     settlement_account: {
       bank_code: account.bank_code,
       account_number: account.account_number,

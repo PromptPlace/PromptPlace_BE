@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { handlePayoutWebhook } from '../controllers/payout-webhook.controller';
+import { authorizePayoutWebhook } from '../middlewares/payout-webhook-auth';
 
 const router = Router();
 
@@ -13,7 +14,8 @@ const router = Router();
  *       group_key로 SettlementPayout을 찾아 status를 Succeed/Failed로 마감.
  *       멱등: 이미 Pending이 아니면 200 OK 응답만 (재전송 방지).
  *
- *       운영 전 IP allowlist 또는 shared-secret 인증 별도 적용 권장 (Payple 명세 미명시).
+ *       PAYPLE_PAYOUT_WEBHOOK_ALLOWED_IPS에 등록된 Payple 원본 IP/CIDR만 허용하며,
+ *       payload의 cst_id와 billing_tran_id도 서버 값과 교차 검증.
  *     tags: [Settlement]
  *     requestBody:
  *       required: true
@@ -32,10 +34,14 @@ const router = Router();
  *       200:
  *         description: 멱등 처리 완료
  *       400:
- *         description: group_key 누락
+ *         description: 필수값 누락 또는 지급 데이터 불일치
+ *       403:
+ *         description: 허용되지 않은 원본 IP 또는 가맹점 ID
+ *       503:
+ *         description: 웹훅 IP allowlist 미설정/오설정
  *       500:
  *         description: 서버 오류
  */
-router.post('/webhook', handlePayoutWebhook);
+router.post('/webhook', authorizePayoutWebhook, handlePayoutWebhook);
 
 export default router;

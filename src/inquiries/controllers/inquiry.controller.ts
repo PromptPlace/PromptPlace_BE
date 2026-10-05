@@ -10,6 +10,8 @@ import { GetInquiriesDto } from "../dtos/get-inquiries.dto";
 import { CreateReplyDto } from "../dtos/create-reply.dto";
 import { MessageRepository } from "../../messages/repositories/message.repository";
 
+type FlatParamsRequest = Request<Record<string, string>>;
+
 export class InquiryController {
   private inquiryService: InquiryService;
 
@@ -22,7 +24,7 @@ export class InquiryController {
   }
 
   public async createInquiry(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -54,7 +56,7 @@ export class InquiryController {
   }
 
   public async getInquiryById(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -78,7 +80,7 @@ export class InquiryController {
   }
 
   public async getReceivedInquiries(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -110,7 +112,7 @@ export class InquiryController {
   }
 
   public async createInquiryReply(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -144,7 +146,7 @@ export class InquiryController {
   }
 
   public async markInquiryAsRead(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -168,7 +170,7 @@ export class InquiryController {
   }
 
   public async deleteInquiry(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
