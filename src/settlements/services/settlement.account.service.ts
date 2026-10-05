@@ -14,6 +14,7 @@ import {
 } from '../utils/payple';
 import { issueRegisterToken } from '../utils/register-token';
 import { recordSellerRegistrationConsent } from './seller-consent.service';
+import { getBusinessLicenseDownloadUrl } from '../utils/business-license-storage';
 
 const ALLOWED_SELLER_TYPES: readonly SellerKind[] = ['INDIVIDUAL', 'BUSINESS'];
 const ALLOWED_BUSINESS_TYPES: readonly BusinessKind[] = ['PERSONAL', 'CORPORATE'];
@@ -167,13 +168,16 @@ export const getSellerAccountDetail = async (
   };
 
   if (sellerType === 'BUSINESS') {
+    const businessLicenseUrl = await getBusinessLicenseDownloadUrl(
+      account.business_license_url,
+    );
     return {
       ...base,
       businessType: (account.business_type ?? undefined) as BusinessKind | undefined,
       businessNumber: maskBusinessNumber(account.business_number) ?? undefined,
       representativeName: account.representative_name ?? undefined,
       companyName: account.company_name ?? undefined,
-      businessLicenseUrl: account.business_license_url ?? undefined,
+      businessLicenseUrl: businessLicenseUrl ?? undefined,
       name: account.representative_name ?? account.account_holder,
     };
   }

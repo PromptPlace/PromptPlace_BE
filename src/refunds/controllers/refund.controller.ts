@@ -5,7 +5,9 @@ import {
   requestManualRefund,
 } from '../services/refund.service';
 
-const getUserId = (req: Request): number | null => {
+type FlatParamsRequest = Request<Record<string, string>>;
+
+const getUserId = (req: FlatParamsRequest): number | null => {
   if (!req.user) return null;
   return (req.user as { user_id: number }).user_id;
 };
@@ -16,7 +18,7 @@ const parsePurchaseId = (raw: string): number | null => {
   return n;
 };
 
-export const checkRefundEligibility = async (req: Request, res: Response) => {
+export const checkRefundEligibility = async (req: FlatParamsRequest, res: Response) => {
   const userId = getUserId(req);
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized', message: '로그인이 필요합니다.', statusCode: 401 });
@@ -38,7 +40,7 @@ export const checkRefundEligibility = async (req: Request, res: Response) => {
   }
 };
 
-export const refundPurchaseHandler = async (req: Request, res: Response) => {
+export const refundPurchaseHandler = async (req: FlatParamsRequest, res: Response) => {
   const userId = getUserId(req);
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized', message: '로그인이 필요합니다.', statusCode: 401 });
@@ -61,7 +63,7 @@ export const refundPurchaseHandler = async (req: Request, res: Response) => {
 };
 
 // 열람 후 수동 환불 신청 — 담당자 검토 대기 상태로 접수만 한다. (#533)
-export const requestManualRefundHandler = async (req: Request, res: Response) => {
+export const requestManualRefundHandler = async (req: FlatParamsRequest, res: Response) => {
   const userId = getUserId(req);
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized', message: '로그인이 필요합니다.', statusCode: 401 });

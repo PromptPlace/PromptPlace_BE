@@ -8,9 +8,12 @@ import {
 } from '../services/admin-refund.service';
 import { RefundStatusValue } from '../utils/refund-policy';
 
+type FlatParamsRequest = Request<Record<string, string>>;
+
 const VALID_STATUSES: RefundStatusValue[] = ['REQUESTED', 'APPROVED', 'REJECTED', 'COMPLETED'];
 
-const getAdminId = (req: Request): number => (req.user as { user_id: number }).user_id;
+const getAdminId = (req: FlatParamsRequest): number =>
+  (req.user as { user_id: number }).user_id;
 
 const parseRefundId = (raw: string): number | null => {
   const n = Number(raw);
@@ -33,7 +36,7 @@ const badRefundId = (res: Response) =>
     statusCode: 400,
   });
 
-export const getRefundListHandler = async (req: Request, res: Response) => {
+export const getRefundListHandler = async (req: FlatParamsRequest, res: Response) => {
   const rawStatus = req.query.status as string | undefined;
   if (rawStatus && !VALID_STATUSES.includes(rawStatus as RefundStatusValue)) {
     return res.status(400).json({
@@ -56,7 +59,7 @@ export const getRefundListHandler = async (req: Request, res: Response) => {
 };
 
 // 검토 대기 목록 — 목록 핸들러에 status를 고정한 얇은 래퍼.
-export const getPendingRefundListHandler = async (req: Request, res: Response) => {
+export const getPendingRefundListHandler = async (req: FlatParamsRequest, res: Response) => {
   try {
     const result = await listRefunds({
       status: 'REQUESTED',
@@ -69,7 +72,7 @@ export const getPendingRefundListHandler = async (req: Request, res: Response) =
   }
 };
 
-export const getRefundDetailHandler = async (req: Request, res: Response) => {
+export const getRefundDetailHandler = async (req: FlatParamsRequest, res: Response) => {
   const refundId = parseRefundId(req.params.refundId);
   if (!refundId) return badRefundId(res);
   try {
@@ -79,7 +82,7 @@ export const getRefundDetailHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const approveRefundHandler = async (req: Request, res: Response) => {
+export const approveRefundHandler = async (req: FlatParamsRequest, res: Response) => {
   const refundId = parseRefundId(req.params.refundId);
   if (!refundId) return badRefundId(res);
   try {
@@ -89,7 +92,7 @@ export const approveRefundHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const rejectRefundHandler = async (req: Request, res: Response) => {
+export const rejectRefundHandler = async (req: FlatParamsRequest, res: Response) => {
   const refundId = parseRefundId(req.params.refundId);
   if (!refundId) return badRefundId(res);
   try {
@@ -99,7 +102,7 @@ export const rejectRefundHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const completeManualRefundHandler = async (req: Request, res: Response) => {
+export const completeManualRefundHandler = async (req: FlatParamsRequest, res: Response) => {
   const refundId = parseRefundId(req.params.refundId);
   if (!refundId) return badRefundId(res);
   try {

@@ -2,11 +2,13 @@ import { Request, Response, NextFunction } from "express";
 import { Service } from "typedi";
 import { MessageService } from "../services/message.service";
 
+type FlatParamsRequest = Request<Record<string, string>>;
+
 @Service()
 export class MessageController {
   constructor(private readonly messageService: MessageService) {}
 
-  getMessageById = async (req: Request, res: Response, next: NextFunction) => {
+  getMessageById = async (req: FlatParamsRequest, res: Response, next: NextFunction) => {
     try {
       const message_id = parseInt(req.params.message_id, 10);
       const currentUserId = (req.user as any).user_id;
@@ -19,7 +21,7 @@ export class MessageController {
     }
   };
 
-  getReceivedMessages = async (req: Request, res: Response, next: NextFunction) => {
+  getReceivedMessages = async (req: FlatParamsRequest, res: Response, next: NextFunction) => {
   try {
     const currentUserId = (req.user as any).user_id;
     const { limit, cursor, is_read } = req.query;
@@ -36,7 +38,7 @@ export class MessageController {
   }
 };
 
-markAsRead = async (req: Request, res: Response, next: NextFunction) => {
+markAsRead = async (req: FlatParamsRequest, res: Response, next: NextFunction) => {
   try {
     const message_id = parseInt(req.params.message_id, 10);
     const user_id = (req.user as any).user_id;
@@ -48,7 +50,7 @@ markAsRead = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-deleteMessage = async (req: Request, res: Response, next: NextFunction) => {
+deleteMessage = async (req: FlatParamsRequest, res: Response, next: NextFunction) => {
   try {
     const message_id = parseInt(req.params.message_id, 10);
     const user_id = (req.user as any).user_id;
@@ -61,7 +63,7 @@ deleteMessage = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-sendMessage = async (req: Request, res: Response, next: NextFunction) => {
+sendMessage = async (req: FlatParamsRequest, res: Response, next: NextFunction) => {
   try {
     const currentUserId = (req.user as any).user_id;
     const data = req.body;

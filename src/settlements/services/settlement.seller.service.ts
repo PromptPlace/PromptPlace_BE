@@ -8,8 +8,10 @@ import { SettlementRepository } from '../repositories/settlement.repository';
 import { consumeRegisterToken } from '../utils/register-token';
 import { uploadFileToS3 } from '../utils/s3-client';
 import { detectBusinessLicenseFileType, isClaimedMimeMatch } from '../utils/file-signature';
+import { normalizeBusinessLicenseObjectKey } from '../utils/business-license-storage';
 
 export const uploadBusinessLicenseFile = async (
+  userId: number,
   file: Express.Multer.File,
 ) => {
   const detected = detectBusinessLicenseFileType(file.buffer);
@@ -29,14 +31,13 @@ export const uploadBusinessLicenseFile = async (
   }
 
   try {
-    // userId 노출/예측 가능성 차단을 위해 uuid 사용
-    const fileKey = `business-licenses/${uuidv4()}${detected.ext}`;
-    const fileUrl = await uploadFileToS3(fileKey, file.buffer, detected.mime);
+    // 사용자별 prefix로 다른 사용자의 키 재사용을 막고 파일명은 UUID로 예측을 어렵게 한다.
+    const fileKey = `business-licenses/${userId}/${uuidv4()}${detected.ext}`;
+    await uploadFileToS3(fileKey, file.buffer, detected.mime);
 
     return {
       message: '사업자등록증 업로드가 완료되었습니다.',
       fileKey,
-      fileUrl,
     };
   } catch (error) {
     console.error('S3 업로드 에러');
@@ -111,6 +112,12 @@ export const registerBusinessSeller = async (
     throw error;
   }
 
+  const submittedLicenseValue =
+    dto.businessLicenseKey ?? dto.businessLicenseUrl;
+  const businessLicenseKey = submittedLicenseValue
+    ? normalizeBusinessLicenseObjectKey(submittedLicenseValue, userId)
+    : undefined;
+
   const payload = await consumeRegisterToken(dto.registerToken);
 
   if (payload.userId !== userId) {
@@ -136,10 +143,10 @@ export const registerBusinessSeller = async (
     throw error;
   }
 
-  // 최초 사업자 등록 시에는 사업자등록증 URL 필수.
-  // 사업자 → 사업자 정보변경 시에만 생략 허용 (기존 URL 유지).
+  // 최초 사업자 등록 시에는 사업자등록증 객체 키 필수.
+  // 사업자 → 사업자 정보변경 시에만 생략 허용 (기존 객체 키 유지).
   const isBusinessUpdate = !!existingAccount && existingAccount.seller_type === 'BUSINESS';
-  if (!isBusinessUpdate && !dto.businessLicenseUrl) {
+  if (!isBusinessUpdate && !businessLicenseKey) {
     const error = new Error('사업자등록증 파일을 업로드해 주세요.');
     error.name = 'ValidationError';
     throw error;
@@ -155,7 +162,7 @@ export const registerBusinessSeller = async (
       businessNumber: payload.businessNumber,
       businessType: payload.businessType,
       companyName: dto.companyName,
-      businessLicenseUrl: dto.businessLicenseUrl!,
+      businessLicenseUrl: businessLicenseKey!,
       birthDate: payload.birthDate,
       billingTranId: payload.billingTranId,
     });
@@ -177,7 +184,7 @@ export const registerBusinessSeller = async (
       businessNumber: payload.businessNumber,
       businessType: payload.businessType,
       companyName: dto.companyName,
-      businessLicenseUrl: dto.businessLicenseUrl!,
+      businessLicenseUrl: businessLicenseKey!,
       birthDate: payload.birthDate,
       billingTranId: payload.billingTranId,
     });
@@ -197,7 +204,7 @@ export const registerBusinessSeller = async (
     businessNumber: payload.businessNumber,
     businessType: payload.businessType,
     companyName: dto.companyName,
-    businessLicenseUrl: dto.businessLicenseUrl,
+    businessLicenseUrl: businessLicenseKey,
     birthDate: payload.birthDate,
     billingTranId: payload.billingTranId,
   });

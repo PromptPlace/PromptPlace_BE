@@ -211,6 +211,11 @@ perf/#이슈번호        # 성능 개선
 - **GitHub Secrets**를 통한 보안 정보 관리
 - **Docker 컨테이너화** 준비 가능한 구조
 
+보안 관련 필수 운영 설정:
+
+- `PAYPLE_PAYOUT_WEBHOOK_ALLOWED_IPS`: Payple 고객센터에서 확인한 웹훅 원본 IP 또는 CIDR을 쉼표로 구분합니다. 누락되거나 잘못되면 지급 웹훅은 안전하게 `503`으로 거절됩니다.
+- S3 버킷은 Block Public Access를 켜고 `business-licenses/*` 공개 정책을 두지 않습니다. 사업자등록증 조회는 인증된 본인 또는 관리자 API가 발급한 5분 만료 presigned URL만 사용합니다.
+
 ## ⚡ 성능 최적화
 
 ### **데이터베이스 최적화**

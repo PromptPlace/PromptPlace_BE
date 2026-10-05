@@ -42,6 +42,11 @@ http://promptplace.kro.kr {
                 }
         }
 
+        # Redis keepalive는 Caddy 응답이 아니라 Express의 실제 PING까지 전달
+        handle /health/redis {
+                reverse_proxy app:3000
+        }
+
         # (선택) ALB 헬스체크 편의 엔드포인트
         @health path /health
         handle @health {
@@ -81,6 +86,11 @@ http://promptplace-dev.kro.kr {
             header_up X-Forwarded-Host  {host}
             header_up X-Real-IP         {remote_host}
         }
+    }
+
+    # Redis keepalive는 app-dev의 실제 Redis PING까지 전달
+    handle /health/redis {
+        reverse_proxy app-dev:3000
     }
 
     # 로드밸런서 헬스체크용

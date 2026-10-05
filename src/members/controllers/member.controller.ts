@@ -12,6 +12,8 @@ import { UpdateHistoryDto } from "../dtos/update-history.dto";
 import { CreateSnsDto } from "../dtos/create-sns.dto";
 import { UpdateSnsDto } from "../dtos/update-sns.dto";
 
+type FlatParamsRequest = Request<Record<string, string>>;
+
 export class MemberController {
   private memberService: MemberService;
 
@@ -20,7 +22,7 @@ export class MemberController {
   }
 
   public async getFollowers(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -38,7 +40,7 @@ export class MemberController {
   }
 
   public async followUser(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -53,7 +55,7 @@ export class MemberController {
   }
 
   public async unfollowUser(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -71,7 +73,7 @@ export class MemberController {
   }
 
   public async getFollowings(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -89,7 +91,7 @@ export class MemberController {
   }
 
   public async getMyPrompts(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -133,7 +135,7 @@ export class MemberController {
   }
 
   public async getMemberPrompts(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -193,7 +195,7 @@ export class MemberController {
   }
 
   public async getMemberById(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -214,7 +216,7 @@ export class MemberController {
   }
 
   public async updateMember(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -246,7 +248,7 @@ export class MemberController {
   }
 
   public async createOrUpdateIntro(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -281,7 +283,7 @@ export class MemberController {
   }
 
   public async updateIntro(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -316,7 +318,7 @@ export class MemberController {
   }
 
   public async createHistory(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -351,7 +353,7 @@ export class MemberController {
   }
 
   public async updateHistory(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -388,7 +390,7 @@ export class MemberController {
   }
 
   public async deleteHistory(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -412,7 +414,7 @@ export class MemberController {
   }
 
   public async adminDeleteHistory(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -435,7 +437,7 @@ export class MemberController {
   }
 
   public async getHistories(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -460,7 +462,7 @@ export class MemberController {
   }
 
   public async createSns(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -495,7 +497,7 @@ export class MemberController {
   }
 
   public async updateSns(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -536,7 +538,7 @@ export class MemberController {
   }
 
   public async deleteSns(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -556,7 +558,7 @@ export class MemberController {
   }
 
   public async getSnsList(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -578,7 +580,7 @@ export class MemberController {
    * 프로필 이미지 업로드 (S3)
    */
   public async uploadProfileImage(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -608,7 +610,7 @@ export class MemberController {
   }
 
   public async followMember(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -632,7 +634,7 @@ export class MemberController {
   }
 
   public async unfollowMember(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -652,7 +654,7 @@ export class MemberController {
   }
 
   public async withdrawMember(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -671,7 +673,7 @@ export class MemberController {
   }
 
   public async getAllMembers(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -692,7 +694,7 @@ export class MemberController {
   }
 
   public async adminBanUser(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -715,7 +717,7 @@ export class MemberController {
   }
 
   public async adminUnBanUser(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -738,7 +740,7 @@ export class MemberController {
   }
 
   public async adminDeleteUser(
-    req: Request,
+    req: FlatParamsRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> {

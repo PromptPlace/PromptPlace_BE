@@ -86,7 +86,7 @@ const router = Router();
  *                           business_license_url:
  *                             type: string
  *                             nullable: true
- *                             example: https://s3.example.com/licenses/12.pdf
+ *                             description: 5분 만료 presigned GET URL
  *                           created_at: { type: string, format: date-time }
  *                     pagination:
  *                       type: object
@@ -147,7 +147,7 @@ router.get('/pending', authenticateJwt, isAdmin, getPendingSellerList);
  *                     business_number: { type: string, nullable: true }
  *                     company_name: { type: string, nullable: true }
  *                     representative_name: { type: string, nullable: true }
- *                     business_license_url: { type: string, nullable: true }
+ *                     business_license_url: { type: string, nullable: true, description: 5분 만료 presigned GET URL }
  *                     bank_code: { type: string }
  *                     account_number: { type: string }
  *                     account_holder: { type: string }
@@ -484,7 +484,7 @@ router.get(
  * /api/admin/sellers/business/{userId}:
  *   get:
  *     summary: 사업자 판매자 상세 조회
- *     description: 관리자가 승인 완료(`APPROVED`)된 사업자 판매자의 상세 정보를 조회합니다. 사업자등록증 URL과 사업자 정보를 포함합니다.
+ *     description: 관리자가 승인 완료(`APPROVED`)된 사업자 판매자의 상세 정보를 조회합니다. 사업자등록증은 5분 만료 presigned GET URL로 제공합니다.
  *     tags: [AdminSeller]
  *     security:
  *       - jwt: []
@@ -525,7 +525,7 @@ router.get(
  *                     business_license_url:
  *                       type: string
  *                       nullable: true
- *                       example: https://s3.example.com/licenses/12.pdf
+ *                       description: 5분 만료 presigned GET URL
  *                     settlement_account:
  *                       type: object
  *                       properties:

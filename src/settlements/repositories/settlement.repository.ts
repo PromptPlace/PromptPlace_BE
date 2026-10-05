@@ -31,7 +31,7 @@ export interface UpdateBusinessAccountInput {
   businessNumber: string;
   businessType: BusinessKind;
   companyName: string;
-  // optional — 빈 값이면 기존 URL 유지
+  // DB 컬럼명은 레거시 URL이지만 값은 private S3 객체 키. 빈 값이면 기존 키 유지.
   businessLicenseUrl?: string | null;
   birthDate?: string;           // BUSINESS+PERSONAL일 때만 존재
   billingTranId?: string | null; // Payple 정산지급대행 빌링키 (#491)
@@ -108,7 +108,7 @@ export const SettlementRepository = {
 
   // 사업자 → 사업자 정보변경.
   // 같은 row 덮어쓰기 + status=PENDING + is_active=false (관리자 승인 전까지 일시 비활성화).
-  // businessLicenseUrl이 undefined면 기존 URL 유지.
+  // businessLicenseUrl이 undefined면 기존 객체 키 유지.
   updateBusinessAccountForApproval: async (
     userId: number,
     dto: UpdateBusinessAccountInput,
