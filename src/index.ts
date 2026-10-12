@@ -31,6 +31,7 @@ import reportRouter from "./reports/routes/report.route"; // 신고 라우터 im
 import announcementRouter from "./announcements/routes/announcement.route"; // 공지사항 라우터 import
 import notificationRouter from "./notifications/routes/notification.route"; // 알림 라우터 import
 import "./notifications/listeners/notification.listener"; // 알림 리스터 import
+import "./purchases/listeners/purchase.mail.listener"; // 결제 완료 메일 리스너
 import messageRouter from "./messages/routes/message.route";
 import adminPromptRouter from "./prompts/routes/admin-prompt.route";
 import adminMemberRouter from "./members/routes/admin-member.route";

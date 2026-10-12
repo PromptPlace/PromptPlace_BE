@@ -3,6 +3,7 @@ import { PurchaseCompleteRepository } from '../repositories/purchase.complete.re
 import prisma from '../../config/prisma';
 import { PayplePaymentResult, parseAgreedAt, verifyPayplePayment } from '../utils/payple';
 import { calculateSettlementFee } from '../utils/fee';
+import eventBus from '../../config/eventBus';
 
 export const WebhookService = {
   async handlePaypleResult(result: PayplePaymentResult) {
@@ -44,7 +45,7 @@ export const WebhookService = {
       }
       const verified = await verifyPayplePayment(result, { amount: serverPrice });
 
-      await prisma.$transaction(async (tx) => {
+      const purchaseId = await prisma.$transaction(async (tx) => {
         const purchase = await PurchaseCompleteRepository.createPurchaseTx(tx, {
           user_id: userId,
           prompt_id: prompt.prompt_id,
@@ -73,7 +74,12 @@ export const WebhookService = {
           fee,
           status: 'Pending',
         });
+
+        return purchase.purchase_id;
       });
+
+      // 웹훅이 /complete보다 먼저 도착해 Purchase를 만든 경우에도 메일이 나가도록 발행
+      eventBus.emit('purchase.completed', purchaseId);
 
       console.log(`[Webhook] Successfully processed payment: ${verified.payOid}`);
     } catch (error) {

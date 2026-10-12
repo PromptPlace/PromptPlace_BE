@@ -5,6 +5,7 @@ import { AppError } from '../../errors/AppError';
 import prisma from '../../config/prisma';
 import { parseAgreedAt, verifyPayplePayment } from '../utils/payple';
 import { calculateSettlementFee } from '../utils/fee';
+import eventBus from '../../config/eventBus';
 
 export const PurchaseCompleteService = {
   async completePurchase(userId: number, dto: PurchaseCompleteRequestDTO): Promise<PurchaseCompleteResponseDTO> {
@@ -85,6 +86,9 @@ export const PurchaseCompleteService = {
 
       return { purchase_id: purchase.purchase_id };
     });
+
+    // 트랜잭션 커밋 이후에만 발행 → 결제 완료 메일 발송 (purchase.mail.listener)
+    eventBus.emit('purchase.completed', purchase_id);
 
     return {
       message: '결제 성공',
